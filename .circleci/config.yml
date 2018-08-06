@@ -205,10 +205,10 @@ jobs:
                   - setup_remote_docker
                   - run: docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
                   - run: docker pull noipm/complaint-manager-ci:$CIRCLE_SHA1
-                  - run: set -o nounset -o errexit
                   - run:
                       name: Migrate and Seed DB
                       command: |
+                        set -o nounset -o errexit \
                         docker run \
                         -e NODE_ENV=ci \
                         -e DATABASE_USERNAME=$CI_DATABASE_USERNAME \
