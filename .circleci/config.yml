@@ -208,7 +208,6 @@ jobs:
                   - run:
                       name: Migrate and Seed DB
                       command: |
-                        set -o nounset -o errexit \
                         docker run \
                         -e NODE_ENV=ci \
                         -e DATABASE_USERNAME=$CI_DATABASE_USERNAME \
@@ -217,7 +216,8 @@ jobs:
                         -e DATABASE_HOST=$CI_DATABASE_HOST \
                         -e AWS_ACCESS_KEY_ID=$CI_AWS_ACCESS_KEY_ID \
                         -e AWS_SECRET_ACCESS_KEY=$CI_AWS_SECRET_ACCESS_KEY \
-                        noipm/complaint-manager-ci:$CIRCLE_SHA1 yarn setup:db
+                        noipm/complaint-manager-ci:$CIRCLE_SHA1 yarn setup:db \
+                        echo test
 
                   - run: docker login --username=$HEROKU_USER --password=$HEROKU_API_KEY registry.heroku.com
                   - run: docker tag noipm/complaint-manager-ci:$CIRCLE_SHA1 registry.heroku.com/noipm-ci/web
