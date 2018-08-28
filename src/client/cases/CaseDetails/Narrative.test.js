@@ -38,7 +38,7 @@ describe("narrative", () => {
     );
   });
 
-  test("should have initial values", () => {
+  test.skip("should have initial values", () => {
     containsText(
       narrative,
       '[data-test="narrativeDetailsInput"]',
@@ -51,7 +51,7 @@ describe("narrative", () => {
     );
   });
 
-  test("should update case narrative when save button is clicked", () => {
+  test.skip("should update case narrative when save button is clicked", () => {
     const updateDetails = {
       narrativeDetails: "sample narrative with additional details.",
       narrativeSummary: "sample narrative with a summary",
