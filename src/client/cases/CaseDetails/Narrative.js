@@ -5,6 +5,17 @@ import updateNarrative from "../thunks/updateNarrative";
 import { CardActions, CardContent, Typography } from "@material-ui/core";
 import { PrimaryButton } from "../../shared/components/StyledButtons";
 import BaseCaseDetailsCard from "./BaseCaseDetailsCard";
+import RtfEditor from "./RtfEditor";
+
+// Cannot use function inside a field component, react will recreate the component each time as it will not be able to
+// identify the component type from the inline function code, having a constant will help react identify the type and
+// prevent recreation of the component so it will not loose focus.
+const RtfComponent = props => (
+  <RtfEditor
+    initialValue={props.input.value}
+    onChange={newValue => props.input.onChange(newValue)}
+  />
+);
 
 const Narrative = props => {
   return (
@@ -41,7 +52,7 @@ const Narrative = props => {
           <Field
             name="narrativeDetails"
             label="Narrative Details"
-            component={TextField}
+            component={RtfComponent}
             fullWidth
             multiline
             rowsMax={5}
