@@ -5,16 +5,13 @@ import updateNarrative from "../thunks/updateNarrative";
 import { CardActions, CardContent, Typography } from "@material-ui/core";
 import { PrimaryButton } from "../../shared/components/StyledButtons";
 import BaseCaseDetailsCard from "./BaseCaseDetailsCard";
+import RtfEditor from "./RtfEditor";
 
 const Narrative = props => {
   return (
     <BaseCaseDetailsCard title="Narrative">
       <CardContent>
-        <Typography
-          style={{
-            marginBottom: "24px"
-          }}
-        >
+        <Typography style={{ marginBottom: "24px" }}>
           Record information gained during the intake process. This information
           will be used to populate a detailed account section of the referral
           letter.
@@ -32,26 +29,26 @@ const Narrative = props => {
               "data-test": "narrativeSummaryInput",
               maxLength: 500
             }}
-            InputLabelProps={{
-              shrink: true
-            }}
+            InputLabelProps={{ shrink: true }}
             data-test="narrativeSummaryInput"
             style={{ marginBottom: "24px" }}
           />
+
           <Field
             name="narrativeDetails"
             label="Narrative Details"
-            component={TextField}
             fullWidth
+            component={props => (
+              <RtfEditor
+                initialValue={props.input.value}
+                setField={newValue => props.input.onChange(newValue)}
+              />
+            )}
             multiline
             rowsMax={5}
             placeholder="Enter a transcript or details of the incident"
-            inputProps={{
-              "data-test": "narrativeDetailsInput"
-            }}
-            InputLabelProps={{
-              shrink: true
-            }}
+            inputProps={{ "data-test": "narrativeDetailsInput" }}
+            InputLabelProps={{ shrink: true }}
             data-test="narrativeDetailsField"
           />
         </form>
