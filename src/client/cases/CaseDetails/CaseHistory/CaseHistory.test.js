@@ -2,7 +2,7 @@ import { shallow } from "enzyme";
 import { CaseHistory } from "./CaseHistory";
 import React from "react";
 
-describe("CaseHistory", () => {
+describe("CaseLetter", () => {
   test("it fetches the case history on mount", () => {
     const getCaseHistory = jest.fn();
     shallow(
