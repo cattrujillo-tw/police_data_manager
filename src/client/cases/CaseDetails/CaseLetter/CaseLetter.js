@@ -4,7 +4,7 @@ import { CardContent, Typography, withStyles } from "@material-ui/core";
 import { Link } from "react-router-dom";
 import LinkButton from "../../../shared/components/LinkButton";
 import { connect } from "react-redux";
-import Narrative from "../Narrative";
+
 import BaseCaseDetailsCard from "../BaseCaseDetailsCard";
 import CivilianInfoDisplay from "../ComplainantWitnesses/CivilianInfoDisplay";
 import formatDate, {
@@ -12,11 +12,12 @@ import formatDate, {
   format12HourTime
 } from "../../../utilities/formatDate";
 import AddressInfoDisplay from "../../../shared/components/AddressInfoDisplay";
-import IncidentDetailsDialog from "../IncidentDetails/IncidentDetailsDialog";
 import getCaseDetails from "../../thunks/getCaseDetails";
 import styles from "../caseDetailsStyles";
+import * as htmlDocx from "html-docx-js/dist/html-docx";
+import DownloadButton from "./DownloadButton";
 
-class CaseLetter extends React.Component {
+class CaseLetter extends Component {
   componentDidMount() {
     this.props.dispatch(getCaseDetails(this.props.match.params.id));
   }
@@ -26,9 +27,22 @@ class CaseLetter extends React.Component {
     return format12HourTime(time) + " " + computeTimeZone(date, time);
   };
 
+  generateLetter = () => {
+    const htmlDoc = document.getElementsByTagName("main")[0];
+    const converted = htmlDocx.asBlob(htmlDoc.innerHTML);
+
+    console.log("Word doc is :", converted);
+    return {
+      mime:
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      filename: "caseLetter.docx",
+      contents: converted
+    };
+  };
+
   render() {
     const caseId = this.props.match.params.id;
-    const { classes } = this.props;
+
     return (
       <div>
         <NavBar>
@@ -97,14 +111,31 @@ class CaseLetter extends React.Component {
             </CardContent>
           </BaseCaseDetailsCard>
 
-          <Narrative
-            initialValues={{
-              narrativeDetails: this.props.caseDetail.narrativeDetails,
-              narrativeSummary: this.props.caseDetail.narrativeSummary
-            }}
-            caseId={this.props.caseDetail.id}
-          />
+          {/*Narrative*/}
+          <BaseCaseDetailsCard title="Narrative">
+            <CardContent>
+              <Typography
+                style={{
+                  marginBottom: "24px"
+                }}
+              >
+                {this.props.caseDetail.narrativeSummary}
+              </Typography>
+
+              <div
+                dangerouslySetInnerHTML={{
+                  __html: this.props.caseDetail.narrativeDetails
+                }}
+              />
+            </CardContent>
+          </BaseCaseDetailsCard>
         </main>
+
+        <DownloadButton
+          generateTitle="Generate Letter"
+          className="waves-effect waves-light btn"
+          genFile={this.generateLetter}
+        />
       </div>
     );
   }
