@@ -1,15 +1,15 @@
 const React = require("react");
 const saveAs = require("./save-as");
 
-class DownloadButton extends React.Component {
+export default class DownloadButton extends React.Component {
   constructor(props) {
     super(props);
     this.state = { loading: true, fileData: null };
   }
 
-  _onGenerate = () => {
+  _onGenerate = async () => {
     this.setState({ loading: true, fileData: null });
-    const fileData = this.props.genFile();
+    const fileData = await this.props.genFile();
     var blob = new Blob([fileData.contents], { type: fileData.mime });
 
     const url = URL.createObjectURL(blob);
@@ -24,10 +24,10 @@ class DownloadButton extends React.Component {
     });
   };
 
-  _onDownload = () => {
+  _onDownload = async () => {
     var fileData =
       this.props.fileData ||
-      (this.props.async ? this.state.fileData : this.props.genFile());
+      (this.props.async ? this.state.fileData : await this.props.genFile());
     if (!fileData) {
       return false;
     }
@@ -45,22 +45,6 @@ class DownloadButton extends React.Component {
     var style = this.props.style,
       cls = "DownloadButton " + (this.props.className || "");
 
-    // if (this.props.fileData || !this.props.async || this.state.fileData) {
-    //   var title = this.props.downloadTitle
-    //   if ("function" === typeof title) {
-    //     title = title(this.props.fileData || this.state.fileData);
-    //   }
-    //   return <button style={style} onClick={this._onDownload} className={cls}>
-    //     {title}
-    //   </button>
-    // }
-    //
-    // if (this.state.loading) {
-    //   return <button style={style} className={cls + ' DownloadButton-loading'}>
-    //     {this.props.loadingTitle}
-    //   </button>
-    // }
-
     return (
       <button style={style} onClick={this._onGenerate} className={cls}>
         {this.props.generateTitle}
@@ -68,5 +52,3 @@ class DownloadButton extends React.Component {
     );
   }
 }
-
-module.exports = DownloadButton;

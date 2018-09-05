@@ -14,7 +14,7 @@ import formatDate, {
 import AddressInfoDisplay from "../../../shared/components/AddressInfoDisplay";
 import getCaseDetails from "../../thunks/getCaseDetails";
 import styles from "../caseDetailsStyles";
-import * as htmlDocx from "html-docx-js/dist/html-docx";
+import generateDocx from "../../../utilities/generateDocx/api";
 import DownloadButton from "./DownloadButton";
 
 class CaseLetter extends Component {
@@ -27,9 +27,9 @@ class CaseLetter extends Component {
     return format12HourTime(time) + " " + computeTimeZone(date, time);
   };
 
-  generateLetter = () => {
+  generateLetter = async () => {
     const htmlDoc = document.getElementsByTagName("main")[0];
-    const converted = htmlDocx.asBlob(htmlDoc.innerHTML);
+    const converted = await generateDocx(htmlDoc.innerHTML);
 
     console.log("Word doc is :", converted);
     return {

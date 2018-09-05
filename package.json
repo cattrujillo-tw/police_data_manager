@@ -52,6 +52,7 @@
     "history": "^4.7.2",
     "html-docx-js": "^0.3.1",
     "jsonwebtoken": "^8.2.0",
+    "jszip": "^3.1.5",
     "jwks-rsa": "^1.2.1",
     "lodash": "^4.17.4",
     "moment": "^2.20.1",
