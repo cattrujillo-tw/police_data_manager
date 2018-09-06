@@ -38,6 +38,13 @@ class CaseNotes extends Component {
             >
               View Case History
             </LinkButton>
+            <LinkButton
+              component={Link}
+              to={`/cases/${this.props.caseId}/letter`}
+              style={{ textAlign: "right", marginBottom: "16px" }}
+            >
+              View Case Letter
+            </LinkButton>
           </div>
           <div data-test="caseNotesContainer" style={{ paddingBottom: "16px" }}>
             {caseNotes.length === 0 ? (
