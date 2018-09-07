@@ -36,6 +36,8 @@ const exportCases = require("./handlers/cases/export/exportCases");
 const express = require("express");
 const router = express.Router();
 
+const generateLetter = require("./generateLetter");
+
 router.use(jwtCheck);
 router.use(verifyUserInfo);
 router.use(authErrorHandler);
@@ -95,5 +97,7 @@ router.get(
 router.get("/officers/search", searchOfficers);
 router.get("/allegations/search", searchAllegations);
 router.get("/allegations", getAllegations);
+
+router.post("/generateLetter", generateLetter);
 
 module.exports = router;
