@@ -6,6 +6,7 @@ import downloadFailed from "../../actionCreators/downloadActionCreators";
 import axios from "axios";
 
 const downloader = (path, filename, fileIsCsv, callback) => async dispatch => {
+  console.log("DOWNLOADER");
   if (!getAccessToken()) {
     return dispatch(push("/login"));
   }

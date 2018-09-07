@@ -1,20 +1,16 @@
 const pdf = require("html-pdf");
 
 generateLetter = (request, response) => {
+  const content = "<div>contents</div>";
   pdf
-    .create(request.body.html, {
+    .create(content, {
       phantomPath: "/usr/bin/phantomjs",
       timeout: 100000,
       format: "Letter"
     })
-    .toFile("testpdf.pdf", function(err, res) {
-      if (err) {
-        console.log("Error:", err);
-        throw err;
-      }
-      console.log("This is the filename:", res);
+    .toBuffer((error, buffer) => {
+      response.send(buffer);
     });
-  response.send("");
 };
 
 module.exports = generateLetter;

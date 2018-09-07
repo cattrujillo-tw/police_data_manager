@@ -98,6 +98,6 @@ router.get("/officers/search", searchOfficers);
 router.get("/allegations/search", searchAllegations);
 router.get("/allegations", getAllegations);
 
-router.post("/generateLetter", generateLetter);
+router.get("/generateLetter", generateLetter);
 
 module.exports = router;

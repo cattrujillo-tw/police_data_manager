@@ -14,13 +14,9 @@ import formatDate, {
 import AddressInfoDisplay from "../../../shared/components/AddressInfoDisplay";
 import getCaseDetails from "../../thunks/getCaseDetails";
 import styles from "../caseDetailsStyles";
-import DownloadButton from "./DownloadButton";
-import pdf from "html-pdf";
-import axios from "axios/index";
-import { push } from "react-router-redux";
-import getAccessToken from "../../../auth/getAccessToken";
-import { getCaseNotesSuccess } from "../../../actionCreators/casesActionCreators";
 import config from "../../../config/config";
+import { PrimaryButton } from "../../../shared/components/StyledButtons";
+import downloader from "../../thunks/downloader";
 
 class CaseLetter extends Component {
   componentDidMount() {
@@ -32,54 +28,9 @@ class CaseLetter extends Component {
     return format12HourTime(time) + " " + computeTimeZone(date, time);
   };
 
-  generateLetter = async () => {
-    const hostname = config[process.env.NODE_ENV].hostname;
-
-    try {
-      const token = getAccessToken();
-      if (!token) {
-        return this.props.dispatch(push("/login"));
-      }
-
-      const html = document.getElementsByTagName("main")[0].innerHTML;
-
-      console.log("ABOUT TO MAKE REQUEST");
-      const pdfContent = await axios(`${hostname}/api/generateLetter`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-        data: JSON.stringify({ html })
-      });
-      console.log("Received pdf file", pdfContent);
-      return {
-        mime: "application/pdf",
-        filename: "caseLetter.pdf",
-        contents: pdfContent
-      };
-    } catch (error) {
-      console.log("ERROR: ", error);
-    }
-    // const html = document.getElementsByTagName("main")[0].innerHTML;
-    // console.log(html);
-    // pdf.create(html).toBuffer(function(err, buffer) {
-    //   console.log("This is a buffer:", Buffer.isBuffer(buffer));
-    // });
-    //   const htmlDoc = document.getElementsByTagName("main")[0];
-    //   const converted = await generateDocx(htmlDoc.innerHTML);
-    //
-    //   console.log("Word doc is :", converted);
-    //   return {
-    //     mime:
-    //       "application/pdf",
-    //     filename: "caseLetter.docx",
-    //     contents: converted
-    //   };
-  };
-
   render() {
     const caseId = this.props.match.params.id;
+    const hostname = config[process.env.NODE_ENV].hostname;
 
     return (
       <div>
@@ -113,7 +64,7 @@ class CaseLetter extends Component {
               style={{ border: "red 2px solid" }}
             />end
           </div>
-          <div id="pageHeader">Default header/></div>
+          <div id="pageHeader">Default header</div>
           <BaseCaseDetailsCard title="Incident Details">
             <CardContent style={{ padding: "24px" }}>
               <div
@@ -180,11 +131,19 @@ class CaseLetter extends Component {
           </BaseCaseDetailsCard>
         </main>
 
-        <DownloadButton
-          generateTitle="Generate Letter"
-          className="waves-effect waves-light btn"
-          genFile={this.generateLetter}
-        />
+        <PrimaryButton
+          onClick={() =>
+            this.props.dispatch(
+              downloader(
+                `${hostname}/api/generateLetter`,
+                "html-to-pdf.pdf",
+                false
+              )
+            )
+          }
+        >
+          Download PDF
+        </PrimaryButton>
       </div>
     );
   }
