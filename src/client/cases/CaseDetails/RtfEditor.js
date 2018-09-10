@@ -4,7 +4,11 @@ import RichTextEditor from "react-rte";
 
 const ToolbarConfig = {
   // Optionally specify the groups to display (displayed in the order listed).
-  display: ["INLINE_STYLE_BUTTONS", "BLOCK_TYPE_BUTTONS"],
+  display: [
+    "INLINE_STYLE_BUTTONS",
+    "BLOCK_TYPE_BUTTONS",
+    "BLOCK_TYPE_DROPDOWN"
+  ],
   INLINE_STYLE_BUTTONS: [
     { label: "Bold", style: "BOLD", className: "custom-css-class" },
     { label: "Italic", style: "ITALIC" },
@@ -13,6 +17,12 @@ const ToolbarConfig = {
   BLOCK_TYPE_BUTTONS: [
     { label: "UL", style: "unordered-list-item" },
     { label: "OL", style: "ordered-list-item" }
+  ],
+  BLOCK_TYPE_DROPDOWN: [
+    { label: "Normal", style: "unstyled" },
+    { label: "Heading Large", style: "header-one" },
+    { label: "Heading Medium", style: "header-two" },
+    { label: "Heading Small", style: "header-three" }
   ]
 };
 

@@ -23,6 +23,9 @@ RUN echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/so
 
 RUN sudo apt-get update && sudo apt-get install yarn
 
+RUN mkdir -p /usr/share/fonts/truetype/
+COPY . /usr/share/fonts/truetype/
+
 RUN apt-get install --yes fontconfig && \
   mkdir -p /usr/share && \
   cd /usr/share \

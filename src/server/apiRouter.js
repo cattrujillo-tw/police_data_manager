@@ -36,7 +36,7 @@ const exportCases = require("./handlers/cases/export/exportCases");
 const express = require("express");
 const router = express.Router();
 
-const generateLetter = require("./generateLetter");
+const generateLetter = require("./handlers/letters/generateLetter");
 
 router.use(jwtCheck);
 router.use(verifyUserInfo);
