@@ -26,6 +26,7 @@ import AllegationSearchContainer from "./allegations/AllegationSearchContainer";
 import SharedSnackbarContainer from "./shared/components/SharedSnackbarContainer";
 import getFeatureToggles from "./featureToggles/thunks/getFeatureToggles";
 import CaseLetter from "./cases/CaseDetails/CaseLetter/CaseLetter";
+import LetterPreview from "./cases/LetterGeneration/Preview/LetterPreview";
 
 class App extends Component {
   componentDidMount() {
@@ -81,6 +82,11 @@ class App extends Component {
                 path="/cases/:id/cases-officers/:caseOfficerId/allegations/search"
                 component={AllegationSearchContainer}
               />
+              <Route
+                exact
+                path="/cases/:id/letter/preview"
+                component={LetterPreview}
+              />
               <SharedSnackbarContainer />
             </ScrollToTop>
           </Paper>
@@ -95,7 +101,4 @@ const mapDispatchToProps = {
   getFeatureToggles
 };
 
-export default connect(
-  undefined,
-  mapDispatchToProps
-)(App);
+export default connect(undefined, mapDispatchToProps)(App);
