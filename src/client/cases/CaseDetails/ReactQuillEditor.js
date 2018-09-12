@@ -19,7 +19,10 @@ class ReactQuillEditor extends React.Component {
         ["bold", "italic", "underline"],
         [{ list: "ordered" }, { list: "bullet" }],
         [{ align: ["", "center"] }]
-      ]
+      ],
+      clipboard: {
+        matchVisual: false
+      }
     };
 
     const formats = ["bold", "italic", "underline", "list", "bullet", "align"];

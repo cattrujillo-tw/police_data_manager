@@ -48,6 +48,7 @@ const htmlContents = `
     <ul><li>PARAGRAPH 01 – PROFESSIONALISM: Officer Doe alleges that her Sgt. has publicly berated her, engaged in inappropriate physical contact and maintained an unprofessional work environment.</li><li>PARAGRAPH 02 - INSTRUCTIONS FROM AUTHORITATIVE SOURCE to wit Chapter 26.3 Workplace Discrimination, Retaliation and Sexual Harassment: Officer Doe alleges her supervisor violated this policy through inappropriate physical contact.</li></ul>
     <p><br></p>
     <p><strong>Unknown Officer</strong> is accused of the following violations:</p>
+    <p><br></p>
     <ul>
         <li>RULE 4: PERFORMANCE OF DUTY: PARAGRAPH 04 – NEGLECT OD DUTY: to wit Chapter 25.1 – Grievances</li>
         <li>RULE 16: Don't break the law</li>
@@ -60,6 +61,7 @@ const htmlContents = `
     <p class="ql-align-center"><strong><u>Request for Review and Possible Reassignment</u></strong></p>
     <p><br></p>
     <p>Custom text with <strong>bold tag</strong> <em>italics tag</em> <strong><em>bold and italics tags</em></strong> <u>underline tag</u>.</p>
+    <p><br></p>
     <ol>
         <li>ordered list item 1</li>
         <li>ordered list item 2</li>
