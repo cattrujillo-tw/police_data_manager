@@ -6,12 +6,13 @@ import { CardActions, CardContent, Typography } from "@material-ui/core";
 import { PrimaryButton } from "../../shared/components/StyledButtons";
 import BaseCaseDetailsCard from "./BaseCaseDetailsCard";
 import ReactQuillEditor from "./ReactQuillEditor";
+import "./test-font.css";
 
 const htmlContents = `
-   <p style="color: #7F7F7F;">
+    <p>
         SUSAN HUTSON
     </p>
-    <p style="color: #7F7F7F;">
+    <p>
         INDEPENDENT POLICE MONITOR
     </p>
     <p><br></p>
@@ -78,8 +79,8 @@ const htmlContents = `
 // prevent recreation of the component so it will not loose focus.
 const ReactQuillComponent = props => (
   <ReactQuillEditor
-    // initialValue = {htmlContents}
-    initialValue={props.input.value}
+    initialValue={htmlContents}
+    // initialValue={props.input.value}
     onChange={newValue => props.input.onChange(newValue)}
   />
 );
