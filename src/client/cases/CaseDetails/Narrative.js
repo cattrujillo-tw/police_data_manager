@@ -9,13 +9,6 @@ import ReactQuillEditor from "./ReactQuillEditor";
 import "./test-font.css";
 
 const htmlContents = `
-    <p>
-        SUSAN HUTSON
-    </p>
-    <p>
-        INDEPENDENT POLICE MONITOR
-    </p>
-    <p><br></p>
     <p><b>September 10, 2018</b></p>
     <p><br></p>
     <p>Arlinda Westbrook</p>
