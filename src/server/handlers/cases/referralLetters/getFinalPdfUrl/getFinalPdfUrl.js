@@ -13,6 +13,7 @@ import createConfiguredS3Instance from "../../../../createConfiguredS3Instance";
 import Boom from "boom";
 
 const getFinalPdfUrl = asyncMiddleware(async (request, response, next) => {
+  console.log("START HERRE", request.params.id);
   const caseId = request.params.id;
   const existingCase = await models.cases.findById(caseId);
 
@@ -27,6 +28,7 @@ const getFinalPdfUrl = asyncMiddleware(async (request, response, next) => {
       AUDIT_ACTION.DATA_ACCESSED
     );
     const signedUrl = getSignedS3Url(existingCase);
+    console.log("URL HERE", signedUrl);
     response.send(signedUrl);
   });
 });

@@ -16,7 +16,8 @@ const generatePdf = (
   edited,
   saveFileForUser = false
 ) => async dispatch => {
-  if (!getAccessToken()) {
+  const token = getAccessToken();
+  if (!token) {
     return dispatch(push("/login"));
   }
   try {
@@ -24,7 +25,7 @@ const generatePdf = (
       `${hostname}/api/cases/${caseId}/referral-letter/generate-pdf`,
       {
         headers: {
-          Authorization: `Bearer ${getAccessToken()}`
+          Authorization: `Bearer ${token}`
         },
         responseType: "arraybuffer"
       }
