@@ -3,7 +3,7 @@ import { composeWithDevTools } from "redux-devtools-extension";
 import { reducer as formReducer } from "redux-form";
 import thunk from "redux-thunk";
 import history from "./history";
-import { routerMiddleware, routerReducer } from "react-router-redux";
+import { routerMiddleware, connectRouter } from "connected-react-router";
 import allCasesReducer from "./reducers/cases/allCasesReducer";
 import snackbarReducer from "./reducers/ui/snackbarReducer";
 import caseDetailsReducer from "./reducers/cases/caseDetailsReducer";
@@ -44,7 +44,7 @@ import intakeSourceReducer from "./reducers/ui/intakeSourceReducer";
 
 const rootReducer = combineReducers({
   form: formReducer,
-  routing: routerReducer,
+  router: connectRouter(history),
   cases: combineReducers({
     all: allCasesReducer
   }),
