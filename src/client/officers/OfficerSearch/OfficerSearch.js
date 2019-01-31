@@ -11,7 +11,13 @@ const OfficerSearch = props => {
   return (
     <div>
       <div style={{ margin: "0 0 32px 0" }}>
-        <Typography variant="title">Search for an Officer</Typography>
+        <Typography
+          data-test="search-page-header"
+          variant="title"
+          className="officerSearchHeader"
+        >
+          Search for an Officer
+        </Typography>
         <Typography variant="body1">
           Unable to find an officer? You can{" "}
           <SelectUnknownOfficerLink
@@ -26,7 +32,6 @@ const OfficerSearch = props => {
       <Card
         style={{
           backgroundColor: "white",
-          width: "60%",
           margin: "0 0 32px 0"
         }}
       >
@@ -37,11 +42,7 @@ const OfficerSearch = props => {
           <OfficerSearchForm caseId={props.caseId} />
         </CardContent>
       </Card>
-      <OfficerSearchResults
-        path={props.path}
-        caseId={props.caseId}
-        initialize={props.initialize}
-      />
+      <OfficerSearchResults path={props.path} initialize={props.initialize} />
       <SelectUnknownOfficerButton
         initialize={props.initialize}
         dispatch={props.dispatch}

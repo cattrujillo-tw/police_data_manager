@@ -1,3 +1,5 @@
+import { ADDRESSABLE_TYPE } from "../../sharedUtilities/constants";
+
 class Address {
   constructor(build) {
     this.id = build.id;
@@ -5,6 +7,10 @@ class Address {
     this.addressableType = build.addressableType;
     this.streetAddress = build.streetAddress;
     this.streetAddress2 = build.streetAddress2;
+    this.additionalLocationInfo = build.additionalLocationInfo;
+    this.lat = build.lat;
+    this.lng = build.lng;
+    this.placeId = build.placeId;
     this.intersection = build.intersection;
     this.city = build.city;
     this.state = build.state;
@@ -17,9 +23,13 @@ class Address {
       defaultAddress() {
         this.id = 11111;
         this.addressableId = 17;
-        this.addressableType = "cases";
+        this.addressableType = ADDRESSABLE_TYPE.CASES;
         this.streetAddress = "123 Main St";
         this.streetAddress2 = "Fl 2";
+        this.additionalLocationInfo = "In front of Wal-Mart";
+        this.lat = 20.976;
+        this.lng = 90.655;
+        this.placeId = "IC9382LXIAJ";
         this.intersection = "Mayo St & Mustard Ave";
         this.city = "Sandwich";
         this.state = "IL";
@@ -57,6 +67,26 @@ class Address {
 
       withStreetAddress2(streetAddress2) {
         this.streetAddress2 = streetAddress2;
+        return this;
+      }
+
+      withAdditionalLocationInfo(additionalLocationInfo) {
+        this.additionalLocationInfo = additionalLocationInfo;
+        return this;
+      }
+
+      withLat(lat) {
+        this.lat = lat;
+        return this;
+      }
+
+      withLng(lng) {
+        this.lng = lng;
+        return this;
+      }
+
+      withPlaceId(placeId) {
+        this.placeId = placeId;
         return this;
       }
 

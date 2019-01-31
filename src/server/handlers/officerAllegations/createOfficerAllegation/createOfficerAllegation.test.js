@@ -10,18 +10,20 @@ import { cleanupDatabase } from "../../../testHelpers/requestTestHelpers";
 import {
   AUDIT_ACTION,
   AUDIT_TYPE,
-  AUDIT_SUBJECT
+  AUDIT_SUBJECT,
+  ALLEGATION_SEVERITY
 } from "../../../../sharedUtilities/constants";
 
 describe("createOfficerAllegation", () => {
-  let newCase, allegation;
+  let newCase, allegation, response, next;
 
   beforeEach(async () => {
     const officerAttributes = new Officer.Builder()
       .defaultOfficer()
       .withId(undefined)
       .build();
-
+    response = httpMocks.createResponse();
+    next = jest.fn();
     const officer = await models.officer.create(officerAttributes);
 
     const caseOfficerAttributes = new CaseOfficer.Builder()
@@ -74,13 +76,11 @@ describe("createOfficerAllegation", () => {
       },
       body: {
         allegationId: allegation.id,
-        details: null
+        details: null,
+        severity: ALLEGATION_SEVERITY.LOW
       },
       nickname: "TEST_USER_NICKNAME"
     });
-
-    const response = httpMocks.createResponse();
-    const next = jest.fn();
 
     await createOfficerAllegation(request, response, next);
 
@@ -106,13 +106,11 @@ describe("createOfficerAllegation", () => {
       },
       body: {
         allegationId: allegation.id,
-        details: allegationDetails
+        details: allegationDetails,
+        severity: ALLEGATION_SEVERITY.LOW
       },
       nickname: "TEST_USER_NICKNAME"
     });
-
-    const response = httpMocks.createResponse();
-    const next = jest.fn();
 
     await createOfficerAllegation(request, response, next);
 
@@ -121,7 +119,10 @@ describe("createOfficerAllegation", () => {
     });
 
     expect(officerAllegation).toEqual(
-      expect.objectContaining({ details: allegationDetails })
+      expect.objectContaining({
+        details: allegationDetails,
+        severity: ALLEGATION_SEVERITY.LOW
+      })
     );
   });
 
@@ -140,7 +141,8 @@ describe("createOfficerAllegation", () => {
       },
       body: {
         allegationId: allegation.id,
-        details: allegationDetails
+        details: allegationDetails,
+        severity: ALLEGATION_SEVERITY.MEDIUM
       },
       nickname: "TEST_USER_NICKNAME"
     });

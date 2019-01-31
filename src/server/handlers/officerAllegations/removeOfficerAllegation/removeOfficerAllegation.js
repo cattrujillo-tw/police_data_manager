@@ -1,6 +1,8 @@
+import { BAD_REQUEST_ERRORS } from "../../../../sharedUtilities/errorMessageConstants";
+
 const { AUDIT_SUBJECT } = require("../../../../sharedUtilities/constants");
 const asyncMiddleware = require("../../asyncMiddleware");
-const getCaseWithAllAssociations = require("../../getCaseWithAllAssociations");
+import { getCaseWithAllAssociations } from "../../getCaseHelpers";
 const models = require("../../../models");
 const Boom = require("boom");
 const auditDataAccess = require("../../auditDataAccess");
@@ -15,7 +17,9 @@ const removeOfficerAllegation = asyncMiddleware(
         );
 
         if (!officerAllegation) {
-          next(Boom.notFound("Officer Allegation does not exist"));
+          next(
+            Boom.badRequest(BAD_REQUEST_ERRORS.OFFICER_ALLEGATION_NOT_FOUND)
+          );
         }
 
         await officerAllegation.destroy({

@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import CasesTable from "./CasesTable/CasesTable";
-import CreateCaseDialog from "./CreateCaseDialog/CreateCaseDialog";
+import CreateCaseButton from "./CreateCaseButton";
 import NavBar from "../shared/components/NavBar/NavBar";
 import { Typography } from "@material-ui/core";
 import { connect } from "react-redux";
@@ -10,7 +10,6 @@ import getCases from "./thunks/getCases";
 class CaseDashboard extends Component {
   componentDidMount() {
     this.props.getCases();
-    this.props.closeSnackbar();
   }
 
   render() {
@@ -21,7 +20,7 @@ class CaseDashboard extends Component {
             View All Cases
           </Typography>
         </NavBar>
-        <CreateCaseDialog />
+        <CreateCaseButton />
         <CasesTable />
       </div>
     );
@@ -33,4 +32,7 @@ const mapDispatchToProps = {
   closeSnackbar
 };
 
-export default connect(undefined, mapDispatchToProps)(CaseDashboard);
+export default connect(
+  null,
+  mapDispatchToProps
+)(CaseDashboard);

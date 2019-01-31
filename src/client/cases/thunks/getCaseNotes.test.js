@@ -1,8 +1,7 @@
 import getCaseNotes from "./getCaseNotes";
 import nock from "nock";
-import getAccessToken from "../../auth/getAccessToken";
 import { getCaseNotesSuccess } from "../../actionCreators/casesActionCreators";
-import { push } from "react-router-redux";
+import configureInterceptors from "../../axiosInterceptors/interceptors";
 
 jest.mock("../../auth/getAccessToken", () => jest.fn(() => "TEST_TOKEN"));
 
@@ -18,6 +17,7 @@ describe("getCaseNotes", () => {
     }
   ];
   beforeEach(() => {
+    configureInterceptors({ dispatch });
     dispatch.mockClear();
   });
 
@@ -28,16 +28,6 @@ describe("getCaseNotes", () => {
 
     await getCaseNotes(caseId)(dispatch);
 
-    expect(dispatch).toHaveBeenCalledWith(
-      getCaseNotesSuccess(responseBody)
-    );
-  });
-
-  test("should redirect to login when no token present", async () => {
-    getAccessToken.mockImplementationOnce(() => null);
-
-    await getCaseNotes(caseId)(dispatch);
-
-    expect(dispatch).toHaveBeenCalledWith(push("/login"));
+    expect(dispatch).toHaveBeenCalledWith(getCaseNotesSuccess(responseBody));
   });
 });

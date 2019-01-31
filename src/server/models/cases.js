@@ -1,3 +1,13 @@
+import { ADDRESSABLE_TYPE } from "../../sharedUtilities/constants";
+import moment from "moment";
+import _ from "lodash";
+import models from "./index";
+import winston from "winston";
+import {
+  BAD_DATA_ERRORS,
+  BAD_REQUEST_ERRORS
+} from "../../sharedUtilities/errorMessageConstants";
+
 const determineNextCaseStatus = require("./modelUtilities/determineNextCaseStatus");
 const Boom = require("boom");
 const CASE_STATUS = require("../../sharedUtilities/constants").CASE_STATUS;
@@ -12,7 +22,7 @@ const {
   WITNESS
 } = require("../../sharedUtilities/constants");
 
-module.exports = (sequelize, DataTypes) => {
+export default (sequelize, DataTypes) => {
   const Op = sequelize.Op;
 
   const Case = sequelize.define(
@@ -33,6 +43,7 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.ENUM([
           CASE_STATUS.INITIAL,
           CASE_STATUS.ACTIVE,
+          CASE_STATUS.LETTER_IN_PROGRESS,
           CASE_STATUS.READY_FOR_REVIEW,
           CASE_STATUS.FORWARDED_TO_AGENCY,
           CASE_STATUS.CLOSED
@@ -44,9 +55,18 @@ module.exports = (sequelize, DataTypes) => {
           if (newStatus === nextStatus || newStatus === this.status) {
             this.setDataValue("status", newStatus);
           } else {
-            throw Boom.badRequest("Invalid case status");
+            throw Boom.badRequest(BAD_REQUEST_ERRORS.INVALID_CASE_STATUS);
           }
         }
+      },
+      year: {
+        type: DataTypes.INTEGER,
+        allowNull: false
+      },
+      caseNumber: {
+        field: "case_number",
+        type: DataTypes.INTEGER,
+        allowNull: false
       },
       district: {
         type: DataTypes.STRING
@@ -59,6 +79,14 @@ module.exports = (sequelize, DataTypes) => {
         field: "incident_date",
         type: DataTypes.DATEONLY
       },
+      intakeSourceId: {
+        type: DataTypes.INTEGER,
+        field: "intake_source_id",
+        references: {
+          model: models.intake_source,
+          key: "id"
+        }
+      },
       incidentTime: {
         field: "incident_time",
         type: DataTypes.TIME
@@ -70,6 +98,10 @@ module.exports = (sequelize, DataTypes) => {
       narrativeDetails: {
         field: "narrative_details",
         type: DataTypes.TEXT
+      },
+      pibCaseNumber: {
+        field: "pib_case_number",
+        type: DataTypes.STRING(25)
       },
       createdBy: {
         field: "created_by",
@@ -88,28 +120,112 @@ module.exports = (sequelize, DataTypes) => {
       updatedAt: {
         field: "updated_at",
         type: DataTypes.DATE
+      },
+      deletedAt: {
+        field: "deleted_at",
+        type: DataTypes.DATE,
+        as: "deletedAt"
       }
     },
     {
+      paranoid: true,
       hooks: {
+        beforeBulkCreate: (instances, options) => {
+          restrictBulkCreate();
+        },
+        beforeBulkUpdate: options => {
+          restrictEditingOfCaseReferenceNumberBulkUpdate(options);
+        },
         beforeUpdate: (instance, options) => {
+          restrictEditingOfCaseReferenceNumber(instance, options);
           if (!instance.changed() || instance.changed().includes("status"))
             return;
           if (instance.status === CASE_STATUS.INITIAL) {
             instance.status = CASE_STATUS.ACTIVE;
           }
+        },
+        beforeCreate: (instance, options) => {
+          if (options.validate === false) {
+            instance.generateCaseReference(instance, options);
+          }
+        },
+        beforeValidate: (instance, options) => {
+          instance.generateCaseReference(instance, options);
         }
       },
       getterMethods: {
         nextStatus() {
           return determineNextCaseStatus(this.status);
+        },
+        caseReference() {
+          const prefix =
+            this.complaintType === CIVILIAN_INITIATED ? "CC" : "PO";
+          const paddedCaseId = `${this.caseNumber}`.padStart(4, "0");
+          return `${prefix}${this.year}-${paddedCaseId}`;
         }
       }
     }
   );
 
+  Case.prototype.generateCaseReference = (instance, options) => {
+    // Generate case number if creating new record
+    // Note: We cannot use Postgres sequence b/c we need to reset each year and a cron to reset sequence once a year seems risky
+    // Note: We cannot lock table for update on aggregate function, so will retry on unique key violation
+    if (instance.isNewRecord) {
+      const caseReferenceYear =
+        instance.firstContactDate &&
+        moment(instance.firstContactDate).format("YYYY");
+      const subqueryForNextCaseNumberThisYear = instance.sequelize.literal(
+        `COALESCE((SELECT max(case_number) + 1 FROM cases where year = ${caseReferenceYear}), 1)`
+      ); //this won't execute until the create statement executes
+      instance.year = caseReferenceYear;
+      instance.caseNumber = subqueryForNextCaseNumberThisYear;
+    }
+  };
+
+  const restrictEditingOfCaseReferenceNumber = (instance, options) => {
+    if (
+      instance.changed() &&
+      (instance.changed().includes("year") ||
+        instance.changed().includes("caseNumber"))
+    ) {
+      throw Boom.badData(BAD_DATA_ERRORS.CANNOT_OVERRIDE_CASE_REFERENCE);
+    }
+  };
+
+  const restrictEditingOfCaseReferenceNumberBulkUpdate = options => {
+    if (
+      options.fields.includes("year") ||
+      options.fields.includes("caseNumber")
+    ) {
+      throw Boom.badData(BAD_DATA_ERRORS.CANNOT_OVERRIDE_CASE_REFERENCE);
+    }
+  };
+
+  const restrictBulkCreate = () => {
+    winston.error(
+      "We have not implemented bulk create. If you choose implement, be sure to handle case reference number generation."
+    );
+    throw Boom.badRequest(BAD_REQUEST_ERRORS.ACTION_NOT_ALLOWED);
+  };
+
+  Case.prototype.hasValueWhenLetterInProgress = function(field, value) {
+    if (
+      [
+        CASE_STATUS.LETTER_IN_PROGRESS,
+        CASE_STATUS.READY_FOR_REVIEW,
+        CASE_STATUS.FORWARDED_TO_AGENCY,
+        CASE_STATUS.CLOSED
+      ].includes(this.status)
+    ) {
+      if (value === null || _.isEmpty(value)) {
+        throw { model: "Case", errorMessage: `${field} is required` };
+      }
+    }
+  };
+
   Case.prototype.modelDescription = async function(transaction) {
-    return [];
+    return [{ "Case Reference": this.caseReference }];
   };
 
   Case.prototype.getCaseId = async function(transaction) {
@@ -137,7 +253,7 @@ module.exports = (sequelize, DataTypes) => {
         field: "addressable_id"
       },
       scope: {
-        addressable_type: "cases"
+        addressable_type: ADDRESSABLE_TYPE.CASES
       }
     });
     Case.hasMany(models.case_officer, {
@@ -155,12 +271,31 @@ module.exports = (sequelize, DataTypes) => {
       foreignKey: { name: "caseId", field: "case_id" },
       scope: { role_on_case: WITNESS }
     });
+    Case.belongsTo(models.classification, {
+      foreignKey: {
+        name: "classificationId",
+        field: "classification_id",
+        allowNull: true
+      }
+    });
+    Case.belongsTo(models.intake_source, {
+      as: "intakeSource",
+      foreignKey: {
+        name: "intakeSourceId",
+        field: "intake_source_id",
+        allowNull: true
+      }
+    });
     Case.hasMany(models.data_change_audit, {
       as: "dataChangeAudits",
       foreignKey: { name: "caseId", field: "case_id" }
     });
     Case.hasMany(models.action_audit, {
       as: "actionAudits",
+      foreignKey: { name: "caseId", field: "case_id" }
+    });
+    Case.hasOne(models.referral_letter, {
+      as: "referralLetter",
       foreignKey: { name: "caseId", field: "case_id" }
     });
   };

@@ -6,10 +6,13 @@ import LinkButton from "../../../shared/components/LinkButton";
 import CaseHistoryTable from "./CaseHistoryTable";
 import getCaseHistory from "../../thunks/getCaseHistory";
 import { connect } from "react-redux";
+import getMinimumCaseDetails from "../../thunks/getMinimumCaseDetails";
 
 export class CaseHistory extends Component {
   componentDidMount() {
-    this.props.getCaseHistory(this.props.match.params.id);
+    const caseId = this.props.match.params.id;
+    this.props.getCaseHistory(caseId);
+    this.props.getMinimumCaseDetails(caseId);
   }
 
   render() {
@@ -23,7 +26,7 @@ export class CaseHistory extends Component {
             color="inherit"
             style={{ marginRight: "20px" }}
           >
-            {`Case #${caseId} : Case History`}
+            {`Case #${this.props.caseReference} : Case History`}
           </Typography>
         </NavBar>
         <LinkButton
@@ -41,7 +44,15 @@ export class CaseHistory extends Component {
 }
 
 const mapDispatchToProps = {
+  getMinimumCaseDetails,
   getCaseHistory
 };
 
-export default connect(undefined, mapDispatchToProps)(CaseHistory);
+const mapStateToProps = state => ({
+  caseReference: state.currentCase.details.caseReference
+});
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(CaseHistory);

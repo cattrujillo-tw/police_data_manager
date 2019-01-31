@@ -1,6 +1,6 @@
 const models = require("../../../models");
 const asyncMiddleware = require("../../asyncMiddleware");
-const getCaseWithAllAssociations = require("../../getCaseWithAllAssociations");
+import { getCaseWithAllAssociations } from "../../getCaseHelpers";
 const {
   buildOfficerAttributesForUnknownOfficer,
   buildOfficerAttributesForNewOfficer
@@ -27,6 +27,18 @@ const editCaseOfficer = asyncMiddleware(async (request, response) => {
         auditUser: request.nickname,
         transaction
       });
+      await models.letter_officer.destroy({
+        where: { caseOfficerId: caseOfficerToUpdate.id },
+        auditUser: request.nickname,
+        transaction
+      });
+    }
+
+    if (oldRoleOnCase !== ACCUSED && roleOnCase === ACCUSED) {
+      await models.letter_officer.create(
+        { caseOfficerId: caseOfficerToUpdate.id },
+        { auditUser: request.nickname, transaction }
+      );
     }
 
     let officerAttributes = {};

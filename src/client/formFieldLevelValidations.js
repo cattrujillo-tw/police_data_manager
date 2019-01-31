@@ -8,11 +8,22 @@ const selectRequired = text => value => {
   return value ? undefined : `Please select ${text}`;
 };
 
+export const isIntegerString = value => {
+  const trimmedValue = typeof value === "string" ? value.trim() : value;
+  const isInt = !trimmedValue || /^\d+$/.test(trimmedValue);
+  return isInt ? undefined : "Please enter a number";
+};
+
 const notBlank = text => value =>
   value.trim() === "" ? `Please enter ${text}` : undefined;
 
 export const isPhoneNumber = value => {
-  const missingOrValid = !Boolean(value) || /^[0-9]{10}$/.test(value);
+  if (!value) {
+    return undefined;
+  }
+  const formattedVal = value.replace(/[() -]/g, "");
+  const missingOrValid =
+    !Boolean(formattedVal) || /^[0-9]{10}$/.test(formattedVal);
   return missingOrValid ? undefined : "Please enter a numeric 10 digit value";
 };
 
@@ -40,4 +51,7 @@ export const raceEthnicityIsRequired = isRequired("Race/Ethnicity");
 export const actionIsRequired = selectRequired("action");
 export const allegationDetailsRequired = isRequired("Allegation Details");
 export const allegationDetailsNotBlank = notBlank("Allegation Details");
+export const allegationSeverityRequired = selectRequired("Allegation Severity");
 export const officerRoleRequired = selectRequired("Role on Case");
+export const titleIsRequired = isRequired("Title");
+export const intakeSourceIsRequired = isRequired("Intake Source");

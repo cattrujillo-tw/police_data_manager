@@ -1,33 +1,11 @@
-import getAccessToken from "../../auth/getAccessToken";
-import { push } from "react-router-redux";
-import config from "../../config/config";
-import {
-  getAllegationsFailed,
-  getAllegationsSuccess
-} from "../../actionCreators/allegationsActionCreators";
+import { getAllegationsSuccess } from "../../actionCreators/allegationsActionCreators";
 import axios from "axios";
-
-const hostname = config[process.env.NODE_ENV].hostname;
 
 const getAllegationDropdownValues = () => async dispatch => {
   try {
-    const token = getAccessToken();
-    if (!token) {
-      return dispatch(push("/login"));
-    }
-
-    const response = await axios(`${hostname}/api/allegations`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`
-      }
-    });
-
+    const response = await axios.get(`api/allegations`);
     return dispatch(getAllegationsSuccess(response.data));
-  } catch (e) {
-    return dispatch(getAllegationsFailed());
-  }
+  } catch (e) {}
 };
 
 export default getAllegationDropdownValues;

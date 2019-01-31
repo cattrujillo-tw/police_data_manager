@@ -1,4 +1,5 @@
 const models = require("./index");
+const { ALLEGATION_SEVERITY } = require("../../sharedUtilities/constants");
 
 module.exports = (sequelize, DataTypes) => {
   const OfficerAllegation = sequelize.define(
@@ -21,6 +22,10 @@ module.exports = (sequelize, DataTypes) => {
           model: models.case_officer,
           key: "id"
         }
+      },
+      severity: {
+        type: DataTypes.ENUM(ALLEGATION_SEVERITY.ALL),
+        allowNull: false
       },
       createdAt: {
         type: DataTypes.DATE,
@@ -94,6 +99,7 @@ module.exports = (sequelize, DataTypes) => {
     });
   };
 
+  //when comment this out, no tests fail!
   OfficerAllegation.auditDataChange();
 
   return OfficerAllegation;

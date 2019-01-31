@@ -11,29 +11,36 @@ import Case from "../../testUtilities/case";
 import getCaseDetails from "../thunks/getCaseDetails";
 import createCivilian from "../thunks/createCivilian";
 import {
-  openCivilianDialog,
-  openRemovePersonDialog,
-  closeEditDialog,
   closeCaseNoteDialog,
-  openCaseNoteDialog,
-  closeRemovePersonDialog,
+  closeCaseStatusUpdateDialog,
+  closeEditCivilianDialog,
+  closeEditIncidentDetailsDialog,
   closeRemoveCaseNoteDialog,
-  closeCaseStatusUpdateDialog
+  closeRemovePersonDialog,
+  getCaseDetailsSuccess,
+  openCaseNoteDialog,
+  openCivilianDialog,
+  openRemovePersonDialog
 } from "../../actionCreators/casesActionCreators";
-import { getCaseDetailsSuccess } from "../../actionCreators/casesActionCreators";
 import { TIMEZONE } from "../../../sharedUtilities/constants";
 import timezone from "moment-timezone";
 import { initialize } from "redux-form";
+import getLetterType from "../ReferralLetter/thunks/getLetterType";
 
-jest.mock("../thunks/getCaseDetails", () => () => ({
-  type: "MOCK_GET_CASE_DETAILS"
+jest.mock("../thunks/getCaseDetails", () => caseId => ({
+  type: "MOCK_GET_CASE_DETAILS",
+  caseId
+}));
+jest.mock("../ReferralLetter/thunks/getLetterType", () => caseId => ({
+  type: "MOCK_GET_LETTER_TYPE",
+  caseId
 }));
 
 jest.mock("../thunks/updateNarrative", () => () => ({
   type: "MOCK_UPDATE_NARRATIVE_THUNK"
 }));
 
-jest.mock("./CivilianDialog/SuggestionEngines/addressSuggestionEngine");
+jest.mock("./CivilianDialog/MapServices/MapService");
 
 describe("Case Details Component", () => {
   let caseDetails, expectedCase, dispatchSpy, store;
@@ -68,19 +75,26 @@ describe("Case Details Component", () => {
     );
   });
 
+  test("loads letter type on mount so message can be displayed", () => {
+    expect(dispatchSpy).toHaveBeenCalledWith(
+      getLetterType(expectedCase.id.toString())
+    );
+  });
+
   test("should dispatch close dialog actions on unmount", () => {
     caseDetails.unmount();
-    expect(dispatchSpy).toHaveBeenCalledWith(closeEditDialog());
+    expect(dispatchSpy).toHaveBeenCalledWith(closeEditCivilianDialog());
     expect(dispatchSpy).toHaveBeenCalledWith(closeCaseNoteDialog());
     expect(dispatchSpy).toHaveBeenCalledWith(closeRemoveCaseNoteDialog());
     expect(dispatchSpy).toHaveBeenCalledWith(closeRemovePersonDialog());
     expect(dispatchSpy).toHaveBeenCalledWith(closeCaseStatusUpdateDialog());
+    expect(dispatchSpy).toHaveBeenCalledWith(closeEditIncidentDetailsDialog());
   });
 
   describe("nav bar", () => {
-    test("should display with Case number", () => {
+    test("should display with case reference", () => {
       const navBar = caseDetails.find(NavBar);
-      const expectedFormattedName = `Case #612`;
+      const expectedFormattedName = `Case #${expectedCase.caseReference}`;
 
       containsText(navBar, '[data-test="pageTitle"]', expectedFormattedName);
     });
@@ -101,7 +115,11 @@ describe("Case Details Component", () => {
     });
 
     test("should display Case # as a default section title", () => {
-      containsText(caseDetails, '[data-test="case-number"]', `Case #612`);
+      containsText(
+        caseDetails,
+        '[data-test="case-reference"]',
+        `Case #${expectedCase.caseReference}`
+      );
     });
 
     test("should display created on date", () => {
@@ -135,10 +153,14 @@ describe("Case Details Component", () => {
 
   describe("main", () => {
     test("should open Add Civilian Dialog when Add Civilian button is clicked", () => {
-      const plusButton = caseDetails.find('button[data-test="caseActionMenu"]');
-      plusButton.simulate("click");
+      const addButton = caseDetails
+        .find('button[data-test="addComplainantWitness"]')
+        .first();
+      addButton.simulate("click");
 
-      const addCivilian = caseDetails.find('li[data-test="addCivilianButton"]');
+      const addCivilian = caseDetails.find(
+        'li[data-test="addCivilianComplainantWitness"]'
+      );
       addCivilian.simulate("click");
 
       expect(dispatchSpy).toHaveBeenCalledWith(
@@ -161,13 +183,10 @@ describe("Case Details Component", () => {
     });
 
     test("should open and initialize Case Note Dialog when Add Case Note button is clicked", () => {
-      const plusButton = caseDetails.find('button[data-test="caseActionMenu"]');
-      plusButton.simulate("click");
-
-      const logCaseNoteButton = caseDetails.find(
-        'li[data-test="logCaseNoteButton"]'
+      const addCaseNoteButton = caseDetails.find(
+        'button[data-test="addCaseNoteButton"]'
       );
-      logCaseNoteButton.simulate("click");
+      addCaseNoteButton.simulate("click");
 
       expect(dispatchSpy).toHaveBeenCalledWith(
         initialize("CaseNotes", {

@@ -5,19 +5,20 @@ import {
 
 const initialState = {
   open: false,
-  nextStatus: ""
+  redirectUrl: null
 };
+
 const updateCaseStatusDialogReducer = (state = initialState, action) => {
   switch (action.type) {
     case CASE_STATUS_UPDATE_DIALOG_OPENED:
       return {
         open: true,
-        nextStatus: action.nextStatus
+        redirectUrl: action.redirectUrl
       };
     case CASE_STATUS_UPDATE_DIALOG_CLOSED:
       return {
         open: false,
-        nextStatus: state.nextStatus
+        redirectUrl: null
       };
     default:
       return state;

@@ -1,14 +1,12 @@
 import React, { Fragment } from "react";
 import { Step, StepLabel, Stepper } from "@material-ui/core";
-import {
-  CASE_STATUS,
-  CASE_STATUS_MAP,
-  USER_PERMISSIONS
-} from "../../../../sharedUtilities/constants";
+import { CASE_STATUS_MAP } from "../../../../sharedUtilities/constants";
 import { connect } from "react-redux";
-import { PrimaryButton } from "../../../shared/components/StyledButtons";
 import UpdateCaseStatusDialog from "../UpdateCaseStatusDialog/UpdateCaseStatusDialog";
-import { openCaseStatusUpdateDialog } from "../../../actionCreators/casesActionCreators";
+import DownloadFinalLetterButton from "../DownloadFinalLetterButton/DownloadFinalLetterButton";
+import EditLetterButton from "../EditLetterButton/EditLetterButton";
+import StatusButton from "../StatusButton/StatusButton";
+import getActiveStep from "./getActiveStep";
 
 const generateSteps = map => {
   return Object.keys(map).map(key => {
@@ -20,64 +18,52 @@ const generateSteps = map => {
   });
 };
 
-function shouldRenderStatusTransitionButton(status, userInfo) {
-  if (status === CASE_STATUS.INITIAL || status === CASE_STATUS.CLOSED)
-    return false;
+const CaseStatusStepper = ({ caseId, status, isArchived }) => {
+  const renderButtons = () => {
+    return (
+      <div
+        style={{
+          marginRight: "5%",
+          marginLeft: "5%",
+          maxWidth: "850px",
+          paddingBottom: "24px",
+          display: "flex",
+          justifyContent: "space-between"
+        }}
+      >
+        <div>
+          <DownloadFinalLetterButton />
+        </div>
+        <div>
+          {isArchived ? null : (
+            <EditLetterButton status={status} caseId={caseId} />
+          )}
+          <StatusButton />
+        </div>
+      </div>
+    );
+  };
 
-  return (
-    status === CASE_STATUS.ACTIVE ||
-    (userInfo &&
-      userInfo.permissions.includes(USER_PERMISSIONS.CAN_REVIEW_CASE))
-  );
-}
-
-const CaseStatusStepper = ({
-  caseId,
-  status,
-  userInfo,
-  nextStatus,
-  dispatch
-}) => {
   return (
     <Fragment>
       <Stepper
         data-test="statusStepper"
-        activeStep={CASE_STATUS_MAP[status]}
+        activeStep={getActiveStep(CASE_STATUS_MAP, status)}
         alternativeLabel
         style={{ marginLeft: "5%", maxWidth: "850px", padding: "24px 0px" }}
       >
         {generateSteps(CASE_STATUS_MAP)}
       </Stepper>
-      {shouldRenderStatusTransitionButton(status, userInfo) ? (
-        <div
-          style={{
-            marginLeft: "5%",
-            marginRight: "5%",
-            maxWidth: "850px",
-            paddingBottom: "24px",
-            display: "flex",
-            justifyContent: "flex-end"
-          }}
-        >
-          <PrimaryButton
-            data-test="updateStatusButton"
-            onClick={() => {
-              dispatch(openCaseStatusUpdateDialog(nextStatus));
-            }}
-          >
-            {`Mark as ${nextStatus}`}
-          </PrimaryButton>
-        </div>
-      ) : null}
+      {renderButtons()}
       <UpdateCaseStatusDialog />
     </Fragment>
   );
 };
 
 const mapStateToProps = state => ({
+  caseId: state.currentCase.details.id,
   status: state.currentCase.details.status,
-  nextStatus: state.currentCase.details.nextStatus,
-  userInfo: state.users.current.userInfo
+  isArchived: state.currentCase.details.isArchived
 });
 
 export default connect(mapStateToProps)(CaseStatusStepper);

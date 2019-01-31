@@ -9,8 +9,8 @@ import {
 import { TextField } from "redux-form-material-ui";
 import { connect } from "react-redux";
 import {
-  SecondaryButton,
-  PrimaryButton
+  PrimaryButton,
+  SecondaryButton
 } from "../../../shared/components/StyledButtons";
 import { closeCaseNoteDialog } from "../../../actionCreators/casesActionCreators";
 import { Field, reduxForm, reset } from "redux-form";
@@ -22,7 +22,10 @@ import { actionIsRequired } from "../../../formFieldLevelValidations";
 import timezone from "moment-timezone";
 import moment from "moment";
 import _ from "lodash";
-import { TIMEZONE } from "../../../../sharedUtilities/constants";
+import {
+  CASE_NOTE_FORM_NAME,
+  TIMEZONE
+} from "../../../../sharedUtilities/constants";
 import editCaseNote from "../../thunks/editCaseNote";
 
 const CaseNoteDialog = props => {
@@ -32,7 +35,8 @@ const CaseNoteDialog = props => {
     handleSubmit,
     dialogType,
     dispatch,
-    initialCaseNote
+    initialCaseNote,
+    submitting
   } = props;
 
   const submit = (values, dispatch, props) => {
@@ -118,7 +122,6 @@ const CaseNoteDialog = props => {
             label="Notes"
             component={TextField}
             inputProps={{
-              maxLength: 255,
               "data-test": "notesInput"
             }}
             InputLabelProps={{
@@ -150,7 +153,11 @@ const CaseNoteDialog = props => {
         >
           Cancel
         </SecondaryButton>
-        <PrimaryButton data-test="submitButton" onClick={handleSubmit(submit)}>
+        <PrimaryButton
+          data-test="submitButton"
+          onClick={handleSubmit(submit)}
+          disabled={submitting}
+        >
           {dialogType === "Add" ? "Add Case Note" : "Save"}
         </PrimaryButton>
       </DialogActions>
@@ -159,7 +166,7 @@ const CaseNoteDialog = props => {
 };
 
 const ConnectedForm = reduxForm({
-  form: "CaseNotes"
+  form: CASE_NOTE_FORM_NAME
 })(CaseNoteDialog);
 
 const mapStateToProps = state => ({

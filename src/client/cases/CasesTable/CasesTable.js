@@ -1,12 +1,12 @@
 import React from "react";
 import { withStyles } from "@material-ui/core/styles";
 import {
+  Paper,
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableRow,
-  Paper,
   TableSortLabel,
   Typography
 } from "@material-ui/core";
@@ -39,10 +39,12 @@ class CasesTable extends React.Component {
                   className={classes.cell}
                 >
                   <TableSortLabel
-                    data-test="caseNumberSortLabel"
-                    onClick={() => this.props.dispatch(updateSort("id"))}
+                    data-test="caseReferenceSortLabel"
+                    onClick={() =>
+                      this.props.dispatch(updateSort("caseReference"))
+                    }
                     direction={this.props.sortDirection}
-                    active={this.props.sortBy === "id"}
+                    active={this.props.sortBy === "caseReference"}
                   >
                     <Typography variant="body2">Case #</Typography>
                   </TableSortLabel>
@@ -132,7 +134,11 @@ class CasesTable extends React.Component {
                 this.props.sortBy,
                 this.props.sortDirection
               ).map(caseDetails => (
-                <CaseRow key={caseDetails.id} caseDetails={caseDetails} currentUser={this.props.currentUser}/>
+                <CaseRow
+                  key={caseDetails.id}
+                  caseDetails={caseDetails}
+                  currentUser={this.props.currentUser}
+                />
               ))}
             </TableBody>
           </Table>

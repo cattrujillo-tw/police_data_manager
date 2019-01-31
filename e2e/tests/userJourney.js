@@ -18,369 +18,446 @@ if (!HOST) {
 }
 
 if (TEST_PASS && TEST_USER && HOST) {
-  const roundTripWait = 20000;
-  const rerenderWait = 1000;
-
   module.exports = {
     "should see sign-in title": browser => {
-      browser
-        .url(HOST)
-        .resizeWindow(1366, 768)
-        .waitForElementVisible("body", rerenderWait)
-        .assert.title("Sign In with Auth0");
+      browser.url(HOST).resizeWindow(1366, 768);
     },
 
     "should authenticate": browser => {
-      browser
-        .waitForElementVisible("[name=email]", rerenderWait)
-        .setValue("[name=email]", TEST_USER)
-        .setValue("[name=password]", TEST_PASS)
-        .click("button[type=submit]")
-        .waitForElementVisible("[data-test=createCaseButton]", roundTripWait)
-        .assert.title("Complaint Manager")
-        .assert.urlEquals(HOST);
+      const loginPage = browser.page.Login();
+
+      loginPage.isOnPage().loginAs(TEST_USER, TEST_PASS);
     },
 
     "should create case": browser => {
-      browser
-        .click("button[data-test=createCaseButton]")
-        .waitForElementVisible("[data-test=firstNameInput]", rerenderWait)
-        .setValue("[data-test=firstNameInput]", "Night")
-        .setValue("[data-test=lastNameInput]", "Watch")
-        .setValue("[data-test=phoneNumberInput]", "1234567890")
-        .click("button[data-test=createAndView]")
-        .waitForElementVisible("[data-test=case-number]", roundTripWait)
-        .assert.urlContains("cases");
+      const caseDashboardPage = browser.page.CaseDashboard();
+      const snackbar = browser.page.SnackbarPOM();
+
+      caseDashboardPage
+        .isOnPage()
+        .createNewCase()
+        .setFirstName("Night")
+        .setLastName("Watch")
+        .setPhoneNumber("1234567890", browser)
+        .setIntakeSourceId("2")
+        .submitCase();
+
+      snackbar.presentWithMessage("successfully created").close();
     },
 
     "should add and remove an attachment": browser => {
-      const imagesDir = "images/";
+      const caseDetailsPage = browser.page.CaseDetails();
+      const snackbar = browser.page.SnackbarPOM();
       const fileName = "dog_nose.jpg";
 
-      browser
-        .setValue(
-          'input[type="file"]',
-          path.resolve(__dirname, imagesDir, fileName)
-        )
-        .waitForElementVisible(
-          "[data-test='attachmentDescriptionInput']",
-          roundTripWait
-        )
-        .setValue('[data-test="attachmentDescriptionInput"]', "a description")
-        .waitForElementVisible(
-          "[data-test=attachmentUploadButton]",
-          rerenderWait
-        )
-        .click("[data-test=attachmentUploadButton]")
-        .pause(2000)
+      caseDetailsPage
+        .isOnPage()
+        .attachFileWithName(fileName)
+        .setDescription("a description")
+        .uploadFile();
 
-        .waitForElementVisible("[data-test=attachmentRow]", roundTripWait)
-        .assert.containsText("[data-test=attachmentRow]", fileName)
-        .waitForElementVisible(
-          "[data-test=removeAttachmentButton]",
-          roundTripWait
-        )
-        .click("[data-test=removeAttachmentButton]")
-        .pause(2000)
-        .click("[data-test=confirmRemoveAttachmentButton]")
-        .pause(2000)
+      snackbar.presentWithMessage("File was successfully attached").close();
 
-        .waitForElementVisible("[data-test=noAttachmentsText]", roundTripWait)
-        .assert.containsText(
-          "[data-test=noAttachmentsText]",
-          "No files are attached"
-        )
-        .pause(2000);
+      caseDetailsPage.removeFile().confirmRemoveAttachmentInDialog();
+
+      snackbar.presentWithMessage("File was successfully removed").close();
+
+      caseDetailsPage.thereAreNoAttachments();
     },
 
-    "should open edit civilian form": browser => {
-      browser
-        .click("[data-test=editComplainantLink]")
-        .waitForElementVisible("[data-test=editDialogTitle]", rerenderWait);
+    "should open edit civilian form and set gender, race/ethnicity, and title": browser => {
+      const caseDetailsPage = browser.page.CaseDetails();
+      const civilianDialog = browser.page.CivilianDialog();
+
+      caseDetailsPage.editComplainant();
+
+      civilianDialog
+        .dialogIsOpen()
+        .setGenderIdentity("Female")
+        .setRaceEthnicityId("2")
+        .setTitle("Miss");
     },
 
-    "should set gender identity ": browser => {
-      browser
-        .click('[data-test="genderDropdown"] > div > div > div')
-        .waitForElementVisible('[id="menu-genderIdentity"]', rerenderWait)
-        .click("li[data-value=Female]")
-        .waitForElementNotPresent('[id="menu-genderIdentity"]', rerenderWait);
+    "should display address suggestions when text is entered": browser => {
+      const civilianDialog = browser.page.CivilianDialog();
+
+      civilianDialog.typeInAddress("6500").thereAreSuggestions();
     },
 
-    "should set race or ethnicity": browser => {
-      browser
-        .click('[data-test="raceDropdown"] > div > div > div')
-        .pause(500) //TODO it takes longer to render the long list of races/ethnicities.  Need to wait so that click isn't dragged in animation
-        .waitForElementVisible('[id="menu-raceEthnicity"]', rerenderWait)
-        .click("li[data-value=Cuban]")
-        .waitForElementNotPresent('[id="menu-raceEthnicity"]', rerenderWait);
+    "should complete suggestion but not select address when navigating through them": browser => {
+      const civilianDialog = browser.page.CivilianDialog();
+
+      civilianDialog
+        .arrowDown()
+        .addressSuggestionFieldPopulated()
+        .addressFieldsAreEmpty();
     },
 
-    "should display suggestions when text is entered": browser => {
-      browser
-        .setValue('[data-test="addressSuggestionField"] > input', ["6500"])
-        .waitForElementPresent(
-          '[data-test="suggestion-container"] > ul',
-          rerenderWait
-        )
-        .pause(1000); //Need to wait for suggestions to finish updating (Network call)
-    },
-
-    "should not select suggestion when navigating through them": browser => {
-      browser
-        .setValue('[data-test="addressSuggestionField"] > input', [
-          browser.Keys.ARROW_DOWN
-        ])
-        .pause(1000)
-        .getValue('[data-test="addressSuggestionField"] > input', result => {
-          browser.assert.ok(result.value.length > 4);
-          this.address = result.value;
-        });
-
-      browser.expect
-        .element('[data-test="streetAddressInput"]')
-        .value.to.equal("");
-      browser.expect.element('[data-test="cityInput"]').value.to.equal("");
-      browser.expect.element('[data-test="stateInput"]').value.to.equal("");
-      browser.expect.element('[data-test="zipCodeInput"]').value.to.equal("");
-      browser.expect.element('[data-test="countryInput"]').value.to.equal("");
-    },
     "should select suggestion on enter/click": browser => {
-      browser
-        .setValue('[data-test="addressSuggestionField"] > input', [
-          browser.Keys.ENTER
-        ])
-        .pause(2000);
+      const civilianDialog = browser.page.CivilianDialog();
 
-      browser.expect
-        .element('[data-test="streetAddressInput"]')
-        .value.to.not.equal("");
-      browser.expect.element('[data-test="cityInput"]').value.to.not.equal("");
-      browser.expect.element('[data-test="stateInput"]').value.to.not.equal("");
-      browser.expect
-        .element('[data-test="zipCodeInput"]')
-        .value.to.not.equal("");
-      browser.expect
-        .element('[data-test="countryInput"]')
-        .value.to.not.equal("");
+      civilianDialog.selectSuggestion().addressFieldsAreNotEmpty();
     },
 
     "should submit address": browser => {
-      browser
-        .click('button[data-test="submitEditCivilian"]')
-        .waitForElementPresent(
-          '[data-test="sharedSnackbarBannerText"]',
-          roundTripWait
-        )
-        .assert.containsText(
-          '[data-test="sharedSnackbarBannerText"]',
-          "Complainant & Witnesses successfully updated"
-        )
-        .pause(500);
+      const civilianDialog = browser.page.CivilianDialog();
+      const snackbar = browser.page.SnackbarPOM();
+
+      civilianDialog.submitCivilianDialog();
+
+      snackbar.presentWithMessage("Civilian was successfully updated").close();
     },
 
     "should display the address in the Complainant & Witnesses section of the Case Detail": browser => {
-      browser.expect
-        .element('p[data-test="civilianAddress"]')
-        .text.to.not.equal("No address specified");
+      const caseDetailsPage = browser.page.CaseDetails();
+
+      caseDetailsPage.expandCivilianDetails().civilianAddressIsSpecified();
     },
 
     "should submit blank address when cleared and submitted": browser => {
-      browser
-        .waitForElementPresent("[data-test=editComplainantLink]", rerenderWait)
-        .click("[data-test=editComplainantLink]")
-        .waitForElementVisible("[data-test=editDialogTitle]", rerenderWait)
-        .clearValue('[data-test="addressSuggestionField"] > input')
-        .pause(500)
-        .setValue('[data-test="addressSuggestionField"] > input', [
-          " ",
-          browser.Keys.BACK_SPACE
-        ])
-        .pause(500);
+      const caseDetailsPage = browser.page.CaseDetails();
+      const civilianDialog = browser.page.CivilianDialog();
+      const snackbar = browser.page.SnackbarPOM();
 
-      browser.expect
-        .element('[data-test="addressSuggestionField"] > input')
-        .text.to.equal("");
-      browser.expect
-        .element('[data-test="streetAddressInput"]')
-        .value.to.equal("");
-      browser.expect.element('[data-test="cityInput"]').value.to.equal("");
-      browser.expect.element('[data-test="stateInput"]').value.to.equal("");
-      browser.expect.element('[data-test="zipCodeInput"]').value.to.equal("");
-      browser.expect.element('[data-test="countryInput"]').value.to.equal("");
+      caseDetailsPage.editComplainant();
 
-      browser
-        .click('button[data-test="submitEditCivilian"]')
-        .waitForElementPresent(
-          '[data-test="sharedSnackbarBannerText"]',
-          roundTripWait
-        )
-        .assert.containsText(
-          '[data-test="sharedSnackbarBannerText"]',
-          "Complainant & Witnesses successfully updated"
-        )
-        .pause(500);
+      civilianDialog
+        .dialogIsOpen()
+        .setAddressSuggestionFieldToEmpty()
+        .addressFieldsAreEmpty()
+        .submitCivilianDialog();
+
+      snackbar.presentWithMessage("Civilian was successfully updated").close();
     },
 
     "should not show address in Complainant & Witnesses section of Case Detail": browser => {
-      browser
-        .waitForElementPresent('p[data-test="civilianAddress"]', roundTripWait)
-        .pause(500);
+      const caseDetailsPage = browser.page.CaseDetails();
 
-      const expansionPanel = '[data-test="complainantWitnessesPanel"] > div';
-      browser.getAttribute(expansionPanel, "aria-expanded", expanded => {
-        if (!expanded) {
-          browser.click(expansionPanel).pause(1000);
-        }
-      });
-
-      browser.getText('p[data-test="civilianAddress"]', result => {
-        browser.assert.containsText(
-          'p[data-test="civilianAddress"]',
-          result.value
-        );
-      });
+      caseDetailsPage.expandCivilianDetails().civilianAddressIsNotSpecified();
     },
 
-    "should navigate to Add Case Officer Page": browser => {
-      browser
-        .click('[data-test="caseActionMenu"]')
-        .waitForElementVisible('[data-test="addOfficerButton"]', rerenderWait)
-        .click('[data-test="addOfficerButton"]')
-        .waitForElementVisible(
-          '[data-test="selectUnknownOfficerLink"]',
-          rerenderWait
-        );
+    "should open incident details and add": browser => {
+      const caseDetailsPage = browser.page.CaseDetails();
+
+      caseDetailsPage
+        .isOnPage()
+        .setNarrativeSummary()
+        .setNarrativeDetails()
+        .saveNarrative()
+        .openIncidentDetails();
     },
 
-    "should navigate to add officer form for unknown officer": browser => {
-      browser
-        .click('[data-test="selectUnknownOfficerLink"]')
-        .waitForElementVisible(
-          '[data-test="roleOnCaseDropdown"] > div > div > div',
-          rerenderWait
-        )
-        .click('[data-test="roleOnCaseDropdown"] > div > div > div')
-        .waitForElementVisible('[id="menu-roleOnCase"]', rerenderWait)
-        .click("li[data-value=Accused]")
-        .waitForElementNotPresent('[id="menu-roleOnCase"]', rerenderWait)
-        .waitForElementVisible(
-          '[data-test="officerSubmitButton"]',
-          rerenderWait
-        );
+    "should enter and fill incident details into incident dialog": browser => {
+      const incidentDetailsDialog = browser.page.IncidentDetailsDialog();
+      const snackbar = browser.page.SnackbarPOM();
+
+      incidentDetailsDialog
+        .dialogIsOpen()
+        .typeInAddress("canal st & bourbon st")
+        .saveIncidentDetails()
+        .fillAddress()
+        .setIncidentDate()
+        .setIncidentTime()
+        .setDistrict()
+        .saveIncidentDetails();
+
+      snackbar
+        .presentWithMessage("Incident details were successfully updated")
+        .close();
+    },
+
+    "should display the incident location in the Incident Details section of the Case Detail": browser => {
+      const caseDetailsPage = browser.page.CaseDetails();
+
+      caseDetailsPage.incidentAddressIsSpecified().addAccusedOfficer();
+    },
+
+    "should navigate to add officer form for unknown officer and add unknown officer": browser => {
+      const addOfficerSearchPage = browser.page.AddOfficerSearch();
+      const addOfficerDetailsPage = browser.page.AddOfficerDetails();
+
+      addOfficerSearchPage.isOnPage().clickUnknownOfficerLink();
+
+      addOfficerDetailsPage
+        .isOnPageForUnknownOfficer()
+        .selectRole("Accused")
+        .submitOfficer();
     },
 
     "should see Unknown Officer in Accused section when added": browser => {
-      browser
-        .click('[data-test="officerSubmitButton"]')
-        .waitForElementVisible(
-          '[data-test="unknownOfficerPanel"]',
-          roundTripWait
-        )
-        .assert.containsText(
-          '[data-test="unknownOfficerPanel"]',
-          "Unknown Officer"
-        );
+      const caseDetailsPage = browser.page.CaseDetails();
+      const snackbar = browser.page.SnackbarPOM();
+
+      caseDetailsPage.isOnPage().thereIsAnUnknownOfficer();
+
+      snackbar.presentWithMessage("Officer was successfully added").close();
     },
 
     "should see Edit Officer page when Edit Officer clicked": browser => {
-      browser
-        .click('[data-test="manageCaseOfficer"]')
-        .waitForElementVisible('[data-test="editCaseOfficer"]', rerenderWait)
-        .click('[data-test="editCaseOfficer"]')
-        .waitForElementVisible('[data-test="changeOfficerLink"]', rerenderWait);
+      const caseDetailsPage = browser.page.CaseDetails();
+      const editOfficerDetailsPage = browser.page.EditOfficerDetails();
+
+      caseDetailsPage.clickManageUnknownOfficer().clickEditOfficer();
+
+      editOfficerDetailsPage.isOnPageForUnknownOfficer().changeOfficer();
     },
 
-    "should see Edit Officer search page when change officer clicked": browser => {
-      browser
-        .click('[data-test="changeOfficerLink"]')
-        .waitForElementVisible(
-          '[data-test="officerSearchSubmitButton"]',
-          rerenderWait
-        );
+    "should see Edit Officer search and search for officer to replace unknown": browser => {
+      const editOfficerSearchPage = browser.page.EditOfficerSearch();
+
+      editOfficerSearchPage
+        .isOnPage()
+        .setLastName("Ri")
+        .searchForOfficer()
+        .selectNewOfficer();
     },
 
-    "should search for officer to replace unknown": browser => {
-      browser
-        .setValue('[data-test="lastNameField"]', "Ri")
-        .click('[data-test="officerSearchSubmitButton"]')
-        .waitForElementVisible(
-          '[data-test="selectNewOfficerButton"]',
-          roundTripWait
-        );
-    },
+    "should return to Edit Officer Details when new officer selected and save Officer": browser => {
+      const editOfficerDetailsPage = browser.page.EditOfficerDetails();
 
-    "should return to Edit Officer when new officer selected": browser => {
-      browser
-        .click('[data-test="selectNewOfficerButton"]')
-        .waitForElementVisible('[data-test="changeOfficerLink"]', rerenderWait);
+      editOfficerDetailsPage.isOnPageForKnownOfficer().saveOfficer();
     },
 
     "should see that officer is no longer unknown in accused officers": browser => {
-      browser
-        .click('[data-test="officerSubmitButton"]')
-        .waitForElementVisible('[data-test="officerPanel"]', roundTripWait)
-        .assert.containsText('[data-test="officerPanel"]', "Ri");
+      const caseDetailsPage = browser.page.CaseDetails();
+      const snackbar = browser.page.SnackbarPOM();
+
+      caseDetailsPage.isOnPage();
+
+      snackbar.presentWithMessage("Officer was successfully updated").close();
+
+      caseDetailsPage.thereIsAKnownOfficer("Ri");
     },
 
     "should add an allegation to the officer": browser => {
-      browser
-        .click('[data-test="manageCaseOfficer"]')
-        .waitForElementVisible('[data-test="addAllegation"]', rerenderWait)
-        .click('[data-test="addAllegation"]')
-        .waitForElementVisible('[data-test="ruleDropdown"]', rerenderWait)
-        .click('[data-test="ruleDropdown"]')
-        .waitForElementVisible('[role="listbox"]', 3000)
-        .pause(500)
-        .click('[role="listbox"] > li:last-child')
-        .waitForElementVisible(
-          '[data-test="allegationSearchSubmitButton"]',
-          1500
-        )
-        .pause(500)
-        .click('[data-test="allegationSearchSubmitButton"]')
-        .waitForElementVisible('[data-test="selectAllegationButton"]', 5000)
-        .click('[data-test="selectAllegationButton"]')
-        .setValue(
-          '[data-test="allegationDetailsInput"]',
-          "Used department property."
-        )
-        .waitForElementVisible(
-          '[data-test="addAllegationButton"]',
-          rerenderWait
-        )
-        .click('[data-test="addAllegationButton"]')
-        .waitForElementVisible('[data-test="officerAllegation0"]', rerenderWait)
-        .click('[data-test="back-to-case-link"]');
+      const caseDetailsPage = browser.page.CaseDetails();
+      const allegationPage = browser.page.Allegations();
+      const snackbar = browser.page.SnackbarPOM();
+
+      caseDetailsPage.clickManageKnownOfficer().clickManageAllegations();
+
+      allegationPage
+        .isOnPage()
+        .setRule()
+        .searchForAllegations()
+        .selectAllegation()
+        .setAllegationDetails("Used department property.")
+        .setAllegationSeverity()
+        .addAllegation()
+        .newAllegationExists();
+
+      snackbar.presentWithMessage("Allegation was successfully added").close();
+
+      allegationPage.returnToCase();
+    },
+
+    "should navigate to Add Case Officer Page to add second officer": browser => {
+      const caseDetailsPage = browser.page.CaseDetails();
+      const addOfficerSearchPage = browser.page.AddOfficerSearch();
+
+      caseDetailsPage.isOnPage().addAccusedOfficer();
+
+      addOfficerSearchPage.isOnPage().clickUnknownOfficerLink();
+    },
+
+    "should navigate to add officer form for unknown second officer": browser => {
+      const addOfficerDetailsPage = browser.page.AddOfficerDetails();
+
+      addOfficerDetailsPage
+        .isOnPageForUnknownOfficer()
+        .selectRole("Accused")
+        .submitOfficer();
+    },
+
+    "should see Unknown Second Officer in Accused section when added": browser => {
+      const caseDetailsPage = browser.page.CaseDetails();
+      const snackbar = browser.page.SnackbarPOM();
+
+      caseDetailsPage.isOnPage().thereIsAnUnknownOfficer();
+
+      snackbar.presentWithMessage("Officer was successfully added").close();
     },
 
     "should not see officer on case when removed": browser => {
-      browser
-        .click('[data-test="manageCaseOfficer"]')
-        .waitForElementVisible('[data-test="removeCaseOfficer"]', rerenderWait)
-        .click('[data-test="removeCaseOfficer"]')
-        .waitForElementVisible(
-          '[data-test="removePersonDialogTitle"]',
-          rerenderWait
+      const caseDetailsPage = browser.page.CaseDetails();
+      const snackbar = browser.page.SnackbarPOM();
+
+      caseDetailsPage
+        .clickManageUnknownOfficer()
+        .clickRemoveOfficer()
+        .confirmRemoveOfficerInDialog();
+
+      snackbar.presentWithMessage("Officer was successfully removed").close();
+
+      caseDetailsPage.thereIsNoUnknownOfficer();
+    },
+
+    "should begin letter and navigate to case details review page": browser => {
+      const caseDetails = browser.page.CaseDetails();
+      const caseReview = browser.page.CaseReview();
+      const snackbar = browser.page.SnackbarPOM();
+
+      caseDetails.beginLetter().confirmUpdateStatusInDialog();
+
+      caseReview.isOnPage();
+
+      snackbar.presentWithMessage("Status was successfully updated").close();
+
+      caseReview.clickNext();
+    },
+
+    "should add allegations to officer complaint history": browser => {
+      const snackbar = browser.page.SnackbarPOM();
+      const complaintHistory = browser.page.ComplaintHistory();
+
+      complaintHistory
+        .isOnPage()
+        .setHighAllegations(2)
+        .setMedAllegations(3)
+        .setLowAllegations(5)
+        .clickNext();
+
+      snackbar
+        .presentWithMessage(
+          "Officer complaint history was successfully updated"
         )
-        .click('[data-test="removeButton"]')
-        .waitForElementVisible(
-          '[data-test="noAccusedOfficersMessage"]',
-          roundTripWait
+        .close();
+    },
+
+    "should remove and add iapro correction": browser => {
+      const iaproCorrections = browser.page.IAProCorrections();
+
+      iaproCorrections
+        .isOnPage()
+        .setNthDetails(0, "IAPro Correction Details")
+        .setNthDetails(1, "Details to delete")
+        .removeNthCorrection(1)
+        .expectNthCorrectionValue(0, "IAPro Correction Details")
+        .expectNthCorrectionValue(1, "")
+        .addCorrection()
+        .clickNext();
+    },
+
+    "should check retaliation concerns and recommended action": browser => {
+      const recommendedActions = browser.page.RecommendedActions();
+      const snackbar = browser.page.SnackbarPOM();
+
+      recommendedActions.isOnPage();
+
+      snackbar
+        .presentWithMessage("IAPro corrections were successfully updated")
+        .close();
+
+      recommendedActions
+        .toggleRetaliationConcerns()
+        .toggleNthOfficersNthRecommendedAction(0, 1)
+        .clickNext();
+    },
+
+    "should check letter preview contents": browser => {
+      const letterPreview = browser.page.LetterPreview();
+      const snackbar = browser.page.SnackbarPOM();
+
+      snackbar
+        .presentWithMessage("Recommended actions were successfully updated")
+        .close();
+
+      letterPreview
+        .isOnPage()
+        .letterContains("Name: Night Watch")
+        .letterContains("Name: Ansel W Rice")
+        .letterContains(
+          "Location: Bourbon St & Canal St, New Orleans, LA 70112"
         )
-        .assert.containsText(
-          '[data-test="noAccusedOfficersMessage"]',
-          "No accused officers have been added"
+        .letterContains(
+          "10 total complaints including 2 HIGH RISK allegations, 3 MEDIUM RISK allegations, 5 LOW RISK allegations"
+        )
+        .letterContains(
+          "Retaliation Concerns and Request for Notice to Officer(s)"
+        )
+        .letterContains(
+          "Be temporarily or permanently reassigned from his/her current assignment"
         );
     },
 
+    "should edit letter": browser => {
+      const letterPreview = browser.page.LetterPreview();
+      const editLetter = browser.page.EditLetter();
+      const snackbar = browser.page.SnackbarPOM();
+
+      letterPreview.clickEditLetter().confirmEditLetterOnDialog();
+      editLetter.isOnPage();
+      snackbar.presentWithMessage("Letter was successfully updated").close();
+
+      editLetter
+        .makeEditsWithText("Susie and Phoebe and Sarah are the G.O.A.T.s")
+        .saveEdits();
+
+      letterPreview
+        .isOnPage()
+        .waitForData()
+        .letterContains("Susie and Phoebe and Sarah are the G.O.A.T.s");
+
+      snackbar.presentWithMessage("Letter was successfully updated").close();
+    },
+
+    "should submit for review": browser => {
+      const letterPreview = browser.page.LetterPreview();
+      const caseDetails = browser.page.CaseDetails();
+      const snackbar = browser.page.SnackbarPOM();
+
+      letterPreview.clickSubmit().confirmSubmit();
+
+      caseDetails.isOnPage();
+
+      snackbar.presentWithMessage("Status was successfully updated").close();
+    },
+
+    "should redirect to review-and-approve page and approve letter": browser => {
+      const caseDetails = browser.page.CaseDetails();
+      const reviewAndApprove = browser.page.ReviewAndApproveLetter();
+      const snackbar = browser.page.SnackbarPOM();
+
+      caseDetails.clickReviewAndApproveButton();
+
+      reviewAndApprove
+        .isOnPage()
+        .clickApproveLetter()
+        .clickApproveLetterOnDialog();
+
+      caseDetails.isOnPage();
+
+      snackbar.presentWithMessage("Status was successfully updated").close();
+    },
+
+    "should update status to closed": browser => {
+      const caseDetails = browser.page.CaseDetails();
+      const snackbar = browser.page.SnackbarPOM();
+
+      caseDetails.closeCase().confirmUpdateStatusInDialog();
+
+      snackbar.presentWithMessage("Status was successfully updated").close();
+    },
+
+    "should archive case": browser => {
+      const caseDetails = browser.page.CaseDetails();
+      const snackbar = browser.page.SnackbarPOM();
+      const caseDashboard = browser.page.CaseDashboard();
+
+      caseDetails.archiveCase().confirmArchiveInDialog();
+
+      snackbar.presentWithMessage("Case was successfully archived").close();
+
+      caseDashboard.isOnPage();
+    },
+
     "should log out of the system": browser => {
-      browser
-        .click('[data-test="gearButton"]')
-        .waitForElementVisible('[data-test="logOutButton"]', rerenderWait)
-        .click('[data-test="logOutButton"]')
-        .waitForElementVisible("body", rerenderWait)
-        .assert.title("Sign In with Auth0");
+      const logoutPage = browser.page.Logout();
+      const loginPage = browser.page.Login();
+
+      logoutPage.clickGearButton().clickLogout();
+
+      loginPage.isOnPage();
     },
 
     "end user journey ;)": browser => {

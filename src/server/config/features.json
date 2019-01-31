@@ -1,8 +1,24 @@
 [
   {
-    "id": "experimentalFeature",
-    "name": "AnExperimentalFeature",
-    "description": "This is a test feature to show config",
-    "enabled": true
+    "id": "caseValidationFeature",
+    "name": "caseValidationFeature",
+    "description": "Toggle to validate case",
+    "enabled": false
+  },
+  {
+    "id": "archiveCaseFeature",
+    "name": "archiveCaseFeature",
+    "description": "Toggle to show archive case button",
+    "criteria": {
+      "isPreProd": true
+    }
+  },
+  {
+    "id": "pibCaseNumberFeature",
+    "name": "pibCaseNumberFeature",
+    "description": "Toggle to show PIB Case Number Field in Incident Details",
+    "criteria": {
+      "isPreProd": true
+    }
   }
 ]

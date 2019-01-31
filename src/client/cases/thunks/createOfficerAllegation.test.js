@@ -1,5 +1,3 @@
-import { push } from "react-router-redux";
-import getAccessToken from "../../auth/getAccessToken";
 import createOfficerAllegation from "./createOfficerAllegation";
 import nock from "nock";
 import {
@@ -7,6 +5,7 @@ import {
   snackbarSuccess
 } from "../../actionCreators/snackBarActionCreators";
 import { createOfficerAllegationSuccess } from "../../actionCreators/allegationsActionCreators";
+import configureInterceptors from "../../axiosInterceptors/interceptors";
 
 jest.mock("../../auth/getAccessToken", () => jest.fn(() => "TEST_TOKEN"));
 
@@ -18,46 +17,8 @@ describe("create officer allegation", function() {
   const callBackFunction = jest.fn();
 
   beforeEach(() => {
+    configureInterceptors({ dispatch });
     dispatch.mockClear();
-  });
-
-  test("should redirect to login if token missing", async () => {
-    getAccessToken.mockImplementationOnce(() => false);
-    await createOfficerAllegation(
-      formValues,
-      caseId,
-      caseOfficerId,
-      callBackFunction
-    )(dispatch);
-    expect(dispatch).toHaveBeenCalledWith(push(`/login`));
-  });
-
-  test("should dispatch failure when create officer allegation fails", async () => {
-    nock("http://localhost", {
-      reqheaders: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer TEST_TOKEN`
-      }
-    })
-      .post(
-        `/api/cases/${caseId}/cases-officers/${caseOfficerId}/officers-allegations`,
-        formValues,
-        caseId,
-        caseOfficerId
-      )
-      .reply(500);
-
-    await createOfficerAllegation(
-      formValues,
-      caseId,
-      caseOfficerId,
-      callBackFunction
-    )(dispatch);
-    expect(dispatch).toHaveBeenCalledWith(
-      snackbarError(
-        "Something went wrong on our end and your allegation was not added. Please try again."
-      )
-    );
   });
 
   test("should dispatch success and call the callback when officer allegation added successfully", async () => {
@@ -101,7 +62,7 @@ describe("create officer allegation", function() {
     )(dispatch);
 
     expect(dispatch).toHaveBeenCalledWith(
-      snackbarSuccess("Allegation successfully added to officer.")
+      snackbarSuccess("Allegation was successfully added")
     );
     expect(callBackFunction).toHaveBeenCalled();
     expect(dispatch).toHaveBeenCalledWith(

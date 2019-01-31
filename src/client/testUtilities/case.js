@@ -5,11 +5,13 @@ import CaseOfficer from "./caseOfficer";
 import Officer from "./Officer";
 import {
   ACCUSED,
+  ADDRESSABLE_TYPE,
   CASE_STATUS,
+  CIVILIAN_INITIATED,
   COMPLAINANT,
-  WITNESS,
-  CIVILIAN_INITIATED
+  WITNESS
 } from "../../sharedUtilities/constants";
+import RaceEthnicity from "./raceEthnicity";
 
 class Case {
   constructor(build) {
@@ -29,26 +31,41 @@ class Case {
     this.incidentTime = build.incidentTime;
     this.incidentLocation = build.incidentLocation;
     this.district = build.district;
+    this.classificationId = build.classificationId;
     this.accusedOfficers = build.accusedOfficers;
     this.complainantOfficers = build.complainantOfficers;
     this.witnessOfficers = build.witnessOfficers;
+    this.caseReference = build.caseReference;
+    this.intakeSourceId = build.intakeSourceId;
+    this.deletedAt = build.deletedAt;
   }
 
   static get Builder() {
+    const raceEthnicity = new RaceEthnicity.Builder()
+      .defaultRaceEthnicity()
+      .build();
     class Builder {
       defaultCase() {
         const id = 17;
-        const complainantCivilian = new Civilian.Builder()
-          .defaultCivilian()
-          .withId(23)
-          .withRoleOnCase(COMPLAINANT)
-          .build();
-        const witnessCivilian = new Civilian.Builder()
-          .defaultCivilian()
-          .withId(32)
-          .withNoAddress()
-          .withRoleOnCase(WITNESS)
-          .build();
+        const complainantCivilian = {
+          ...new Civilian.Builder()
+            .defaultCivilian()
+            .withId(23)
+            .withRaceEthnicityId(raceEthnicity.id)
+            .withRoleOnCase(COMPLAINANT)
+            .build(),
+          raceEthnicity
+        };
+        const witnessCivilian = {
+          ...new Civilian.Builder()
+            .defaultCivilian()
+            .withId(32)
+            .withNoAddress()
+            .withRoleOnCase(WITNESS)
+            .withRaceEthnicityId(raceEthnicity.id)
+            .build(),
+          raceEthnicity
+        };
         const accusedOfficer = new CaseOfficer.Builder()
           .defaultCaseOfficer()
           .withId(456)
@@ -94,7 +111,7 @@ class Case {
           .build();
         const incidentLocation = new Address.Builder()
           .defaultAddress()
-          .withAddressableType("cases")
+          .withAddressableType(ADDRESSABLE_TYPE.CASES)
           .withAddressableId(id)
           .build();
 
@@ -102,21 +119,24 @@ class Case {
         this.complainantCivilians = [complainantCivilian];
         this.witnessCivilians = [witnessCivilian];
         this.status = CASE_STATUS.INITIAL;
-        this.createdAt = new Date(2015, 8, 13).toISOString();
-        this.firstContactDate = "2017-12-25T00:00:00.000Z";
+        this.createdAt = "2015-09-13T05:00:00.000Z";
+        this.firstContactDate = "2017-12-24";
         this.incidentDate = "2017-01-01";
         this.incidentTime = "16:00:00";
         this.incidentLocation = incidentLocation;
         this.district = "First District";
+        this.classificationId = null;
         this.complaintType = CIVILIAN_INITIATED;
         this.createdBy = "tuser";
         this.assignedTo = "tuser";
-        this.narrativeDetails = null;
-        this.narrativeSummary = null;
+        this.narrativeDetails = "test details";
+        this.narrativeSummary = "test summary";
         this.attachments = [attachment];
         this.accusedOfficers = [accusedOfficer];
         this.complainantOfficers = [complainantOfficer];
         this.witnessOfficers = [witnessOfficer];
+        this.caseReference = "CC2017-0055";
+        this.deletedAt = null;
         return this;
       }
 
@@ -137,6 +157,16 @@ class Case {
 
       withDistrict(district) {
         this.district = district;
+        return this;
+      }
+
+      withClassificationId(classificationId) {
+        this.classificationId = classificationId;
+        return this;
+      }
+
+      withIntakeSourceId(intakeSourceId) {
+        this.intakeSourceId = intakeSourceId;
         return this;
       }
 
@@ -211,6 +241,11 @@ class Case {
 
       withWitnessOfficers(witnessOfficers) {
         this.witnessOfficers = witnessOfficers;
+        return this;
+      }
+
+      withDeletedAt(deletedAt) {
+        this.deletedAt = deletedAt;
         return this;
       }
 

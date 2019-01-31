@@ -8,13 +8,13 @@ const {
   DUPLICATE_FILE_NAME,
   AUDIT_SUBJECT
 } = require("../../../../sharedUtilities/constants");
-const getCaseWithAllAssociations = require("../../getCaseWithAllAssociations");
+import { getCaseWithAllAssociations } from "../../getCaseHelpers";
 const Boom = require("boom");
 const auditDataAccess = require("../../auditDataAccess");
 
 const uploadAttachment = asyncMiddleware((request, response, next) => {
   let managedUpload;
-  const caseId = request.params.id;
+  const caseId = request.params.caseId;
   const busboy = new Busboy({
     headers: request.headers
   });
@@ -42,6 +42,7 @@ const uploadAttachment = asyncMiddleware((request, response, next) => {
       managedUpload = s3.upload({
         Bucket: config[process.env.NODE_ENV].s3Bucket,
         Key: `${caseId}/${fileName}`,
+
         Body: file,
         ServerSideEncryption: "AES256"
       });

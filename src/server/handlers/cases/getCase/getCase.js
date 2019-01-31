@@ -1,26 +1,22 @@
-const getCaseWithAllAssociations = require("../../getCaseWithAllAssociations");
+import { getCaseWithAllAssociations } from "../../getCaseHelpers";
 const asyncMiddleware = require("../../asyncMiddleware");
 const models = require("../../../models");
 const { AUDIT_SUBJECT } = require("../../../../sharedUtilities/constants");
 const auditDataAccess = require("../../auditDataAccess");
 
-const getCase = asyncMiddleware(async (req, res) => {
+const getCase = asyncMiddleware(async (request, response) => {
   const singleCase = await models.sequelize.transaction(async transaction => {
     await auditDataAccess(
-      req.nickname,
-      req.params.id,
+      request.nickname,
+      request.params.caseId,
       AUDIT_SUBJECT.CASE_DETAILS,
       transaction
     );
 
-    const caseWithAssociations = await getCaseWithAllAssociations(
-      req.params.id,
-      transaction
-    );
-    return caseWithAssociations;
+    return await getCaseWithAllAssociations(request.params.caseId, transaction);
   });
 
-  res.send(singleCase);
+  response.send(singleCase);
 });
 
 module.exports = getCase;

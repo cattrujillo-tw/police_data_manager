@@ -2,8 +2,8 @@ import nock from "nock";
 import { getCasesSuccess } from "../../actionCreators/casesActionCreators";
 import getCases from "./getCases";
 import getAccessToken from "../../auth/getAccessToken";
-import { push } from "react-router-redux";
-
+import configureInterceptors from "../../axiosInterceptors/interceptors";
+import { push } from "connected-react-router";
 jest.mock("../../auth/getAccessToken", () => jest.fn(() => "TEST_TOKEN"));
 
 describe("getCases", () => {
@@ -11,6 +11,7 @@ describe("getCases", () => {
   const responseBody = { cases: ["a case"] };
 
   beforeEach(() => {
+    configureInterceptors({ dispatch });
     getAccessToken.mockClear();
     dispatch.mockClear();
   });

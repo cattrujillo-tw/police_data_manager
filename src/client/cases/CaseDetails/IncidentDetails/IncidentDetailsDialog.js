@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Component } from "react";
 import moment from "moment/moment";
 import {
   Dialog,
@@ -16,34 +16,41 @@ import {
   SubmissionError
 } from "redux-form";
 import {
-  SecondaryButton,
-  PrimaryButton
+  PrimaryButton,
+  SecondaryButton
 } from "../../../shared/components/StyledButtons";
 import editIncidentDetails from "../../thunks/editIncidentDetails";
 import { nullifyFieldUnlessValid } from "../../../utilities/fieldNormalizers";
 import AddressInput from "../CivilianDialog/AddressInput";
-import { updateIncidentLocationAutoSuggest } from "../../../actionCreators/casesActionCreators";
 import { connect } from "react-redux";
-import formatAddress from "../../../utilities/formatAddress";
-import { addressMustBeAutoSuggested } from "../../../formValidations";
+import { formatAddressAsString } from "../../../utilities/formatAddress";
+import { addressMustBeValid } from "../../../formValidations";
 import NoBlurTextField from "../CivilianDialog/FormSelect";
-import { inputDistrictMenu } from "../../../utilities/generateMenus";
-import AdditionalAddressInfoField from "../../sharedFormComponents/AdditionalAddressInfoField";
+import {
+  generateMenu,
+  inputDistrictMenu
+} from "../../../utilities/generateMenus";
+import AddressSecondLine from "../../sharedFormComponents/AddressSecondLine";
+import getClassificationDropDownOptions from "../../../classifications/thunks/getClassificationDropdownValues";
+import getIntakeSourceDropdownValues from "../../../intakeSources/thunks/getIntakeSourceDropdownValues";
+import AdditionalLocationInfo from "../../sharedFormComponents/AdditionalLocationInfo";
+import normalizeAddress from "../../../utilities/normalizeAddress";
+import { intakeSourceIsRequired } from "../../../formFieldLevelValidations";
+import { INCIDENT_DETAILS_FORM_NAME } from "../../../../sharedUtilities/constants";
 
 const submitIncidentDetails = (values, dispatch, props) => {
-  const errors = addressMustBeAutoSuggested(
-    values.incidentLocation,
-    props.autoSuggestValue
-  );
-
+  const errors = addressMustBeValid(props.addressValid);
   if (errors.autoSuggestValue) {
     throw new SubmissionError(errors);
   }
 
   const normalizedValuesWithId = {
     ...values,
+    incidentLocation: normalizeAddress(values.incidentLocation),
     incidentDate: nullifyFieldUnlessValid(values.incidentDate),
     incidentTime: nullifyFieldUnlessValid(values.incidentTime),
+    classificationId: nullifyFieldUnlessValid(values.classificationId),
+    intakeSourceId: nullifyFieldUnlessValid(values.intakeSourceId),
     id: props.caseId
   };
 
@@ -58,115 +65,197 @@ const styles = {
   }
 };
 
-const IncidentDetailsDialog = props => (
-  <Dialog
-    open={props.dialogOpen}
-    fullWidth={true}
-    classes={{
-      paperWidthSm: props.classes.paperWidthSm
-    }}
-  >
-    <DialogTitle data-test="editIncidentDetailsTitle">
-      Edit Incident Details
-    </DialogTitle>
-    <DialogContent>
-      <form>
-        <DateField
-          required={true}
-          name="firstContactDate"
-          label="First Contacted IPM"
-          data-test="editFirstContactDateField"
-          inputProps={{
-            "data-test": "editFirstContactDateInput",
-            type: "date",
-            max: moment(Date.now()).format("YYYY-MM-DD")
-          }}
-          style={{ display: "inherit" }}
-        />
-        <br />
-        <DateField
-          name="incidentDate"
-          label="Incident Date"
-          data-test="editIncidentDateField"
-          inputProps={{
-            "data-test": "editIncidentDateInput",
-            type: "date",
-            max: moment(Date.now()).format("YYYY-MM-DD")
-          }}
-          style={{
-            marginRight: "16px",
-            marginBottom: "16px"
-          }}
-          clearable={true}
-        />
-        <Field
-          component={TextField}
-          name="incidentTime"
-          label="Incident Time"
-          data-test="editIncidentTimeField"
-          inputProps={{
-            "data-test": "editIncidentTimeInput",
-            type: "time"
-          }}
-          InputLabelProps={{
-            shrink: true
-          }}
-        />
-        <AddressInput
-          formName={"IncidentDetails"}
-          fieldName={"incidentLocation"}
-          addressLabel={"Incident Location"}
-          onInputChanged={updateIncidentLocationAutoSuggest}
-          formattedAddress={props.formattedAddress}
-        />
-        <div style={{ display: "flex" }}>
-          <AdditionalAddressInfoField
-            label={"Additional Location Info"}
-            fieldName={`incidentLocation`}
-            style={{
-              marginRight: "5%",
-              flex: "2"
-            }}
-          />
-          <Field
-            label="District"
-            name="district"
-            component={NoBlurTextField}
-            inputProps={{
-              "data-test": "districtDropdown"
-            }}
-            style={{
-              flex: "1"
-            }}
-          >
-            {inputDistrictMenu}
-          </Field>
-        </div>
-      </form>
-    </DialogContent>
-    <DialogActions style={{ justifyContent: "space-between", margin: "16px" }}>
-      <SecondaryButton
-        data-test="cancelEditIncidentDetailsButton"
-        onClick={props.handleDialogClose}
-      >
-        Cancel
-      </SecondaryButton>
-      <PrimaryButton
-        data-test="saveIncidentDetailsButton"
-        onClick={props.handleSubmit(submitIncidentDetails)}
-      >
-        Save
-      </PrimaryButton>
-    </DialogActions>
-  </Dialog>
-);
+class IncidentDetailsDialog extends Component {
+  componentDidMount() {
+    this.props.getClassificationDropDownOptions();
+    this.props.getIntakeSourceDropdownValues();
+  }
 
-const connectedForm = reduxForm({ form: "IncidentDetails" })(
+  render() {
+    const props = this.props;
+
+    return (
+      <Dialog
+        open={props.dialogOpen}
+        fullWidth={true}
+        classes={{
+          paperWidthSm: props.classes.paperWidthSm
+        }}
+      >
+        <DialogTitle data-test="editIncidentDetailsTitle">
+          Edit Incident Details
+        </DialogTitle>
+        <DialogContent>
+          <form>
+            <div style={{ marginBottom: "16px" }}>
+              <DateField
+                required={true}
+                name="firstContactDate"
+                label="First Contacted IPM"
+                data-test="editFirstContactDateField"
+                inputProps={{
+                  "data-test": "editFirstContactDateInput",
+                  type: "date",
+                  max: moment(Date.now()).format("YYYY-MM-DD")
+                }}
+                style={{ display: "inherit" }}
+              />
+            </div>
+
+            <div>
+              <DateField
+                name="incidentDate"
+                label="Incident Date"
+                data-test="editIncidentDateField"
+                inputProps={{
+                  "data-test": "editIncidentDateInput",
+                  type: "date",
+                  max: moment(Date.now()).format("YYYY-MM-DD")
+                }}
+                style={{
+                  marginRight: "16px",
+                  marginBottom: "16px"
+                }}
+                clearable={true}
+              />
+              <Field
+                component={TextField}
+                name="incidentTime"
+                label="Incident Time"
+                data-test="editIncidentTimeField"
+                inputProps={{
+                  "data-test": "editIncidentTimeInput",
+                  type: "time"
+                }}
+                InputLabelProps={{
+                  shrink: true
+                }}
+              />
+            </div>
+            <div style={{ marginBottom: "16px" }}>
+              <AddressInput
+                formName={"IncidentDetails"}
+                fieldName={"incidentLocation"}
+                addressLabel={"Incident Location"}
+                formattedAddress={props.formattedAddress}
+              />
+            </div>
+            <div style={{ display: "flex", marginBottom: "16px" }}>
+              <AddressSecondLine
+                label={"Address Line 2"}
+                fieldName={`incidentLocation`}
+                style={{
+                  marginRight: "5%",
+                  flex: "2"
+                }}
+              />
+              <Field
+                label="District"
+                name="district"
+                component={NoBlurTextField}
+                inputProps={{
+                  "data-test": "districtInput"
+                }}
+                style={{
+                  flex: "1"
+                }}
+                data-test="districtDropdown"
+              >
+                {inputDistrictMenu}
+              </Field>
+            </div>
+            <div style={{ display: "flex" }}>
+              <AdditionalLocationInfo
+                label={"Additional Location Info"}
+                fieldName={`incidentLocation`}
+                style={{
+                  marginRight: "5%",
+                  flex: "2"
+                }}
+              />
+              <div style={{ flex: 1 }} />
+            </div>
+            <div style={{ display: "flex" }}>
+              <Field
+                label="Incident Classification"
+                name="classificationId"
+                component={NoBlurTextField}
+                inputProps={{ "data-test": "classificationDropdown" }}
+                style={{
+                  marginRight: "5%",
+                  flex: "2"
+                }}
+              >
+                {generateMenu(props.classifications)}
+              </Field>
+              <div style={{ flex: 1 }} />
+            </div>
+            <div style={{ marginTop: "16px" }}>
+              <Field
+                required
+                name="intakeSourceId"
+                component={NoBlurTextField}
+                label="Intake Source"
+                hinttext="Intake Source"
+                data-test="intakeSourceDropdown"
+                style={{ width: "60%" }}
+                validate={[intakeSourceIsRequired]}
+              >
+                {generateMenu(props.intakeSources)}
+              </Field>
+            </div>
+            {!props.featureToggles.pibCaseNumberFeature ? null : (
+              <div style={{ display: "flex", marginTop: "16px" }}>
+                <Field
+                  name="pibCaseNumber"
+                  component={TextField}
+                  label="PIB Case Number"
+                  data-test="pibCaseNumber"
+                  placeholder="Enter PIB Case Number"
+                  inputProps={{
+                    "data-test": "pibCaseNumberInput",
+                    maxLength: 25
+                  }}
+                  InputLabelProps={{ shrink: true }}
+                  style={{
+                    marginRight: "5%",
+                    flex: "2"
+                  }}
+                  autoComplete="off"
+                />
+                <div style={{ flex: 1 }} />
+              </div>
+            )}
+          </form>
+        </DialogContent>
+        <DialogActions
+          style={{ justifyContent: "space-between", margin: "16px" }}
+        >
+          <SecondaryButton
+            data-test="cancelEditIncidentDetailsButton"
+            onClick={props.handleDialogClose}
+          >
+            Cancel
+          </SecondaryButton>
+          <PrimaryButton
+            data-test="saveIncidentDetailsButton"
+            onClick={props.handleSubmit(submitIncidentDetails)}
+            disabled={this.props.submitting}
+          >
+            Save
+          </PrimaryButton>
+        </DialogActions>
+      </Dialog>
+    );
+  }
+}
+
+const connectedForm = reduxForm({ form: INCIDENT_DETAILS_FORM_NAME })(
   IncidentDetailsDialog
 );
 
 const mapStateToProps = state => {
-  const selector = formValueSelector("IncidentDetails");
+  const selector = formValueSelector(INCIDENT_DETAILS_FORM_NAME);
   const values = selector(
     state,
     "incidentLocation.streetAddress",
@@ -174,13 +263,29 @@ const mapStateToProps = state => {
     "incidentLocation.city",
     "incidentLocation.state",
     "incidentLocation.zipCode",
-    "incidentLocation.country"
+    "incidentLocation.country",
+    "incidentLocation.lat",
+    "incidentLocation.lng",
+    "incidentLocation.placeId"
   );
 
   return {
-    autoSuggestValue: state.ui.incidentDetailsDialog.autoSuggestValue,
-    formattedAddress: formatAddress(values.incidentLocation)
+    formattedAddress: formatAddressAsString(values.incidentLocation),
+    addressValid: state.ui.addressInput.addressValid,
+    classifications: state.ui.classifications,
+    intakeSources: state.ui.intakeSources,
+    featureToggles: state.featureToggles
   };
 };
 
-export default withStyles(styles)(connect(mapStateToProps)(connectedForm));
+const mapDispatchToProps = {
+  getClassificationDropDownOptions,
+  getIntakeSourceDropdownValues
+};
+
+export default withStyles(styles)(
+  connect(
+    mapStateToProps,
+    mapDispatchToProps
+  )(connectedForm)
+);

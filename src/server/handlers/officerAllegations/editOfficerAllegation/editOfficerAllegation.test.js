@@ -1,12 +1,13 @@
 import { cleanupDatabase } from "../../../testHelpers/requestTestHelpers";
-import { createCaseWithoutCivilian } from "../../../testHelpers/modelMothers";
+import { createTestCaseWithoutCivilian } from "../../../testHelpers/modelMothers";
 import CaseOfficer from "../../../../client/testUtilities/caseOfficer";
 import Allegation from "../../../../client/testUtilities/Allegation";
 import {
   ACCUSED,
+  ALLEGATION_SEVERITY,
   AUDIT_ACTION,
-  AUDIT_TYPE,
-  AUDIT_SUBJECT
+  AUDIT_SUBJECT,
+  AUDIT_TYPE
 } from "../../../../sharedUtilities/constants";
 import OfficerAllegation from "../../../../client/testUtilities/OfficerAllegation";
 import httpMocks from "node-mocks-http";
@@ -14,10 +15,11 @@ import models from "../../../models";
 import editOfficerAllegation from "./editOfficerAllegation";
 
 describe("editOfficerAllegation", () => {
-  let officerAllegationToUpdate, caseOfficer;
+  let officerAllegationToUpdate, caseOfficer, response;
+  const next = jest.fn();
 
   beforeEach(async () => {
-    const createdCase = await createCaseWithoutCivilian();
+    const createdCase = await createTestCaseWithoutCivilian();
     const anAllegation = new Allegation.Builder()
       .defaultAllegation()
       .withId(undefined)
@@ -30,6 +32,7 @@ describe("editOfficerAllegation", () => {
       .defaultOfficerAllegation()
       .withId(undefined)
       .withDetails("old details")
+      .withSeverity(ALLEGATION_SEVERITY.LOW)
       .withAllegationId(createdAllegation.id);
 
     const accusedOfficer = new CaseOfficer.Builder()
@@ -63,6 +66,7 @@ describe("editOfficerAllegation", () => {
 
     caseOfficer = createdCase.accusedOfficers[0];
     officerAllegationToUpdate = caseOfficer.allegations[0];
+    response = httpMocks.createResponse();
   });
 
   afterEach(async () => {
@@ -107,7 +111,8 @@ describe("editOfficerAllegation", () => {
 
   test("should edit a case officer allegation", async () => {
     const data = {
-      details: "new details"
+      details: "new details",
+      severity: ALLEGATION_SEVERITY.HIGH
     };
 
     const request = httpMocks.createRequest({
@@ -122,12 +127,13 @@ describe("editOfficerAllegation", () => {
       nickname: "TEST_USER_NICKNAME"
     });
 
-    const response = httpMocks.createResponse();
-
     await editOfficerAllegation(request, response, jest.fn());
 
     await officerAllegationToUpdate.reload();
 
     expect(officerAllegationToUpdate.details).toEqual("new details");
+    expect(officerAllegationToUpdate.severity).toEqual(
+      ALLEGATION_SEVERITY.HIGH
+    );
   });
 });

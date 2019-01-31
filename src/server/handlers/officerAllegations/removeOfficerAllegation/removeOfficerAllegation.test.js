@@ -1,5 +1,5 @@
 import { cleanupDatabase } from "../../../testHelpers/requestTestHelpers";
-import { createCaseWithoutCivilian } from "../../../testHelpers/modelMothers";
+import { createTestCaseWithoutCivilian } from "../../../testHelpers/modelMothers";
 import CaseOfficer from "../../../../client/testUtilities/caseOfficer";
 import Allegation from "../../../../client/testUtilities/Allegation";
 import {
@@ -13,6 +13,7 @@ import httpMocks from "node-mocks-http";
 import models from "../../../models";
 import removeOfficerAllegation from "./removeOfficerAllegation";
 import Boom from "boom";
+import { BAD_REQUEST_ERRORS } from "../../../../sharedUtilities/errorMessageConstants";
 
 describe("removeOfficerAllegation", () => {
   afterEach(async () => {
@@ -39,7 +40,7 @@ describe("removeOfficerAllegation", () => {
     await removeOfficerAllegation(request, response, next);
 
     expect(next).toHaveBeenCalledWith(
-      Boom.notFound("Officer Allegation does not exist")
+      Boom.notFound(BAD_REQUEST_ERRORS.OFFICER_ALLEGATION_NOT_FOUND)
     );
   });
 
@@ -47,7 +48,7 @@ describe("removeOfficerAllegation", () => {
     let officerAllegationToRemove, createdAccusedOfficer;
 
     beforeEach(async () => {
-      const createdCase = await createCaseWithoutCivilian();
+      const createdCase = await createTestCaseWithoutCivilian();
       const anAllegation = new Allegation.Builder()
         .defaultAllegation()
         .withId(undefined)
@@ -87,7 +88,7 @@ describe("removeOfficerAllegation", () => {
       officerAllegationToRemove = createdAccusedOfficer.allegations[0];
     });
 
-    test("should clear out officer allegation details on remove", async () => {
+    test("should clear out officer allegation on remove", async () => {
       const request = httpMocks.createRequest({
         method: "DELETE",
         headers: {

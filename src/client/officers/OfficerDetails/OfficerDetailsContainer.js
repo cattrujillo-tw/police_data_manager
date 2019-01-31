@@ -6,7 +6,7 @@ import { Link } from "react-router-dom";
 import LinkButton from "../../shared/components/LinkButton";
 import OfficerDetails from "./OfficerDetails";
 import { clearSelectedOfficer } from "../../actionCreators/officersActionCreators";
-import { push } from "react-router-redux";
+import { push } from "connected-react-router";
 import { snackbarError } from "../../actionCreators/snackBarActionCreators";
 
 export class OfficerDetailsContainer extends Component {
@@ -35,7 +35,7 @@ export class OfficerDetailsContainer extends Component {
       <div>
         <NavBar>
           <Typography data-test="pageTitle" variant="title" color="inherit">
-            {`Case #${caseId}   : ${titleAction} Officer`}
+            {`Case #${this.props.caseReference}   : ${titleAction} Officer`}
           </Typography>
         </NavBar>
         <LinkButton
@@ -47,7 +47,7 @@ export class OfficerDetailsContainer extends Component {
         >
           Back to Case
         </LinkButton>
-        <div style={{ margin: "0% 5% 3%" }}>
+        <div style={{ margin: "0% 5% 3%", maxWidth: "60rem" }}>
           <OfficerDetails
             officerSearchUrl={officerSearchUrl}
             submitAction={submitAction(selectedOfficerId)}
@@ -62,6 +62,7 @@ export class OfficerDetailsContainer extends Component {
 }
 
 const mapStateToProps = state => ({
+  caseReference: state.currentCase.details.caseReference,
   selectedOfficerData: state.officers.selectedOfficerData,
   officerCurrentlySelected: state.officers.officerCurrentlySelected
 });

@@ -1,21 +1,38 @@
 import React from "react";
-import formatAddress from "../../utilities/formatAddress";
+import {
+  formatAddressAsString,
+  formatAddressWithLineBreak
+} from "../../utilities/formatAddress";
 import { Typography } from "@material-ui/core";
 
-const AddresesInfoDisplay = ({ testLabel, displayLabel, address }) => {
+const AddressInfoDisplay = ({
+  testLabel,
+  displayLabel,
+  address,
+  useLineBreaks
+}) => {
+  let formattedAddress = useLineBreaks
+    ? formatAddressWithLineBreak(address)
+    : formatAddressAsString(address);
+  if (!Boolean(formattedAddress)) {
+    formattedAddress = "No address specified";
+  }
   return (
-    <div style={{ flex: 2, textAlign: "left", marginRight: "20px" }}>
+    <div>
       <Typography variant="caption">{displayLabel}</Typography>
       <Typography variant="body1" data-test={testLabel}>
-        {Boolean(formatAddress(address))
-          ? formatAddress(address)
-          : "No address specified"}
+        {formattedAddress}
       </Typography>
-      <Typography variant="body1" data-test={`${testLabel}AdditionalInfo`}>
-        {address && address.streetAddress2 ? address.streetAddress2 : ""}
+      <Typography
+        variant="body1"
+        data-test={`${testLabel}AdditionalLocationInfo`}
+      >
+        {address && address.additionalLocationInfo
+          ? address.additionalLocationInfo
+          : ""}
       </Typography>
     </div>
   );
 };
 
-export default AddresesInfoDisplay;
+export default AddressInfoDisplay;

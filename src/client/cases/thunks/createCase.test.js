@@ -6,13 +6,14 @@ import {
   requestCaseCreation
 } from "../../actionCreators/casesActionCreators";
 import createCase from "./createCase";
-import { push } from "react-router-redux";
-import getAccessToken from "../../auth/getAccessToken";
+import { push } from "connected-react-router";
 import {
   CASE_STATUS,
   CIVILIAN_INITIATED,
   RANK_INITIATED
 } from "../../../sharedUtilities/constants";
+import configureInterceptors from "../../axiosInterceptors/interceptors";
+import { snackbarSuccess } from "../../actionCreators/snackBarActionCreators";
 
 jest.mock("../../auth/getAccessToken", () => jest.fn(() => "TEST_TOKEN"));
 
@@ -20,6 +21,7 @@ describe("createCase", () => {
   const dispatch = jest.fn();
 
   beforeEach(() => {
+    configureInterceptors({ dispatch });
     dispatch.mockClear();
   });
 
@@ -58,40 +60,11 @@ describe("createCase", () => {
 
     await createCase(creationDetails)(dispatch);
 
+    expect(dispatch).toHaveBeenCalledWith(
+      snackbarSuccess("Case was successfully created")
+    );
     expect(dispatch).toHaveBeenCalledWith(createCaseSuccess(responseBody));
     expect(dispatch).toHaveBeenCalledWith(closeCreateCaseDialog());
-  });
-
-  test("should dispatch failure when case creation fails", async () => {
-    const caseDetails = {
-      firstName: "Fats",
-      lastName: "Domino"
-    };
-
-    nock("http://localhost", {
-      reqheaders: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer TEST_TOKEN`
-      }
-    })
-      .post("/api/cases", caseDetails)
-      .reply(500);
-
-    await createCase(caseDetails)(dispatch);
-
-    expect(dispatch).toHaveBeenCalledWith(createCaseFailure());
-  });
-
-  test("should redirect immediately if token missing", async () => {
-    const responseBody = { cases: [] };
-    getAccessToken.mockImplementationOnce(() => false);
-    await createCase()(dispatch);
-
-    expect(dispatch).not.toHaveBeenCalledWith(
-      createCaseSuccess(responseBody.cases)
-    );
-    expect(dispatch).toHaveBeenCalledWith(createCaseFailure());
-    expect(dispatch).toHaveBeenCalledWith(push(`/login`));
   });
 
   test("should redirect to add officer if complainant is officer", async () => {
@@ -126,6 +99,9 @@ describe("createCase", () => {
 
     await createCase(creationDetails)(dispatch);
 
+    expect(dispatch).toHaveBeenCalledWith(
+      snackbarSuccess("Case was successfully created")
+    );
     expect(dispatch).toHaveBeenCalledWith(createCaseSuccess(responseBody));
     expect(dispatch).toHaveBeenCalledWith(
       push(`/cases/${caseId}/officers/search`)
@@ -164,6 +140,9 @@ describe("createCase", () => {
 
     await createCase(creationDetails)(dispatch);
 
+    expect(dispatch).toHaveBeenCalledWith(
+      snackbarSuccess("Case was successfully created")
+    );
     expect(dispatch).toHaveBeenCalledWith(createCaseSuccess(responseBody));
     expect(dispatch).toHaveBeenCalledWith(push(`/cases/${caseId}`));
   });

@@ -2,18 +2,30 @@ import React from "react";
 import { Provider } from "react-redux";
 import createConfiguredStore from "../../createConfiguredStore";
 import { mount } from "enzyme/build/index";
-import CreateCaseDialog from "./CreateCaseDialog";
-import { changeInput, expectEventuallyNotToExist } from "../../testHelpers";
+import {
+  changeInput,
+  expectEventuallyNotToExist,
+  selectDropdownOption
+} from "../../testHelpers";
+import CreateCaseButton from "../CreateCaseButton";
 import createCase from "../thunks/createCase";
 import { openSnackbar } from "../../actionCreators/snackBarActionCreators";
 import moment from "moment";
 import { applyCentralTimeZoneOffset } from "../../utilities/formatDate";
 import { CIVILIAN_INITIATED } from "../../../sharedUtilities/constants";
+import { getIntakeSourcesSuccess } from "../../actionCreators/intakeSourceActionCreators";
 
 jest.mock("../thunks/createCase", () => creationDetails => ({
   type: "MOCK_CREATE_CASE_THUNK",
   creationDetails
 }));
+
+jest.mock("../../intakeSources/thunks/getIntakeSourceDropdownValues", () =>
+  jest.fn(values => ({
+    type: "MOCK_THUNK",
+    values
+  }))
+);
 
 describe("CreateCaseDialog component", () => {
   let store,
@@ -31,7 +43,7 @@ describe("CreateCaseDialog component", () => {
 
     dialog = mount(
       <Provider store={store}>
-        <CreateCaseDialog />
+        <CreateCaseButton />
       </Provider>
     );
 
@@ -41,6 +53,9 @@ describe("CreateCaseDialog component", () => {
       'button[data-test="createCaseButton"]'
     );
     createCaseButton.simulate("click");
+    store.dispatch(
+      getIntakeSourcesSuccess([[0, "Email"], [1, "NOIPM Website"]])
+    );
   });
 
   test("should dismiss visible snackbars when dialog opened", () => {
@@ -61,7 +76,8 @@ describe("CreateCaseDialog component", () => {
       caseDetails = {
         case: {
           complaintType: CIVILIAN_INITIATED,
-          firstContactDate: moment(Date.now()).format("YYYY-MM-DD")
+          firstContactDate: moment(Date.now()).format("YYYY-MM-DD"),
+          intakeSourceId: "Email"
         },
         civilian: {
           firstName: "Fats",
@@ -91,6 +107,7 @@ describe("CreateCaseDialog component", () => {
         '[data-test="emailInput"]',
         caseDetails.civilian.email
       );
+      selectDropdownOption(dialog, '[data-test="intakeSourceDropdown"]', "0");
     });
 
     test("should plan to redirect when clicking Create-And-View", () => {
@@ -230,19 +247,37 @@ describe("CreateCaseDialog component", () => {
       });
     });
 
+    describe("intake source", () => {
+      test("should display error when not set on save", () => {
+        const submitButton = dialog.find(
+          'LinkButton[data-test="createCaseOnly"]'
+        );
+        submitButton.simulate("click");
+        expect(
+          dialog
+            .find('[data-test="intakeSourceDropdown"]')
+            .last()
+            .text()
+        ).toContain("Please enter Intake Source");
+      });
+    });
+
     describe("when email and phone number are undefined", () => {
       test("should display phone number error", () => {
-        submitButton.simulate("click");
-
+        changeInput(dialog, '[data-test="lastNameInput"]', "test");
+        changeInput(dialog, '[data-test="firstNameInput"]', "test");
+        selectDropdownOption(dialog, '[data-test="intakeSourceDropdown"]', "0");
         const phoneNumberField = dialog.find(
           'div[data-test="phoneNumberField"]'
         );
-        const emailField = dialog.find('div[data-test="emailField"]');
+        const phoneNumberInput = dialog.find(
+          'input[data-test="phoneNumberInput"]'
+        );
+        phoneNumberInput.simulate("focus");
+        phoneNumberInput.simulate("blur");
+        submitButton.simulate("click");
 
         expect(phoneNumberField.text()).toContain(
-          "Please enter phone number or email address"
-        );
-        expect(emailField.text()).toContain(
           "Please enter phone number or email address"
         );
       });
@@ -254,7 +289,9 @@ describe("CreateCaseDialog component", () => {
       const caseDetails = {
         case: {
           complaintType: CIVILIAN_INITIATED,
-          firstContactDate: moment(Date.now()).format("YYYY-MM-DD")
+          firstContactDate: moment(Date.now()).format("YYYY-MM-DD"),
+          intakeSourceId: "Email",
+          incidentDate: undefined
         },
         civilian: {
           firstName: "Hello",
@@ -266,6 +303,8 @@ describe("CreateCaseDialog component", () => {
       changeInput(dialog, 'input[data-test="firstNameInput"]', "   Hello   ");
       changeInput(dialog, 'input[data-test="lastNameInput"]', "   Kitty   ");
       changeInput(dialog, 'input[data-test="phoneNumberInput"]', "1234567890");
+
+      selectDropdownOption(dialog, '[data-test="intakeSourceDropdown"]', "0");
 
       const submitButton = dialog.find(
         'LinkButton[data-test="createCaseOnly"]'
@@ -290,6 +329,9 @@ describe("CreateCaseDialog component", () => {
       expect(dialog.find('[data-test="firstNameField"]').exists()).toBeFalsy();
       expect(dialog.find('[data-test="createAndView"]').exists()).toBeFalsy();
       expect(dialog.find('[data-test="createCaseOnly"]').exists()).toBeFalsy();
+      expect(
+        dialog.find('[data-test="intakeSourceDropdown"]').exists()
+      ).toBeTruthy();
     });
 
     test("should default to civilian complainant whenever dialog opened", () => {
@@ -322,6 +364,7 @@ describe("CreateCaseDialog component", () => {
     });
 
     test("should dispatch createCase with redirect to add officer when create & search clicked", () => {
+      selectDropdownOption(dialog, '[data-test="intakeSourceDropdown"]', "0");
       const createAndSearch = dialog
         .find('[data-test="createAndSearch"]')
         .last();

@@ -8,7 +8,6 @@ import { Provider } from "react-redux";
 import { mockLocalStorage } from "../../../../mockLocalStorage";
 import { containsText } from "../../../testHelpers";
 import { userAuthSuccess } from "../../../auth/actionCreators";
-import { USER_PERMISSIONS } from "../../../../sharedUtilities/constants";
 
 describe("NavBar", () => {
   let wrapper, store;
@@ -32,30 +31,12 @@ describe("NavBar", () => {
     expect(homeButton.prop("href")).toEqual("/");
   });
 
-  test("should contain a link named admin", () => {
-    const gearButton = wrapper.find('button[data-test="gearButton"]');
-    gearButton.simulate("click");
-
-    const link = wrapper.find('a[data-test="adminButton"]');
-
-    expect(link.prop("href")).toEqual("/admin");
-  });
-
   test("should display default nickname", () => {
     const nickname = wrapper.find('[data-test="userNickName"]').last();
     expect(nickname.text()).toEqual("");
   });
 
   describe("gear menu", () => {
-    test("should see admin button", () => {
-      const gearButton = wrapper.find('button[data-test="gearButton"]');
-      gearButton.simulate("click");
-
-      const adminButton = wrapper.find('[data-test="adminButton"]');
-
-      expect(adminButton.exists()).toBeTruthy();
-    });
-
     test("should see log out button", () => {
       const gearButton = wrapper.find('button[data-test="gearButton"]');
       gearButton.simulate("click");
@@ -81,36 +62,7 @@ describe("NavBar", () => {
       expect(menu.props()).toHaveProperty("open", false);
     });
 
-    test("should open and close menu and see dialog box when click on Export System Log when have export permissions", () => {
-      const userInfo = {
-        nickname: "whatever",
-        permissions: [USER_PERMISSIONS.EXPORT_AUDIT_LOG]
-      };
-
-      store.dispatch(userAuthSuccess(userInfo));
-      wrapper.update();
-
-      const gearButton = wrapper.find('[data-test="gearButton"]').last();
-      gearButton.simulate("click");
-
-      const exportAuditLogMenuItem = wrapper
-        .find('[data-test="exportAuditLog"]')
-        .last();
-      exportAuditLogMenuItem.simulate("click");
-
-      const menu = wrapper
-        .find(NavBar)
-        .find('[data-test="menu"]')
-        .first();
-      const exportConfirmationDialogText = wrapper
-        .find('[data-test="exportAuditLogConfirmationText"]')
-        .last();
-
-      expect(menu.props()).toHaveProperty("open", false);
-      expect(exportConfirmationDialogText.exists()).toBeTruthy();
-    });
-
-    test("should not render export system log menu option without permissions", () => {
+    test("should render export menu option without permissions", () => {
       const userInfo = {
         nickname: "whatever",
         permissions: []
@@ -123,9 +75,9 @@ describe("NavBar", () => {
       gearButton.simulate("click");
 
       const exportAuditLogMenuItem = wrapper
-        .find('[data-test="exportAuditLog"]')
+        .find('[data-test="exportAllCases"]')
         .last();
-      expect(exportAuditLogMenuItem.exists()).toBeFalsy();
+      expect(exportAuditLogMenuItem.exists()).toBeTruthy();
     });
   });
 });

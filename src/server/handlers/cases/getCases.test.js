@@ -7,11 +7,12 @@ import Civilian from "../../../client/testUtilities/civilian";
 import Officer from "../../../client/testUtilities/Officer";
 import CaseOfficer from "../../../client/testUtilities/caseOfficer";
 import {
-  CASE_STATUS,
-  COMPLAINANT,
-  AUDIT_TYPE,
+  AUDIT_ACTION,
   AUDIT_SUBJECT,
-  AUDIT_ACTION
+  ACCUSED,
+  AUDIT_TYPE,
+  CASE_STATUS,
+  COMPLAINANT
 } from "../../../sharedUtilities/constants";
 import {
   buildTokenWithPermissions,
@@ -165,5 +166,95 @@ describe("getCases", () => {
           );
         });
     });
+
+    test("should return complainants and accusedOfficers sorted by createdAt ascending", async () => {
+      const complainantOfficers = [
+        await createCaseOfficer(COMPLAINANT, 234, new Date("2018-08-01")),
+        await createCaseOfficer(COMPLAINANT, 124, new Date("2018-01-01"))
+      ];
+      const civilians = [
+        createComplainantCivilian(new Date("2018-08-01")),
+        createComplainantCivilian(new Date("2018-01-01"))
+      ];
+      const accusedOfficers = [
+        await createCaseOfficer(ACCUSED, 235, new Date("2018-08-01")),
+        await createCaseOfficer(ACCUSED, 125, new Date("2018-01-01"))
+      ];
+
+      const defaultCase = new Case.Builder()
+        .defaultCase()
+        .withId(undefined)
+        .withComplainantCivilians(civilians)
+        .withComplainantOfficers(complainantOfficers)
+        .withAccusedOfficers(accusedOfficers)
+        .build();
+
+      await models.cases.create(defaultCase, {
+        include: [
+          {
+            model: models.civilian,
+            as: "complainantCivilians",
+            auditUser: "someone"
+          },
+          {
+            model: models.case_officer,
+            as: "complainantOfficers",
+            auditUser: "someone"
+          },
+          {
+            model: models.case_officer,
+            as: "accusedOfficers",
+            auditUser: "someone"
+          }
+        ],
+        auditUser: "someone"
+      });
+
+      await request(app)
+        .get("/api/cases")
+        .set("Content-Header", "application/json")
+        .set("Authorization", `Bearer ${token}`)
+        .expect(200)
+        .then(response => {
+          expect(
+            response.body.cases[0].complainantOfficers[0].createdAt <
+              response.body.cases[0].complainantOfficers[1].createdAt
+          ).toEqual(true);
+          expect(
+            response.body.cases[0].complainantCivilians[0].createdAt <
+              response.body.cases[0].complainantCivilians[1].createdAt
+          ).toEqual(true);
+          expect(
+            response.body.cases[0].accusedOfficers[0].createdAt <
+              response.body.cases[0].accusedOfficers[1].createdAt
+          ).toEqual(true);
+        });
+    });
   });
 });
+
+const createComplainantCivilian = dateCreated => {
+  return new Civilian.Builder()
+    .defaultCivilian()
+    .withId(undefined)
+    .withRoleOnCase(COMPLAINANT)
+    .withCreatedAt(dateCreated);
+};
+
+const createCaseOfficer = async (role, officerNumber, dateCreated) => {
+  const officerAttributes = new Officer.Builder()
+    .defaultOfficer()
+    .withOfficerNumber(officerNumber)
+    .withId(undefined);
+
+  const officer = await models.officer.create(officerAttributes, {
+    auditUser: "someone"
+  });
+
+  return new CaseOfficer.Builder()
+    .defaultCaseOfficer()
+    .withId(undefined)
+    .withOfficerId(officer.id)
+    .withRoleOnCase(role)
+    .withCreatedAt(dateCreated);
+};

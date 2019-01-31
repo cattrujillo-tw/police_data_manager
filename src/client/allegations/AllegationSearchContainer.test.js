@@ -11,163 +11,200 @@ import { getCaseDetailsSuccess } from "../actionCreators/casesActionCreators";
 import { Table } from "@material-ui/core";
 import getCaseDetails from "../cases/thunks/getCaseDetails";
 import OfficerAllegations from "./OfficerAllegations";
+import invalidCaseStatusRedirect from "../cases/thunks/invalidCaseStatusRedirect";
 
 jest.mock("../cases/thunks/getCaseDetails", () => caseId => ({
-  type: "MOCK_ACTION",
+  type: "MOCK_GET_CASE_DETAILS",
   caseId
 }));
 
-let store, officer, seededCase, caseOfficer, dispatchSpy;
+jest.mock("../cases/thunks/invalidCaseStatusRedirect", () => caseId => ({
+  type: "INVALID_CASE_REDIRECT",
+  caseId
+}));
 
-beforeEach(() => {
-  store = createConfiguredStore();
+describe("AllegationSearchContainer", () => {
+  let store, officer, seededCase, caseOfficer, dispatchSpy;
 
-  dispatchSpy = jest.spyOn(store, "dispatch");
+  beforeEach(() => {
+    store = createConfiguredStore();
 
-  const caseId = 47;
-  const caseOfficerId = 100;
-  const officerId = 101;
+    dispatchSpy = jest.spyOn(store, "dispatch");
 
-  officer = new Officer.Builder()
-    .defaultOfficer()
-    .withId(officerId)
-    .build();
-  caseOfficer = new CaseOfficer.Builder()
-    .defaultCaseOfficer()
-    .withId(caseOfficerId)
-    .withCaseId(caseId)
-    .withOfficerAttributes(officer)
-    .build();
-  seededCase = new Case.Builder()
-    .defaultCase()
-    .withId(caseId)
-    .withAccusedOfficers([caseOfficer])
-    .build();
-});
+    const caseId = 47;
+    const caseOfficerId = 100;
+    const officerId = 101;
 
-test("should retrieve case details if not present in state", () => {
-  store.dispatch(getCaseDetailsSuccess(seededCase));
+    officer = new Officer.Builder()
+      .defaultOfficer()
+      .withId(officerId)
+      .build();
+    caseOfficer = new CaseOfficer.Builder()
+      .defaultCaseOfficer()
+      .withId(caseOfficerId)
+      .withCaseId(caseId)
+      .withOfficerAttributes(officer)
+      .build();
+    seededCase = new Case.Builder()
+      .defaultCase()
+      .withId(caseId)
+      .withAccusedOfficers([caseOfficer])
+      .build();
+  });
 
-  const caseIdThatDoesNotMatchStore = `100`;
+  test("should retrieve case details if not present in state", () => {
+    store.dispatch(getCaseDetailsSuccess(seededCase));
 
-  mount(
-    <Provider store={store}>
-      <Router>
-        <AllegationSearchContainer
-          match={{
-            params: {
-              id: caseIdThatDoesNotMatchStore,
-              caseOfficerId: `${caseOfficer.id}`
-            }
-          }}
-        />
-      </Router>
-    </Provider>
-  );
+    const caseIdThatDoesNotMatchStore = `100`;
 
-  expect(dispatchSpy).toHaveBeenCalledWith(
-    getCaseDetails(caseIdThatDoesNotMatchStore)
-  );
-});
+    mount(
+      <Provider store={store}>
+        <Router>
+          <AllegationSearchContainer
+            match={{
+              params: {
+                id: caseIdThatDoesNotMatchStore,
+                caseOfficerId: `${caseOfficer.id}`
+              }
+            }}
+          />
+        </Router>
+      </Provider>
+    );
 
-test("should not retrieve case details if correct data already present in state", () => {
-  store.dispatch(getCaseDetailsSuccess(seededCase));
-  const caseId = `${seededCase.id}`;
+    expect(dispatchSpy).toHaveBeenCalledWith(
+      getCaseDetails(caseIdThatDoesNotMatchStore)
+    );
+  });
 
-  mount(
-    <Provider store={store}>
-      <Router>
-        <AllegationSearchContainer
-          match={{
-            params: {
-              id: caseId,
-              caseOfficerId: `${caseOfficer.id}`
-            }
-          }}
-        />
-      </Router>
-    </Provider>
-  );
+  test("should not retrieve case details if correct data already present in state", () => {
+    store.dispatch(getCaseDetailsSuccess(seededCase));
+    const caseId = `${seededCase.id}`;
 
-  expect(dispatchSpy).not.toHaveBeenCalledWith(getCaseDetails(caseId));
-});
+    mount(
+      <Provider store={store}>
+        <Router>
+          <AllegationSearchContainer
+            match={{
+              params: {
+                id: caseId,
+                caseOfficerId: `${caseOfficer.id}`
+              }
+            }}
+          />
+        </Router>
+      </Provider>
+    );
 
-test("should not render when caseOfficerId in route doesn't exist for a case", () => {
-  store.dispatch(getCaseDetailsSuccess(seededCase));
+    expect(dispatchSpy).not.toHaveBeenCalledWith(getCaseDetails(caseId));
+  });
 
-  const caseOfficerIdThatDoesNotExist = 500;
+  test("should not render when caseOfficerId in route doesn't exist for a case", () => {
+    store.dispatch(getCaseDetailsSuccess(seededCase));
 
-  const wrapper = mount(
-    <Provider store={store}>
-      <Router>
-        <AllegationSearchContainer
-          match={{
-            params: {
-              id: seededCase.id,
-              caseOfficerId: caseOfficerIdThatDoesNotExist
-            }
-          }}
-        />
-      </Router>
-    </Provider>
-  );
+    const caseOfficerIdThatDoesNotExist = 500;
 
-  expect(wrapper.find("[data-test='pageTitle']").exists()).toBeFalsy();
-});
+    const wrapper = mount(
+      <Provider store={store}>
+        <Router>
+          <AllegationSearchContainer
+            match={{
+              params: {
+                id: seededCase.id,
+                caseOfficerId: caseOfficerIdThatDoesNotExist
+              }
+            }}
+          />
+        </Router>
+      </Provider>
+    );
 
-test("should show the correct accused officer when state matches route", () => {
-  store.dispatch(getCaseDetailsSuccess(seededCase));
+    expect(wrapper.find("[data-test='pageTitle']").exists()).toBeFalsy();
+  });
 
-  const wrapper = mount(
-    <Provider store={store}>
-      <Router>
-        <AllegationSearchContainer
-          match={{
-            params: {
-              id: seededCase.id,
-              caseOfficerId: caseOfficer.id
-            }
-          }}
-        />
-      </Router>
-    </Provider>
-  );
-  expect(wrapper.find(Table).exists()).toBeTruthy();
+  test("should show the correct accused officer when state matches route", () => {
+    store.dispatch(getCaseDetailsSuccess(seededCase));
 
-  expect(wrapper.find('[data-test="officerFullName"]').text()).toEqual(
-    officer.fullName
-  );
-});
+    const wrapper = mount(
+      <Provider store={store}>
+        <Router>
+          <AllegationSearchContainer
+            match={{
+              params: {
+                id: seededCase.id,
+                caseOfficerId: caseOfficer.id
+              }
+            }}
+          />
+        </Router>
+      </Provider>
+    );
+    expect(wrapper.find(Table).exists()).toBeTruthy();
 
-test("should display case allegations for the officer", () => {
-  caseOfficer.allegations = [
-    {
-      allegation: {
-        id: 1,
-        rule: "rule",
-        paragraph: "paragraph",
-        directive: "directive"
-      },
-      id: 2,
-      caseOfficerId: 3
-    }
-  ];
+    expect(wrapper.find('[data-test="officerFullName"]').text()).toEqual(
+      officer.fullName
+    );
+  });
 
-  store.dispatch(getCaseDetailsSuccess(seededCase));
+  test("should redirect to case details page for archived case", () => {
+    const wrapper = mount(
+      <Provider store={store}>
+        <Router>
+          <AllegationSearchContainer
+            match={{
+              params: {
+                id: `${seededCase.id}`,
+                caseOfficerId: `${caseOfficer.id}`
+              }
+            }}
+          />
+        </Router>
+      </Provider>
+    );
 
-  const wrapper = mount(
-    <Provider store={store}>
-      <Router>
-        <AllegationSearchContainer
-          match={{
-            params: {
-              id: seededCase.id,
-              caseOfficerId: caseOfficer.id
-            }
-          }}
-        />
-      </Router>
-    </Provider>
-  );
-  expect(wrapper.find(OfficerAllegations).exists()).toBeTruthy();
+    store.dispatch(
+      getCaseDetailsSuccess({
+        ...seededCase,
+        isArchived: true
+      })
+    );
+
+    wrapper.update();
+    expect(dispatchSpy).toHaveBeenCalledWith(
+      invalidCaseStatusRedirect(seededCase.id)
+    );
+  });
+
+  test("should display case allegations for the officer", () => {
+    caseOfficer.allegations = [
+      {
+        allegation: {
+          id: 1,
+          rule: "rule",
+          paragraph: "paragraph",
+          directive: "directive"
+        },
+        id: 2,
+        caseOfficerId: 3
+      }
+    ];
+
+    store.dispatch(getCaseDetailsSuccess(seededCase));
+
+    const wrapper = mount(
+      <Provider store={store}>
+        <Router>
+          <AllegationSearchContainer
+            match={{
+              params: {
+                id: seededCase.id,
+                caseOfficerId: caseOfficer.id
+              }
+            }}
+          />
+        </Router>
+      </Provider>
+    );
+    expect(wrapper.find(OfficerAllegations).exists()).toBeTruthy();
+  });
 });

@@ -18,8 +18,12 @@ export class OfficerSearchContainer extends Component {
     return (
       <div>
         <NavBar>
-          <Typography data-test="pageTitle" variant="title" color="inherit">
-            {`Case #${caseId}   : ${titleAction} Officer`}
+          <Typography
+            data-test="officer-search-title"
+            variant="title"
+            color="inherit"
+          >
+            {`Case #${this.props.caseReference}   : ${titleAction} Officer`}
           </Typography>
         </NavBar>
         <LinkButton
@@ -27,11 +31,10 @@ export class OfficerSearchContainer extends Component {
           component={Link}
           to={`/cases/${caseId}`}
           style={{ margin: "2% 0% 2% 4%" }}
-          onClick={() => this.props.dispatch(clearSelectedOfficer())}
         >
           Back to Case
         </LinkButton>
-        <div style={{ margin: "0% 5% 3%" }}>
+        <div style={{ margin: "0% 5% 3%", maxWidth: "60rem" }}>
           <OfficerSearch
             initialize={this.props.initialize}
             dispatch={this.props.dispatch}
@@ -43,4 +46,8 @@ export class OfficerSearchContainer extends Component {
   }
 }
 
-export default connect()(OfficerSearchContainer);
+const mapStateToProps = state => ({
+  caseReference: state.currentCase.details.caseReference
+});
+
+export default connect(mapStateToProps)(OfficerSearchContainer);

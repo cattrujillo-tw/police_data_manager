@@ -7,7 +7,7 @@ import {
   buildTokenWithPermissions,
   cleanupDatabase
 } from "../../../testHelpers/requestTestHelpers";
-import { createCaseWithoutCivilian } from "../../../testHelpers/modelMothers";
+import { createTestCaseWithoutCivilian } from "../../../testHelpers/modelMothers";
 import { ACCUSED } from "../../../../sharedUtilities/constants";
 import OfficerAllegation from "../../../../client/testUtilities/OfficerAllegation";
 
@@ -19,7 +19,7 @@ describe("DELETE /officers-allegations/:officerAllegationId", () => {
   test("should respond with 200 and updated case when successful", async () => {
     const token = buildTokenWithPermissions("", "TEST_NICKNAME");
 
-    const createdCase = await createCaseWithoutCivilian();
+    const createdCase = await createTestCaseWithoutCivilian();
     const anAllegation = new Allegation.Builder()
       .defaultAllegation()
       .withId(undefined)
@@ -67,7 +67,11 @@ describe("DELETE /officers-allegations/:officerAllegationId", () => {
       createdCase.accusedOfficers[0].allegations[0];
 
     await request(app)
-      .delete(`/api/officers-allegations/${officerAllegationToRemove.id}`)
+      .delete(
+        `/api/cases/${createdCase.id}/officers-allegations/${
+          officerAllegationToRemove.id
+        }`
+      )
       .set("Content-Header", "application/json")
       .set("Authorization", `Bearer ${token}`)
       .expect(200)

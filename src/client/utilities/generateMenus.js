@@ -2,7 +2,12 @@ import React from "react";
 import { MenuItem } from "@material-ui/core";
 import * as _ from "lodash";
 import formatStringToTitleCase from "./formatStringToTitleCase";
-import { ACCUSED, COMPLAINANT, WITNESS } from "../../sharedUtilities/constants";
+import {
+  ACCUSED,
+  ALLEGATION_SEVERITY,
+  COMPLAINANT,
+  WITNESS
+} from "../../sharedUtilities/constants";
 
 export const generateMenu = contents => {
   return contents.map(content => {
@@ -53,6 +58,28 @@ export const raceEthnicityMenu = generateMenu([
   "Other"
 ]);
 
+export const titleMenu = generateMenu([
+  "N/A",
+  "Dr.",
+  "Miss",
+  "Mr.",
+  "Mrs.",
+  "Ms."
+]);
+
+export const intakeSourceMenu = generateMenu([
+  "Email",
+  "Facebook",
+  "In Person",
+  "Instagram",
+  "NOIPM Website",
+  "Other",
+  "Outreach Event",
+  "Phone",
+  "Remote Complaint Intake Site",
+  "Twitter"
+]);
+
 export const searchDistrictMenu = generateMenu([
   ["Any District", ""],
   ["1st District", "First District"],
@@ -99,6 +126,7 @@ export const caseNotes = generateMenu([
 ]);
 
 export const roleOnCaseMenu = generateMenu([ACCUSED, COMPLAINANT, WITNESS]);
+export const allegationSeverityMenu = generateMenu(ALLEGATION_SEVERITY.ALL);
 
 export const searchRuleMenu = allegations => {
   allegations = _.sortBy(allegations, allegation => allegation.rule);

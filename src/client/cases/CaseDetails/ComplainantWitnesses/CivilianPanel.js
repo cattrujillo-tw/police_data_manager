@@ -12,51 +12,122 @@ import CivilianInfoDisplay from "./CivilianInfoDisplay";
 import {
   Divider,
   ExpansionPanel,
-  ExpansionPanelSummary,
-  IconButton,
-  Icon
+  ExpansionPanelSummary
 } from "@material-ui/core";
 import formatDate from "../../../utilities/formatDate";
 import formatPhoneNumber from "../../../utilities/formatPhoneNumber";
 import AddressInfoDisplay from "../../../shared/components/AddressInfoDisplay";
 import DateOfBirthAgeInfoDisplay from "../../../shared/components/DateOfBirthAgeInfoDisplay";
+import ExpansionPanelIconButton from "../../../shared/components/ExpansionPanelIconButton";
+import StyledInfoDisplay from "../../../shared/components/StyledInfoDisplay";
 
-const CivilianPanel = ({ civilian, civilianAge, dispatch }) => {
+const CivilianPanel = ({
+  civilian,
+  civilianAge,
+  dispatch,
+  isArchived,
+  classes
+}) => {
   const phoneNumber = formatPhoneNumber(civilian.phoneNumber);
   const birthDate = formatDate(civilian.birthDate);
 
   return (
     <div>
-      <ExpansionPanel
-        data-test="complainantWitnessesPanel"
-        elevation={0}
-        style={{ backgroundColor: "white" }}
+      <div
+        style={{
+          display: "flex",
+          width: "100%",
+          paddingRight: 0
+        }}
       >
-        <ExpansionPanelSummary style={{ padding: "0px 24px" }}>
-          <div style={{ display: "flex", width: "100%", paddingRight: 0 }}>
-            <IconButton
-              style={{ marginRight: 16 }}
-              color="secondary"
-              className="chevron-right"
+        <ExpansionPanel
+          data-test="complainantWitnessesPanel"
+          elevation={0}
+          style={{ backgroundColor: "white", width: "100%" }}
+        >
+          <ExpansionPanelSummary style={{ padding: "0px 24px" }}>
+            <div
+              style={{
+                display: "flex",
+                width: "100%",
+                paddingRight: 0,
+                marginBottom: 4
+              }}
             >
-              <Icon>unfold_more</Icon>
-            </IconButton>
-            <CivilianInfoDisplay
-              displayLabel={"Civilian"}
-              value={civilian.fullName}
-              testLabel="complainant"
-            />
-            <CivilianInfoDisplay
-              displayLabel="Gender Identity"
-              value={civilian.genderIdentity}
-              testLabel="genderIdentity"
-            />
-            <CivilianInfoDisplay
-              displayLabel="Race/Ethnicity"
-              value={civilian.raceEthnicity}
-              testLabel="raceEthnicity"
-            />
-            <div>
+              <ExpansionPanelIconButton />
+              <div className={classes.detailsLastRow}>
+                <StyledInfoDisplay>
+                  <CivilianInfoDisplay
+                    displayLabel={"Civilian"}
+                    value={civilian.fullName}
+                    testLabel="complainantWitness"
+                  />
+                </StyledInfoDisplay>
+                <StyledInfoDisplay>
+                  <CivilianInfoDisplay
+                    displayLabel="Gender Identity"
+                    value={civilian.genderIdentity}
+                    testLabel="genderIdentity"
+                  />
+                </StyledInfoDisplay>
+                <StyledInfoDisplay>
+                  <CivilianInfoDisplay
+                    displayLabel="Race/Ethnicity"
+                    value={
+                      civilian.raceEthnicity && civilian.raceEthnicity.name
+                    }
+                    testLabel="raceEthnicity"
+                  />
+                </StyledInfoDisplay>
+              </div>
+            </div>
+          </ExpansionPanelSummary>
+          <StyledExpansionPanelDetails>
+            <StyledInfoDisplay>
+              <DateOfBirthAgeInfoDisplay
+                displayLabel="Date of Birth (Age on Incident Date)"
+                testLabel="complainantBirthday"
+                birthDate={birthDate}
+                age={civilianAge}
+              />
+            </StyledInfoDisplay>
+            <StyledInfoDisplay>
+              <CivilianInfoDisplay
+                displayLabel="Phone Number"
+                value={phoneNumber}
+                testLabel="complainantPhoneNumber"
+              />
+            </StyledInfoDisplay>
+            <StyledInfoDisplay>
+              <CivilianInfoDisplay
+                displayLabel="Email"
+                value={civilian.email}
+                testLabel="complainantEmail"
+              />
+            </StyledInfoDisplay>
+          </StyledExpansionPanelDetails>
+          <StyledExpansionPanelDetails>
+            <StyledInfoDisplay>
+              <AddressInfoDisplay
+                testLabel={"civilianAddress"}
+                displayLabel={"Address"}
+                address={civilian.address}
+              />
+            </StyledInfoDisplay>
+          </StyledExpansionPanelDetails>
+          <StyledExpansionPanelDetails>
+            <StyledInfoDisplay>
+              <CivilianInfoDisplay
+                displayLabel="Additional Information"
+                value={civilian.additionalInfo}
+                testLabel="complainantAdditionalInfo"
+              />
+            </StyledInfoDisplay>
+          </StyledExpansionPanelDetails>
+        </ExpansionPanel>
+        <div style={{ margin: "12px 24px" }}>
+          {isArchived ? null : (
+            <div style={{ display: "flex" }}>
               <LinkButton
                 data-test="editComplainantLink"
                 onClick={event => {
@@ -79,42 +150,9 @@ const CivilianPanel = ({ civilian, civilianAge, dispatch }) => {
                 Remove
               </LinkButton>
             </div>
-          </div>
-        </ExpansionPanelSummary>
-        <StyledExpansionPanelDetails>
-          <DateOfBirthAgeInfoDisplay
-            displayLabel="Date of Birth (Age on Incident Date)"
-            testLabel="complainantBirthday"
-            birthDate={birthDate}
-            age={civilianAge}
-            marginRight="10px"
-          />
-          <CivilianInfoDisplay
-            displayLabel="Phone Number"
-            value={phoneNumber}
-            testLabel="complainantPhoneNumber"
-          />
-          <CivilianInfoDisplay
-            displayLabel="Email"
-            value={civilian.email}
-            testLabel="complainantEmail"
-          />
-        </StyledExpansionPanelDetails>
-        <StyledExpansionPanelDetails>
-          <AddressInfoDisplay
-            testLabel={"civilianAddress"}
-            displayLabel={"Address"}
-            address={civilian.address}
-          />
-        </StyledExpansionPanelDetails>
-        <StyledExpansionPanelDetails>
-          <CivilianInfoDisplay
-            displayLabel="Additional Information"
-            value={civilian.additionalInfo}
-            testLabel="complainantAdditionalInfo"
-          />
-        </StyledExpansionPanelDetails>
-      </ExpansionPanel>
+          )}
+        </div>
+      </div>
       <Divider />
     </div>
   );

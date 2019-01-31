@@ -1,5 +1,4 @@
 import React from "react";
-import styles from "../../../globalStyling/styles";
 import { Divider, Typography } from "@material-ui/core";
 import OfficerActions from "./OfficerActions";
 import UnknownOfficerPanel from "../Officers/UnknownOfficerPanel";
@@ -9,31 +8,26 @@ import calculateAgeBasedOnIncidentDate from "../../../utilities/calculateAgeBase
 
 const ComplainantWitnessDisplay = ({
   civiliansAndOfficers,
-  title,
   emptyMessage,
   dispatch,
-  incidentDate
+  incidentDate,
+  isArchived,
+  classes
 }) => {
   return (
     <div>
-      <Typography
-        style={{
-          ...styles.section,
-          margin: "8px 24px"
-        }}
-      >
-        {title}
-      </Typography>
-      <Divider />
       {civiliansAndOfficers.length === 0 ? (
-        <Typography
-          data-test="noCivilianMessage"
-          style={{
-            margin: "16px 24px"
-          }}
-        >
-          {emptyMessage}
-        </Typography>
+        <div>
+          <Typography
+            data-test="noCivilianMessage"
+            style={{
+              margin: "16px 24px"
+            }}
+          >
+            {emptyMessage}
+          </Typography>
+          <Divider />
+        </div>
       ) : (
         civiliansAndOfficers.map((civilianOrOfficer, index) => {
           if (civilianOrOfficer.hasOwnProperty("officerId")) {
@@ -43,7 +37,9 @@ const ComplainantWitnessDisplay = ({
                   key={index}
                   caseOfficer={civilianOrOfficer}
                 >
-                  <OfficerActions caseOfficer={civilianOrOfficer} />
+                  {isArchived ? null : (
+                    <OfficerActions caseOfficer={civilianOrOfficer} />
+                  )}
                 </UnknownOfficerPanel>
               );
             } else {
@@ -56,7 +52,9 @@ const ComplainantWitnessDisplay = ({
                     incidentDate
                   )}
                 >
-                  <OfficerActions caseOfficer={civilianOrOfficer} />
+                  {isArchived ? null : (
+                    <OfficerActions caseOfficer={civilianOrOfficer} />
+                  )}
                 </OfficerPanel>
               );
             }
@@ -70,6 +68,8 @@ const ComplainantWitnessDisplay = ({
                   civilianOrOfficer,
                   incidentDate
                 )}
+                isArchived={isArchived}
+                classes={classes}
               />
             );
           }

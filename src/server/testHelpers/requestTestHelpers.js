@@ -7,14 +7,31 @@ import winston from "winston";
 const config = require("../config/config")[process.env.NODE_ENV];
 
 export const suppressWinstonLogs = test => async () => {
-  winston.remove(winston.transports.Console);
+  winston.configure({
+    transports: [
+      new winston.transports.Console({
+        json: config.winston.json,
+        colorize: true,
+        silent: true
+      })
+    ],
+    level: config.winston.logLevel,
+    colorize: true
+  });
+
   try {
     await test();
   } catch (err) {
     throw err;
   } finally {
-    winston.add(winston.transports.Console, {
-      json: true,
+    winston.configure({
+      transports: [
+        new winston.transports.Console({
+          json: config.winston.json,
+          colorize: true
+        })
+      ],
+      level: config.winston.logLevel,
       colorize: true
     });
   }
@@ -46,16 +63,25 @@ export const buildTokenWithPermissions = (permissions, nickname) => {
 
 export const cleanupDatabase = async () => {
   const truncationQuery =
+    "TRUNCATE referral_letter_officer_recommended_actions CASCADE;" +
+    "TRUNCATE referral_letter_iapro_corrections CASCADE;" +
+    "TRUNCATE referral_letter_officer_history_notes CASCADE;" +
+    "TRUNCATE letter_officers CASCADE;" +
+    "TRUNCATE referral_letters CASCADE;" +
+    "TRUNCATE recommended_actions CASCADE;" +
     "TRUNCATE addresses CASCADE;" +
     "TRUNCATE cases_officers CASCADE;" +
     "TRUNCATE officers_allegations CASCADE;" +
     "TRUNCATE officers CASCADE;" +
     "TRUNCATE allegations CASCADE;" +
+    "TRUNCATE classifications CASCADE;" +
     "TRUNCATE civilians CASCADE;" +
     "TRUNCATE attachments CASCADE;" +
     "TRUNCATE case_notes CASCADE;" +
     "TRUNCATE action_audits CASCADE;" +
     "TRUNCATE data_change_audits CASCADE;" +
+    "TRUNCATE intake_sources CASCADE;" +
+    "TRUNCATE race_ethnicities CASCADE;" +
     "TRUNCATE cases CASCADE;";
   await models.sequelize.query(truncationQuery, {
     type: models.sequelize.QueryTypes.RAW

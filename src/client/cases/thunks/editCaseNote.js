@@ -1,38 +1,25 @@
-import { push } from "react-router-redux";
-import getAccessToken from "../../auth/getAccessToken";
 import {
   closeCaseNoteDialog,
-  editCaseNoteFailure,
   editCaseNoteSuccess
 } from "../../actionCreators/casesActionCreators";
-import config from "../../config/config";
 import axios from "axios";
-
-const hostname = config[process.env.NODE_ENV].hostname;
+import { startSubmit, stopSubmit } from "redux-form";
+import { CASE_NOTE_FORM_NAME } from "../../../sharedUtilities/constants";
+import { snackbarSuccess } from "../../actionCreators/snackBarActionCreators";
 
 const editCaseNote = values => async dispatch => {
   try {
-    const token = getAccessToken();
-    if (!token) {
-      return dispatch(push("/login"));
-    }
-
-    const response = await axios(
-      `${hostname}/api/cases/${values.caseId}/case-notes/${values.id}`,
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-        data: JSON.stringify(values)
-      }
+    dispatch(startSubmit(CASE_NOTE_FORM_NAME));
+    const response = await axios.put(
+      `api/cases/${values.caseId}/case-notes/${values.id}`,
+      JSON.stringify(values)
     );
-
     dispatch(editCaseNoteSuccess(response.data));
+    dispatch(stopSubmit(CASE_NOTE_FORM_NAME));
+    dispatch(snackbarSuccess("Case note was successfully updated"));
     return dispatch(closeCaseNoteDialog());
   } catch (error) {
-    return dispatch(editCaseNoteFailure());
+    dispatch(stopSubmit(CASE_NOTE_FORM_NAME));
   }
 };
 

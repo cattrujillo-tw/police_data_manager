@@ -3,13 +3,12 @@ import formatStringToTitleCase from "../../../utilities/formatStringToTitleCase"
 import OfficerInfoDisplay from "./OfficerInfoDisplay";
 import StyledExpansionPanelDetails from "../ComplainantWitnesses/StyledExpansionPanelDetails";
 import {
-  ExpansionPanel,
-  ExpansionPanelSummary,
   CardContent,
-  IconButton,
-  Icon
+  ExpansionPanel,
+  ExpansionPanelSummary
 } from "@material-ui/core";
 import { connect } from "react-redux";
+import ExpansionPanelIconButton from "../../../shared/components/ExpansionPanelIconButton";
 
 class OfficerAllegationDisplay extends Component {
   handleChange = (event, expanded) => {
@@ -36,7 +35,7 @@ class OfficerAllegationDisplay extends Component {
   }
 
   render() {
-    const { rule, paragraph, directive, details } = this.props;
+    const { rule, paragraph, directive, details, severity } = this.props;
 
     return (
       <CardContent
@@ -58,13 +57,7 @@ class OfficerAllegationDisplay extends Component {
           }}
         >
           <ExpansionPanelSummary>
-            <IconButton
-              style={{ marginRight: 16 }}
-              color="secondary"
-              className="chevron-right"
-            >
-              <Icon>unfold_more</Icon>
-            </IconButton>
+            <ExpansionPanelIconButton />
             <OfficerInfoDisplay
               displayLabel="Rule"
               value={formatStringToTitleCase(rule)}
@@ -81,6 +74,14 @@ class OfficerAllegationDisplay extends Component {
               testLabel="directive"
             />
           </ExpansionPanelSummary>
+          <StyledExpansionPanelDetails>
+            <OfficerInfoDisplay
+              shouldTruncate={false}
+              displayLabel="Severity"
+              value={severity}
+              testLabel="allegationSeverity"
+            />
+          </StyledExpansionPanelDetails>
           <StyledExpansionPanelDetails>
             <OfficerInfoDisplay
               shouldTruncate={false}

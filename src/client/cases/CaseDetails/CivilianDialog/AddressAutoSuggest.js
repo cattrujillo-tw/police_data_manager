@@ -3,11 +3,18 @@ import Autosuggest from "react-autosuggest";
 import match from "autosuggest-highlight/match";
 import parse from "autosuggest-highlight/parse";
 import { MenuItem, Paper, TextField } from "@material-ui/core";
-import { change, clearSubmitErrors } from "redux-form";
 import { connect } from "react-redux";
 import { withStyles } from "@material-ui/core/styles";
 import poweredByGoogle from "../../../../assets/powered_by_google_on_white_hdpi.png";
-import formatAddress from "../../../utilities/formatAddress";
+import { snackbarError } from "../../../actionCreators/snackBarActionCreators";
+import {
+  updateAddressDisplayValue,
+  updateAddressErrorMessage,
+  updateAddressInputValidity,
+  updateAddressToConfirm,
+  updateShowAddressMessage
+} from "../../../actionCreators/casesActionCreators";
+import parseAddressFromGooglePlaceResult from "../../../utilities/parseAddressFromGooglePlaceResult";
 
 const styles = theme => ({
   container: {
@@ -36,21 +43,22 @@ const styles = theme => ({
 class AddressAutoSuggest extends Component {
   constructor(props) {
     super(props);
+    this.props.updateAddressDisplayValue(props.defaultText || "");
     this.state = {
-      value: props.defaultText || "",
-      suggestionServiceAvailable: true,
-      suggestions: []
+      googleAddressServiceIsAvailable: true,
+      geocoderServiceIsAvailable: true,
+      suggestions: [],
+      suggestionSelected: true
     };
   }
 
   async componentDidMount() {
-    await this.props.suggestionEngine.healthCheck(
-      ({ googleAddressServiceIsAvailable }) => {
-        this.setState({
-          suggestionServiceAvailable: googleAddressServiceIsAvailable
-        });
-      }
-    );
+    await this.props.mapService.healthCheck(currentMapServiceIsAvailable => {
+      this.setState(currentMapServiceIsAvailable);
+    });
+    this.props.updateAddressInputValidity(true);
+    this.props.updateAddressErrorMessage("");
+    this.props.updateShowAddressMessage(false);
   }
 
   renderInput = inputProps => {
@@ -64,7 +72,10 @@ class AddressAutoSuggest extends Component {
     } = inputProps;
     const shouldRenderError = Boolean(reduxFormMeta.error);
 
-    if (!this.state.suggestionServiceAvailable) {
+    if (
+      !this.state.googleAddressServiceIsAvailable ||
+      !this.state.geocoderServiceIsAvailable
+    ) {
       return (
         <TextField
           disabled={true}
@@ -92,7 +103,8 @@ class AddressAutoSuggest extends Component {
             input: classes.input
           },
           "data-test": dataTest,
-          ...other
+          ...other,
+          autoComplete: "disabled" // "off" does not work on chrome
         }}
         error={shouldRenderError}
         helperText={reduxFormMeta.error}
@@ -122,7 +134,7 @@ class AddressAutoSuggest extends Component {
   };
 
   renderSuggestion = (suggestion, { query, isHighlighted }) => {
-    const suggestionValue = this.props.suggestionEngine.getSuggestionValue(
+    const suggestionValue = this.props.mapService.getSuggestionValue(
       suggestion
     );
     const matches = match(suggestionValue, query);
@@ -148,49 +160,34 @@ class AddressAutoSuggest extends Component {
   };
 
   getSuggestionValue = suggestion => {
-    return this.props.suggestionEngine.getSuggestionValue(suggestion);
+    return this.props.mapService.getSuggestionValue(suggestion);
+  };
+
+  handleValidatedAddress = address => {
+    this.props.setFormValues(address);
+  };
+
+  showAddressLookupError = message => {
+    this.props.updateAddressErrorMessage(
+      "We could not find any matching addresses"
+    );
+    if (message) {
+      this.props.snackbarError(message);
+    }
   };
 
   onSuggestionSelected = (event, { suggestion }) => {
-    this.props.suggestionEngine.onSuggestionSelected(suggestion, address => {
-      this.props.onInputChanged(formatAddress(address));
-
-      this.props.change(
-        this.props.formName,
-        `${this.props.fieldName}.streetAddress`,
-        address.streetAddress
-      );
-      this.props.change(
-        this.props.formName,
-        `${this.props.fieldName}.intersection`,
-        address.intersection
-      );
-      this.props.change(
-        this.props.formName,
-        `${this.props.fieldName}.city`,
-        address.city
-      );
-      this.props.change(
-        this.props.formName,
-        `${this.props.fieldName}.state`,
-        address.state
-      );
-      this.props.change(
-        this.props.formName,
-        `${this.props.fieldName}.zipCode`,
-        address.zipCode
-      );
-      this.props.change(
-        this.props.formName,
-        `${this.props.fieldName}.country`,
-        address.country
-      );
-    });
+    this.setState({ suggestionSelected: true });
+    this.props.mapService.fetchAddressDetails(
+      { placeId: suggestion.place_id },
+      this.handleValidatedAddress,
+      this.showAddressLookupError
+    );
   };
 
   handleSuggestionsFetchRequested = ({ value, reason }) => {
     if (value && reason === "input-changed") {
-      this.props.suggestionEngine.onFetchSuggestions(value, values => {
+      this.props.mapService.fetchSuggestions(value, values => {
         this.setState({
           suggestions: values || []
         });
@@ -204,44 +201,35 @@ class AddressAutoSuggest extends Component {
     });
   };
 
-  handleChange = (event, { newValue }) => {
-    this.props.onInputChanged(newValue);
-    this.setState({ value: newValue });
-
-    if (!newValue) {
-      this.props.change(
-        this.props.formName,
-        `${this.props.fieldName}.streetAddress`,
-        ""
-      );
-      this.props.change(
-        this.props.formName,
-        `${this.props.fieldName}.intersection`,
-        ""
-      );
-      this.props.change(
-        this.props.formName,
-        `${this.props.fieldName}.city`,
-        ""
-      );
-      this.props.change(
-        this.props.formName,
-        `${this.props.fieldName}.state`,
-        ""
-      );
-      this.props.change(
-        this.props.formName,
-        `${this.props.fieldName}.zipCode`,
-        ""
-      );
-      this.props.change(
-        this.props.formName,
-        `${this.props.fieldName}.country`,
-        ""
+  handleBlur = () => {
+    this.props.updateShowAddressMessage(true);
+    this.props.updateAddressErrorMessage("");
+    if (
+      !this.state.suggestionSelected &&
+      this.props.addressDisplayValue.trim() !== ""
+    ) {
+      this.props.mapService.fetchAddressDetails(
+        { address: this.props.addressDisplayValue },
+        this.handleNonConfirmedValidAddress,
+        this.showAddressLookupError
       );
     }
+  };
 
-    this.props.clearSubmitErrors(this.props.formName);
+  handleNonConfirmedValidAddress = address => {
+    this.props.updateAddressToConfirm(address);
+  };
+
+  handleChange = (event, { newValue }) => {
+    this.props.updateAddressDisplayValue(newValue);
+    this.setState({ suggestionSelected: false });
+    this.props.updateAddressToConfirm({});
+    this.props.updateShowAddressMessage(false);
+    if (newValue.trim() === "") {
+      this.props.setFormValues(parseAddressFromGooglePlaceResult({}));
+    } else {
+      this.props.updateAddressInputValidity(false);
+    }
   };
 
   render() {
@@ -278,29 +266,44 @@ class AddressAutoSuggest extends Component {
           ...inputProps,
           classes,
           reduxFormMeta: meta,
-          value: this.state.value,
-          onChange: this.handleChange
+          value: this.props.addressDisplayValue,
+          onChange: this.handleChange,
+          onBlur: this.handleBlur
         }}
       />
     );
   }
 }
 
-const mapDispatchToProps = (dispatch, ownProps) => {
+const mapDispatchToProps = dispatch => {
   return {
-    change: (...params) => {
-      dispatch(change(...params));
+    updateAddressInputValidity: (...params) => {
+      dispatch(updateAddressInputValidity(...params));
     },
-    clearSubmitErrors: (...params) => {
-      dispatch(clearSubmitErrors(...params));
+    updateShowAddressMessage: (...params) => {
+      dispatch(updateShowAddressMessage(...params));
     },
-    onInputChanged: (...params) => {
-      dispatch(ownProps.onInputChanged(...params));
+    updateAddressToConfirm: (...params) => {
+      dispatch(updateAddressToConfirm(...params));
+    },
+    updateAddressDisplayValue: (...params) => {
+      dispatch(updateAddressDisplayValue(...params));
+    },
+    updateAddressErrorMessage: (...params) => {
+      dispatch(updateAddressErrorMessage(...params));
+    },
+    snackbarError: (...params) => {
+      dispatch(snackbarError(...params));
     }
   };
 };
 
-const ConnectedComponent = connect(undefined, mapDispatchToProps)(
-  AddressAutoSuggest
-);
+const mapStateToProps = state => ({
+  addressDisplayValue: state.ui.addressInput.addressDisplayValue
+});
+
+const ConnectedComponent = connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(AddressAutoSuggest);
 export default withStyles(styles)(ConnectedComponent);

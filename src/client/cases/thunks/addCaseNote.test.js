@@ -1,12 +1,14 @@
-import getAccessToken from "../../auth/getAccessToken";
 import nock from "nock";
-import { push } from "react-router-redux";
 import addCaseNote from "./addCaseNote";
 import {
   addCaseNoteFailure,
   addCaseNoteSuccess,
   closeCaseNoteDialog
 } from "../../actionCreators/casesActionCreators";
+import configureInterceptors from "../../axiosInterceptors/interceptors";
+import { CASE_NOTE_FORM_NAME } from "../../../sharedUtilities/constants";
+import { startSubmit, stopSubmit } from "redux-form";
+import { snackbarSuccess } from "../../actionCreators/snackBarActionCreators";
 
 jest.mock("../../auth/getAccessToken", () => jest.fn(() => "TEST_TOKEN"));
 
@@ -14,17 +16,11 @@ describe("addCaseNote", () => {
   const dispatch = jest.fn();
 
   beforeEach(() => {
+    configureInterceptors({ dispatch });
     dispatch.mockClear();
   });
 
-  test("should redirect immediately if token missing", async () => {
-    getAccessToken.mockImplementationOnce(() => false);
-    await addCaseNote()(dispatch);
-
-    expect(dispatch).toHaveBeenCalledWith(push(`/login`));
-  });
-
-  test("should dispatch failure when add case note fails", async () => {
+  test("should dispatch start and stop submits when add case note fails", async () => {
     const caseNote = {
       caseId: 12,
       action: "Miscellaneous"
@@ -41,7 +37,8 @@ describe("addCaseNote", () => {
 
     await addCaseNote(caseNote)(dispatch);
 
-    expect(dispatch).toHaveBeenCalledWith(addCaseNoteFailure());
+    expect(dispatch).toHaveBeenCalledWith(startSubmit(CASE_NOTE_FORM_NAME));
+    expect(dispatch).toHaveBeenCalledWith(stopSubmit(CASE_NOTE_FORM_NAME));
   });
 
   test("should dispatch success when case note added successfully", async () => {
@@ -66,9 +63,14 @@ describe("addCaseNote", () => {
 
     await addCaseNote(caseNote)(dispatch);
 
+    expect(dispatch).toHaveBeenCalledWith(startSubmit(CASE_NOTE_FORM_NAME));
+    expect(dispatch).toHaveBeenCalledWith(
+      snackbarSuccess("Case note was successfully created")
+    );
     expect(dispatch).toHaveBeenCalledWith(
       addCaseNoteSuccess(responseBody.caseDetails, responseBody.caseNotes)
     );
     expect(dispatch).toHaveBeenCalledWith(closeCaseNoteDialog());
+    expect(dispatch).toHaveBeenCalledWith(stopSubmit(CASE_NOTE_FORM_NAME));
   });
 });

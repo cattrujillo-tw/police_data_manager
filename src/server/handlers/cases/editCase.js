@@ -1,9 +1,15 @@
+import {
+  ADDRESSABLE_TYPE,
+  AUDIT_SUBJECT
+} from "../../../sharedUtilities/constants";
+import checkFeatureToggleEnabled from "../../checkFeatureToggleEnabled";
+import { BAD_REQUEST_ERRORS } from "../../../sharedUtilities/errorMessageConstants";
+
 const moment = require("moment");
 const models = require("../../models");
 const asyncMiddleware = require("../asyncMiddleware");
-const getCaseWithAllAssociations = require("../getCaseWithAllAssociations");
+import { getCaseWithAllAssociations } from "../getCaseHelpers";
 const _ = require("lodash");
-const { AUDIT_SUBJECT } = require("../../../sharedUtilities/constants");
 const auditDataAccess = require("../auditDataAccess");
 const Boom = require("boom");
 
@@ -12,7 +18,7 @@ async function upsertAddress(caseId, incidentLocation, transaction, nickname) {
     await models.address.create(
       {
         ...incidentLocation,
-        addressableType: "cases",
+        addressableType: ADDRESSABLE_TYPE.CASES,
         addressableId: caseId
       },
       {
@@ -34,8 +40,13 @@ const editCase = asyncMiddleware(async (request, response, next) => {
     !request.body.firstContactDate ||
     !moment(request.body.firstContactDate).isValid()
   ) {
-    throw Boom.badRequest("Valid first contact date is required");
+    throw Boom.badRequest(BAD_REQUEST_ERRORS.INVALID_FIRST_CONTACT_DATE);
   } else {
+    const caseValidationToggle = checkFeatureToggleEnabled(
+      request,
+      "caseValidationFeature"
+    );
+
     const updatedCase = await models.sequelize.transaction(
       async transaction => {
         const valuesToUpdate = _.omit(request.body, [
@@ -45,28 +56,32 @@ const editCase = asyncMiddleware(async (request, response, next) => {
 
         if (request.body.incidentLocation) {
           await upsertAddress(
-            request.params.id,
+            request.params.caseId,
             request.body.incidentLocation,
             transaction,
             request.nickname
           );
         }
 
-        await models.cases.update(valuesToUpdate, {
-          where: { id: request.params.id },
+        const caseToUpdate = await models.cases.findById(request.params.caseId);
+        await caseToUpdate.update(valuesToUpdate, {
           individualHooks: true,
           transaction,
-          auditUser: request.nickname
+          auditUser: request.nickname,
+          validate: caseValidationToggle
         });
 
         await auditDataAccess(
           request.nickname,
-          request.params.id,
+          request.params.caseId,
           AUDIT_SUBJECT.CASE_DETAILS,
           transaction
         );
 
-        return await getCaseWithAllAssociations(request.params.id, transaction);
+        return await getCaseWithAllAssociations(
+          request.params.caseId,
+          transaction
+        );
       }
     );
     response.status(200).send(updatedCase);

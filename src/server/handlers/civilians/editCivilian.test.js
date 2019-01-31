@@ -3,13 +3,14 @@ import Address from "../../../client/testUtilities/Address";
 import Civilian from "../../../client/testUtilities/civilian";
 import { cleanupDatabase } from "../../testHelpers/requestTestHelpers";
 import {
-  CASE_STATUS,
+  ADDRESSABLE_TYPE,
   AUDIT_ACTION,
   AUDIT_SUBJECT,
-  AUDIT_TYPE
+  AUDIT_TYPE,
+  CASE_STATUS
 } from "../../../sharedUtilities/constants";
 import Boom from "boom";
-import { createCaseWithCivilian } from "../../testHelpers/modelMothers";
+import { createTestCaseWithCivilian } from "../../testHelpers/modelMothers";
 
 const editCivilian = require("./editCivilian");
 const models = require("../../models/index");
@@ -22,7 +23,7 @@ describe("editCivilian handler editing civilian with no address", () => {
     await cleanupDatabase();
   });
   beforeEach(async () => {
-    existingCase = await createCaseWithCivilian();
+    existingCase = await createTestCaseWithCivilian();
   });
 
   test("should audit case details access when civilian edited", async () => {
@@ -36,7 +37,7 @@ describe("editCivilian handler editing civilian with no address", () => {
         authorization: "Bearer SOME_MOCK_TOKEN"
       },
       params: {
-        id: existingCivilian.id
+        civilianId: existingCivilian.id
       },
       body: {
         address: {
@@ -76,7 +77,7 @@ describe("editCivilian handler editing civilian with no address", () => {
         authorization: "Bearer SOME_MOCK_TOKEN"
       },
       params: {
-        id: existingCivilian.id
+        civilianId: existingCivilian.id
       },
       body: {
         address: {
@@ -154,7 +155,7 @@ describe("editCivilian handler editing civilian with an address", () => {
     const address = new Address.Builder()
       .defaultAddress()
       .withAddressableId(existingCivilian.id)
-      .withAddressableType("civilian")
+      .withAddressableType(ADDRESSABLE_TYPE.CIVILIAN)
       .withCity(initalCity)
       .withId(undefined)
       .build();
@@ -170,7 +171,7 @@ describe("editCivilian handler editing civilian with an address", () => {
         authorization: "Bearer SOME_MOCK_TOKEN"
       },
       params: {
-        id: existingCivilian.id
+        civilianId: existingCivilian.id
       },
       body: {
         address: {
@@ -209,7 +210,7 @@ describe("editCivilian handler editing civilian with an address", () => {
         authorization: "Bearer SOME_MOCK_TOKEN"
       },
       params: {
-        id: existingCivilian.id
+        civilianId: existingCivilian.id
       },
       body: {
         firstName: "Bob"
@@ -235,7 +236,7 @@ describe("editCivilian handler editing civilian with an address", () => {
         authorization: "Bearer SOME_MOCK_TOKEN"
       },
       params: {
-        id: existingCivilian.id
+        civilianId: existingCivilian.id
       },
       body: fieldsToUpdate,
       nickname: "TEST_USER_NICKNAME"
@@ -248,5 +249,29 @@ describe("editCivilian handler editing civilian with an address", () => {
     await existingCase.reload();
 
     expect(existingCivilian.address.city).toEqual(initalCity);
+  });
+
+  test("should trim extra whitespace from fields: firstName, lastName", async () => {
+    const request = httpMocks.createRequest({
+      method: "PUT",
+      headers: {
+        authorization: "Bearer SOME_MOCK_TOKEN"
+      },
+      params: {
+        civilianId: existingCivilian.id
+      },
+      body: {
+        firstName: "      Test White-space ",
+        lastName: "  O'Hare  "
+      },
+      nickname: "TEST_USER_NICKNAME"
+    });
+    const response = httpMocks.createResponse();
+
+    await editCivilian(request, response, jest.fn());
+
+    await existingCivilian.reload();
+    expect(existingCivilian.firstName).toEqual("Test White-space");
+    expect(existingCivilian.lastName).toEqual("O'Hare");
   });
 });

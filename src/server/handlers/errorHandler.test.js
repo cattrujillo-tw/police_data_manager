@@ -1,3 +1,9 @@
+import {
+  BAD_REQUEST_ERRORS,
+  NOT_FOUND_ERRORS
+} from "../../sharedUtilities/errorMessageConstants";
+import { API_ROUTES } from "../apiRoutes";
+
 const errorHandler = require("./errorHandler");
 const httpMocks = require("node-mocks-http");
 const Boom = require("boom");
@@ -18,12 +24,17 @@ describe("errorHandler", () => {
       JSON.stringify({
         statusCode: 500,
         error: "Internal Server Error",
-        message: "Something went wrong!"
+        message: "Something went wrong. Please try again."
       })
     );
   });
   test("should mask 500 error response", () => {
-    const request = httpMocks.createRequest();
+    const path = "/cases/:caseId";
+    const request = httpMocks.createRequest({
+      route: {
+        path: "/cases/:caseId"
+      }
+    });
     const response = httpMocks.createResponse();
 
     errorHandler(
@@ -37,7 +48,7 @@ describe("errorHandler", () => {
       JSON.stringify({
         statusCode: 500,
         error: "Internal Server Error",
-        message: "Something went wrong!"
+        message: API_ROUTES[path]["get"].errorMessage
       })
     );
   });
@@ -45,7 +56,11 @@ describe("errorHandler", () => {
   test("should respond with boomified error message with its status code", () => {
     const request = httpMocks.createRequest();
     const response = httpMocks.createResponse();
-    errorHandler(Boom.notFound("Page was not found"), request, response);
+    errorHandler(
+      Boom.notFound(NOT_FOUND_ERRORS.PAGE_NOT_FOUND),
+      request,
+      response
+    );
 
     expect(response.statusCode).toEqual(404);
     expect(response._getData()).toEqual(
@@ -55,5 +70,56 @@ describe("errorHandler", () => {
         message: "Page was not found"
       })
     );
+  });
+  describe("400 errors", () => {
+    test("should return request with caseId and invalid case status when received case in wrong status error", () => {
+      const caseId = 2;
+      const request = httpMocks.createRequest({
+        method: "GET",
+        headers: {
+          authorization: "Bearer token"
+        },
+        params: { caseId: caseId },
+        caseId: caseId
+      });
+      const response = httpMocks.createResponse();
+
+      errorHandler(
+        Boom.badRequest(BAD_REQUEST_ERRORS.INVALID_CASE_STATUS),
+        request,
+        response
+      );
+
+      expect(response.statusCode).toEqual(400);
+      expect(response._getData()).toEqual(
+        JSON.stringify({
+          statusCode: 400,
+          error: "Bad Request",
+          message: BAD_REQUEST_ERRORS.INVALID_CASE_STATUS,
+          caseId: caseId
+        })
+      );
+    });
+
+    test("should return request with error message when received some other error", () => {
+      const errorMessage = "error message";
+      const request = httpMocks.createRequest({
+        method: "GET",
+        headers: {
+          authorization: "Bearer token"
+        }
+      });
+      const response = httpMocks.createResponse();
+      errorHandler(Boom.badRequest(errorMessage), request, response);
+
+      expect(response.statusCode).toEqual(400);
+      expect(response._getData()).toEqual(
+        JSON.stringify({
+          statusCode: 400,
+          error: "Bad Request",
+          message: errorMessage
+        })
+      );
+    });
   });
 });

@@ -1,12 +1,13 @@
 import {
+  AUDIT_ACTION,
   AUDIT_SUBJECT,
-  AUDIT_TYPE,
-  AUDIT_ACTION
+  AUDIT_TYPE
 } from "../../../sharedUtilities/constants";
 import { cleanupDatabase } from "../../testHelpers/requestTestHelpers";
-import { createCaseWithCivilian } from "../../testHelpers/modelMothers";
+import { createTestCaseWithCivilian } from "../../testHelpers/modelMothers";
 import getCaseNotes from "./getCaseNotes";
 import CaseNote from "../../../client/testUtilities/caseNote";
+
 const models = require("../../models");
 const httpMocks = require("node-mocks-http");
 
@@ -16,7 +17,7 @@ describe("getCaseNotes", function() {
   });
 
   test("should audit accessing case notes", async () => {
-    const existingCase = await createCaseWithCivilian();
+    const existingCase = await createTestCaseWithCivilian();
     const caseNoteAttributes = new CaseNote.Builder()
       .defaultCaseNote()
       .withCaseId(existingCase.id);
@@ -27,7 +28,7 @@ describe("getCaseNotes", function() {
       headers: {
         authorization: "Bearer SOME_MOCK_TOKEN"
       },
-      params: { id: existingCase.id },
+      params: { caseId: existingCase.id },
       nickname: "tuser"
     });
 

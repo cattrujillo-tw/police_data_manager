@@ -1,10 +1,8 @@
 import {
-  Typography,
   Divider,
   ExpansionPanel,
   ExpansionPanelSummary,
-  IconButton,
-  Icon
+  Typography
 } from "@material-ui/core";
 import React from "react";
 import OfficerInfoDisplay from "./OfficerInfoDisplay";
@@ -16,52 +14,57 @@ import {
   accusedOfficerPanelCollapsed,
   accusedOfficerPanelExpanded
 } from "../../../actionCreators/accusedOfficerPanelsActionCreators";
-import {connect} from "react-redux"
+import { connect } from "react-redux";
+import ExpansionPanelIconButton from "../../../shared/components/ExpansionPanelIconButton";
+import StyledInfoDisplay from "../../../shared/components/StyledInfoDisplay";
 
 const UnknownOfficerPanel = ({ dispatch, caseOfficer, children }) => {
   return (
-    <div>
-      <ExpansionPanel
-        data-test="unknownOfficerPanel"
-        elevation={0}
-        onChange={(event, expanded) => {
-          expanded
-            ? dispatch(accusedOfficerPanelExpanded(caseOfficer.id))
-            : dispatch(accusedOfficerPanelCollapsed(caseOfficer.id));
-        }}
-        style={{ backgroundColor: "white" }}
-      >
-        <ExpansionPanelSummary style={{ padding: "0px 24px" }}>
-          <div style={{ display: "flex", width: "100%", paddingRight: 0 }}>
-            <IconButton
-              style={{ marginRight: 16 }}
-              color="secondary"
-              className="chevron-right"
-            >
-              <Icon>unfold_more</Icon>
-            </IconButton>
-            <OfficerInfoDisplay
-              displayLabel="Officer"
-              value={caseOfficer.fullName}
-              testLabel="officerName"
-            />
-            {children}
-          </div>
-        </ExpansionPanelSummary>
-        <StyledExpansionPanelDetails>
-          <OfficerInfoDisplay
-            displayLabel="Notes"
-            value={caseOfficer.notes}
-            testLabel="notes"
-          />
-        </StyledExpansionPanelDetails
+    <div data-test="unknownOfficerPanel">
+      <div style={{ display: "flex", width: "100%", paddingRight: 0 }}>
+        <ExpansionPanel
+          elevation={0}
+          onChange={(event, expanded) => {
+            expanded
+              ? dispatch(accusedOfficerPanelExpanded(caseOfficer.id))
+              : dispatch(accusedOfficerPanelCollapsed(caseOfficer.id));
+          }}
+          style={{ backgroundColor: "white", width: "100%" }}
         >
-        {caseOfficer &&
-          caseOfficer.roleOnCase === ACCUSED && (
+          <ExpansionPanelSummary style={{ padding: "0px 24px" }}>
             <div
               style={{
-                marginLeft: '64px'
-              }}>
+                display: "flex",
+                width: "100%",
+                paddingRight: 0,
+                marginBottom: 4
+              }}
+            >
+              <ExpansionPanelIconButton />
+              <StyledInfoDisplay>
+                <OfficerInfoDisplay
+                  displayLabel="Officer"
+                  value={caseOfficer.fullName}
+                  testLabel="officerName"
+                />
+              </StyledInfoDisplay>
+            </div>
+          </ExpansionPanelSummary>
+          <StyledExpansionPanelDetails>
+            <StyledInfoDisplay>
+              <OfficerInfoDisplay
+                displayLabel="Notes"
+                value={caseOfficer.notes}
+                testLabel="notes"
+              />
+            </StyledInfoDisplay>
+          </StyledExpansionPanelDetails>
+          {caseOfficer && caseOfficer.roleOnCase === ACCUSED && (
+            <div
+              style={{
+                marginLeft: "52px"
+              }}
+            >
               <Typography
                 style={{
                   ...styles.section,
@@ -82,7 +85,9 @@ const UnknownOfficerPanel = ({ dispatch, caseOfficer, children }) => {
               )}
             </div>
           )}
-      </ExpansionPanel>
+        </ExpansionPanel>
+        <div style={{ margin: "12px 24px" }}>{children}</div>
+      </div>
       <Divider />
     </div>
   );

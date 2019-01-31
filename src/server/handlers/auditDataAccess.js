@@ -6,6 +6,8 @@ const {
 } = require("../../sharedUtilities/constants");
 
 const SUBJECT_DETAILS = {
+  [AUDIT_SUBJECT.REFERRAL_LETTER_DATA]: ["Referral Letter Data"],
+  [AUDIT_SUBJECT.REFERRAL_LETTER]: ["Case Data", "Referral Letter Data"],
   [AUDIT_SUBJECT.CASE_DETAILS]: [
     "Case Information",
     "Incident Location",
@@ -38,7 +40,9 @@ const SUBJECT_DETAILS = {
     "Case Notes"
   ],
   [AUDIT_SUBJECT.CASE_NOTES]: ["Case Notes"],
-  [AUDIT_SUBJECT.OFFICER_DATA]: ["Officers"]
+  [AUDIT_SUBJECT.OFFICER_DATA]: ["Officers"],
+  [AUDIT_SUBJECT.MINIMUM_CASE_DETAILS]: ["Case Reference", "Case Status"],
+  [AUDIT_SUBJECT.LETTER_TYPE]: ["Letter Type"]
 };
 
 const auditDataAccess = async (

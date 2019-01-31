@@ -5,36 +5,41 @@ import * as httpMocks from "node-mocks-http";
 import Officer from "../../../../client/testUtilities/Officer";
 import {
   ACCUSED,
-  CASE_STATUS,
   AUDIT_ACTION,
+  AUDIT_SUBJECT,
   AUDIT_TYPE,
-  AUDIT_SUBJECT
+  CASE_STATUS
 } from "../../../../sharedUtilities/constants";
 import { cleanupDatabase } from "../../../testHelpers/requestTestHelpers";
+import ReferralLetter from "../../../../client/testUtilities/ReferralLetter";
 
 describe("addCaseOfficer", () => {
   afterEach(async () => {
     await cleanupDatabase();
   });
 
-  test("should change the case status to active when any officer is added", async () => {
-    const caseToCreate = new Case.Builder()
+  let existingCase;
+
+  beforeEach(async () => {
+    const existingCaseAttributes = new Case.Builder()
       .defaultCase()
       .withId(undefined)
       .withStatus(CASE_STATUS.INITIAL)
       .withIncidentLocation(undefined);
 
-    const createdCase = await models.cases.create(caseToCreate, {
+    existingCase = await models.cases.create(existingCaseAttributes, {
       auditUser: "someone"
     });
+  });
 
+  test("should change the case status to active when any officer is added", async () => {
     const request = httpMocks.createRequest({
       method: "POST",
       headers: {
         authorization: "Bearer SOME_MOCK_TOKEN"
       },
       params: {
-        caseId: createdCase.id
+        caseId: existingCase.id
       },
       body: {
         officerId: null,
@@ -48,7 +53,7 @@ describe("addCaseOfficer", () => {
 
     await addCaseOfficer(request, response, jest.fn());
 
-    const caseOfInterest = await models.cases.findById(createdCase.id);
+    const caseOfInterest = await models.cases.findById(existingCase.id);
     expect(caseOfInterest).toEqual(
       expect.objectContaining({
         status: CASE_STATUS.ACTIVE
@@ -57,19 +62,10 @@ describe("addCaseOfficer", () => {
   });
 
   test("should create a case_officer record when adding known officer to a case", async () => {
-    const caseToCreate = new Case.Builder()
-      .defaultCase()
-      .withId(undefined)
-      .withStatus(CASE_STATUS.INITIAL)
-      .withIncidentLocation(undefined);
-
     const officerToCreate = new Officer.Builder()
       .defaultOfficer()
       .withId(undefined);
 
-    const createdCase = await models.cases.create(caseToCreate, {
-      auditUser: "someone"
-    });
     const createdOfficer = await models.officer.create(officerToCreate);
 
     const officerAttributes = {
@@ -84,7 +80,7 @@ describe("addCaseOfficer", () => {
         authorization: "Bearer SOME_MOCK_TOKEN"
       },
       params: {
-        caseId: createdCase.id
+        caseId: existingCase.id
       },
       body: officerAttributes,
       nickname: "TEST_USER_NICKNAME"
@@ -95,7 +91,7 @@ describe("addCaseOfficer", () => {
     await addCaseOfficer(request, response, jest.fn());
 
     const caseOfficerCreated = await models.case_officer.findOne({
-      where: { caseId: createdCase.id }
+      where: { caseId: existingCase.id }
     });
 
     expect(caseOfficerCreated).toEqual(
@@ -108,16 +104,6 @@ describe("addCaseOfficer", () => {
   });
 
   test("should create a case_officer record when adding unknown officer to a case", async () => {
-    const caseToCreate = new Case.Builder()
-      .defaultCase()
-      .withId(undefined)
-      .withStatus(CASE_STATUS.INITIAL)
-      .withIncidentLocation(undefined);
-
-    const createdCase = await models.cases.create(caseToCreate, {
-      auditUser: "someone"
-    });
-
     const officerAttributes = {
       officerId: null,
       roleOnCase: ACCUSED,
@@ -130,7 +116,7 @@ describe("addCaseOfficer", () => {
         authorization: "Bearer SOME_MOCK_TOKEN"
       },
       params: {
-        caseId: createdCase.id
+        caseId: existingCase.id
       },
       body: officerAttributes,
       nickname: "TEST_USER_NICKNAME"
@@ -141,7 +127,7 @@ describe("addCaseOfficer", () => {
     await addCaseOfficer(request, response, jest.fn());
 
     const caseOfficerCreated = await models.case_officer.findOne({
-      where: { caseId: createdCase.id }
+      where: { caseId: existingCase.id }
     });
 
     expect(caseOfficerCreated).toEqual(
@@ -163,16 +149,6 @@ describe("addCaseOfficer", () => {
       .build();
 
     const officer = await models.officer.create(officerAttributes);
-
-    const existingCaseAttributes = new Case.Builder()
-      .defaultCase()
-      .withId(undefined)
-      .withIncidentLocation(undefined)
-      .build();
-
-    const existingCase = await models.cases.create(existingCaseAttributes, {
-      auditUser: "someone"
-    });
 
     const additionalOfficerAttributes = {
       officerId: officer.id,
@@ -196,7 +172,7 @@ describe("addCaseOfficer", () => {
 
     await addCaseOfficer(request, response, jest.fn());
 
-    const caseOfficerId = response._getData().dataValues.accusedOfficers[0].id;
+    const caseOfficerId = response._getData().accusedOfficers[0].id;
 
     await officer.update(
       { firstName: "Wilbert" },
@@ -209,19 +185,10 @@ describe("addCaseOfficer", () => {
   });
 
   test("should audit case details access", async () => {
-    const caseToCreate = new Case.Builder()
-      .defaultCase()
-      .withId(undefined)
-      .withStatus(CASE_STATUS.INITIAL)
-      .withIncidentLocation(undefined);
-
     const officerToCreate = new Officer.Builder()
       .defaultOfficer()
       .withId(undefined);
 
-    const createdCase = await models.cases.create(caseToCreate, {
-      auditUser: "someone"
-    });
     const createdOfficer = await models.officer.create(officerToCreate);
 
     const officerAttributes = {
@@ -236,7 +203,7 @@ describe("addCaseOfficer", () => {
         authorization: "Bearer SOME_MOCK_TOKEN"
       },
       params: {
-        caseId: createdCase.id
+        caseId: existingCase.id
       },
       body: officerAttributes,
       nickname: "TEST_USER_NICKNAME"
@@ -247,17 +214,116 @@ describe("addCaseOfficer", () => {
     await addCaseOfficer(request, response, jest.fn());
 
     const actionAudit = await models.action_audit.find({
-      where: { caseId: createdCase.id }
+      where: { caseId: existingCase.id }
     });
 
     expect(actionAudit).toEqual(
       expect.objectContaining({
         user: "TEST_USER_NICKNAME",
-        caseId: createdCase.id,
+        caseId: existingCase.id,
         auditType: AUDIT_TYPE.DATA_ACCESS,
         action: AUDIT_ACTION.DATA_ACCESSED,
         subject: AUDIT_SUBJECT.CASE_DETAILS
       })
     );
+  });
+
+  test("should create letter officer if letter exists", async () => {
+    await existingCase.update(
+      { status: CASE_STATUS.ACTIVE },
+      { auditUser: "someone" }
+    );
+
+    const referralLetterAttributes = new ReferralLetter.Builder()
+      .defaultReferralLetter()
+      .withId(undefined)
+      .withCaseId(existingCase.id);
+
+    await models.referral_letter.create(referralLetterAttributes, {
+      auditUser: "someone"
+    });
+
+    await existingCase.update(
+      { status: CASE_STATUS.LETTER_IN_PROGRESS },
+      { auditUser: "someone" }
+    );
+
+    const officerAttributes = new Officer.Builder()
+      .defaultOfficer()
+      .withFirstName("Brandon")
+      .withId(undefined)
+      .withOfficerNumber(200)
+      .withHireDate("2018-01-12")
+      .build();
+
+    const officer = await models.officer.create(officerAttributes);
+
+    const request = httpMocks.createRequest({
+      method: "POST",
+      headers: {
+        authorization: "Bearer SOME_MOCK_TOKEN"
+      },
+      params: {
+        caseId: existingCase.id
+      },
+      body: {
+        officerId: officer.id,
+        roleOnCase: ACCUSED,
+        notes: "these are notes"
+      },
+      nickname: "TEST_USER_NICKNAME"
+    });
+
+    const response = httpMocks.createResponse();
+
+    await addCaseOfficer(request, response, jest.fn());
+
+    const caseOfficerId = response._getData().accusedOfficers[0].id;
+
+    const letterOfficer = await models.letter_officer.findOne({
+      where: { caseOfficerId: caseOfficerId }
+    });
+
+    expect(letterOfficer).toBeTruthy();
+  });
+
+  test("doesn't create letter officer when referral letter does not exist", async () => {
+    const officerAttributes = new Officer.Builder()
+      .defaultOfficer()
+      .withFirstName("Brandon")
+      .withId(undefined)
+      .withOfficerNumber(200)
+      .withHireDate("2018-01-12")
+      .build();
+
+    const officer = await models.officer.create(officerAttributes);
+
+    const request = httpMocks.createRequest({
+      method: "POST",
+      headers: {
+        authorization: "Bearer SOME_MOCK_TOKEN"
+      },
+      params: {
+        caseId: existingCase.id
+      },
+      body: {
+        officerId: officer.id,
+        roleOnCase: ACCUSED,
+        notes: "these are notes"
+      },
+      nickname: "TEST_USER_NICKNAME"
+    });
+
+    const response = httpMocks.createResponse();
+
+    await addCaseOfficer(request, response, jest.fn());
+
+    const caseOfficerId = response._getData().accusedOfficers[0].id;
+
+    const letterOfficer = await models.letter_officer.findOne({
+      where: { caseOfficerId: caseOfficerId }
+    });
+
+    expect(letterOfficer).toBeNull();
   });
 });

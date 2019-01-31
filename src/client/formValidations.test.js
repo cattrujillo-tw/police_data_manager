@@ -1,18 +1,14 @@
-import {
-  addressMustBeAutoSuggested,
-  atLeastOneRequired
-} from "./formValidations";
+import { addressMustBeValid, atLeastOneRequired } from "./formValidations";
 
 describe("synchronous validations", () => {
-  test("test phone number or email validation when flat object", () => {
+  test("test phone number error to show up when phone number and email blank", () => {
     const testValues = {
       phoneNumber: "",
       email: ""
     };
 
     const expectedErrors = {
-      phoneNumber: "Please enter phone number or email address",
-      email: "Please enter phone number or email address"
+      phoneNumber: "Please enter phone number or email address"
     };
 
     const errors = atLeastOneRequired(
@@ -34,8 +30,7 @@ describe("synchronous validations", () => {
 
     const expectedErrors = {
       civilian: {
-        phoneNumber: "Please enter phone number or email address",
-        email: "Please enter phone number or email address"
+        phoneNumber: "Please enter phone number or email address"
       }
     };
 
@@ -87,49 +82,25 @@ describe("synchronous validations", () => {
       email: "   "
     };
     const errors = atLeastOneRequired(testValues, "Please enter at least one", [
-      "phoneNumber",
-      "email"
+      "phoneNumber"
     ]);
     expect(errors).toEqual({
-      phoneNumber: "Please enter at least one",
-      email: "Please enter at least one"
+      phoneNumber: "Please enter at least one"
     });
   });
 
-  test("should produce errors when address is not autosuggested", () => {
-    const address = {
-      city: "Chicago",
-      state: "IL",
-      country: "US"
-    };
-
-    const someAddressInAutoCompleteTextField = "asdfsdf";
-
-    const errors = addressMustBeAutoSuggested(
-      address,
-      someAddressInAutoCompleteTextField
-    );
+  test("should produce errors when address is not valid", () => {
+    const errors = addressMustBeValid(false);
 
     const expectedErrors = {
-      autoSuggestValue: "Please select an address from the suggestion list"
+      autoSuggestValue: "Please enter a valid address"
     };
 
     expect(errors).toEqual(expectedErrors);
   });
 
-  test("should not produce error when address is from autosuggest", () => {
-    const address = {
-      city: "Chicago",
-      state: "IL",
-      country: "US"
-    };
-
-    const someAddressInAutoCompleteTextField = "Chicago, IL, US";
-
-    const errors = addressMustBeAutoSuggested(
-      address,
-      someAddressInAutoCompleteTextField
-    );
+  test("should not produce error when address is valid", () => {
+    const errors = addressMustBeValid(true);
 
     const expectedErrors = {};
 

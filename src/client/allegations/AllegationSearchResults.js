@@ -24,13 +24,11 @@ export class AllegationSearchResults extends Component {
   onChange(currentPage) {
     const values = this.props.form[ALLEGATION_SEARCH_FORM_NAME].values;
     const paginatingSearch = true;
-    const { caseId, caseOfficerId } = this.props;
 
     this.props.dispatch(
       getSearchResults(
         this.normalizeValues(values),
         "allegations",
-        { caseId, caseOfficerId },
         paginatingSearch,
         currentPage
       )
@@ -73,7 +71,7 @@ export class AllegationSearchResults extends Component {
 
 const mapStateToProps = state => {
   return {
-    currentCase: state.currentCase.details,
+    caseDetails: state.currentCase.details,
     searchResults: state.ui.search.searchResults.rows,
     count: state.ui.search.searchResults.count,
     spinnerVisible: state.ui.search.spinnerVisible,

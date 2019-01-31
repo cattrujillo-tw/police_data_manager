@@ -1,5 +1,3 @@
-import { push } from "react-router-redux";
-import getAccessToken from "../../auth/getAccessToken";
 import nock from "nock";
 import removePerson from "./removePerson";
 import {
@@ -7,6 +5,11 @@ import {
   removePersonFailure,
   removePersonSuccess
 } from "../../actionCreators/casesActionCreators";
+import configureInterceptors from "../../axiosInterceptors/interceptors";
+import { startSubmit, stopSubmit } from "redux-form";
+import { REMOVE_PERSON_FORM_NAME } from "../../../sharedUtilities/constants";
+import { snackbarSuccess } from "../../actionCreators/snackBarActionCreators";
+import _ from "lodash";
 
 jest.mock("../../auth/getAccessToken", () => jest.fn(() => "TEST_TOKEN"));
 
@@ -23,14 +26,8 @@ describe("removePerson", () => {
   };
 
   beforeEach(() => {
+    configureInterceptors({ dispatch });
     dispatch.mockClear();
-  });
-
-  test("should redirect immediately if token missing", async () => {
-    getAccessToken.mockImplementationOnce(() => false);
-    await removePerson(personDetails)(dispatch);
-
-    expect(dispatch).toHaveBeenCalledWith(push(`/login`));
   });
 
   test("should dispatch error action if we get an unrecognized response", async () => {
@@ -40,9 +37,8 @@ describe("removePerson", () => {
 
     await removePerson(personDetails)(dispatch);
 
-    expect(dispatch).toHaveBeenCalledWith(
-      removePersonFailure(personTypeForDisplay)
-    );
+    expect(dispatch).toHaveBeenCalledWith(startSubmit(REMOVE_PERSON_FORM_NAME));
+    expect(dispatch).toHaveBeenCalledWith(stopSubmit(REMOVE_PERSON_FORM_NAME));
   });
 
   test("should dispatch success when civilian removed successfully", async () => {
@@ -57,9 +53,15 @@ describe("removePerson", () => {
       .reply(200, response);
 
     await removePerson(personDetails)(dispatch);
+
+    expect(dispatch).toHaveBeenCalledWith(startSubmit(REMOVE_PERSON_FORM_NAME));
+    expect(dispatch).toHaveBeenCalledWith(removePersonSuccess(response));
     expect(dispatch).toHaveBeenCalledWith(
-      removePersonSuccess(response, personTypeForDisplay)
+      snackbarSuccess(
+        `${_.startCase(personTypeForDisplay)} was successfully removed`
+      )
     );
     expect(dispatch).toHaveBeenCalledWith(closeRemovePersonDialog());
+    expect(dispatch).toHaveBeenCalledWith(stopSubmit(REMOVE_PERSON_FORM_NAME));
   });
 });

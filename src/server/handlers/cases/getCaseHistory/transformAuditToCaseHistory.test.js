@@ -2,10 +2,18 @@ import {
   CASE_STATUS,
   AUDIT_ACTION,
   CIVILIAN_INITIATED,
-  RANK_INITIATED
+  RANK_INITIATED,
+  ADDRESSABLE_TYPE,
+  AUDIT_SUBJECT,
+  AUDIT_TYPE,
+  AUDIT_UPLOAD_DETAILS
 } from "../../../../sharedUtilities/constants";
 import DataChangeAudit from "../../../../client/testUtilities/dataChangeAudit";
-import transformAuditToCaseHistory from "./transformAuditToCaseHistory";
+import transformAuditToCaseHistory, {
+  transformDataChangeAuditToCaseHistory,
+  transformUploadAuditToCaseHistory
+} from "./transformAuditToCaseHistory";
+import ActionAudit from "../../../../client/testUtilities/ActionAudit";
 
 describe("transformAuditToCaseHistory", () => {
   test("it returns case history for given audits", () => {
@@ -22,7 +30,9 @@ describe("transformAuditToCaseHistory", () => {
       .withUser("bob")
       .withCreatedAt(new Date("2018-06-12"));
 
-    const caseHistories = transformAuditToCaseHistory([dataChangeAudit]);
+    const caseHistories = transformAuditToCaseHistory({
+      dataChangeAudits: [dataChangeAudit]
+    });
 
     expect(caseHistories).toEqual([
       expect.objectContaining({
@@ -46,7 +56,10 @@ describe("transformAuditToCaseHistory", () => {
     const audit = new DataChangeAudit.Builder()
       .defaultDataChangeAudit()
       .withChanges(auditChanges);
-    const caseHistories = transformAuditToCaseHistory([audit], []);
+    const caseHistories = transformAuditToCaseHistory({
+      dataChangeAudits: [audit],
+      uploadAudits: []
+    });
 
     const expectedDetails = {
       "Complaint Type": { previous: CIVILIAN_INITIATED, new: RANK_INITIATED },
@@ -55,20 +68,43 @@ describe("transformAuditToCaseHistory", () => {
     expect(caseHistories[0].details).toEqual(expectedDetails);
   });
 
-  test("it transforms null values in changes field to empty string", () => {
+  test("it transforms null values or blank string in changes field to single space for readability", () => {
     const auditChanges = {
       complaintType: { previous: null, new: RANK_INITIATED },
-      status: { previous: CASE_STATUS.INITIAL, new: null }
+      status: { previous: CASE_STATUS.INITIAL, new: null },
+      other: { previous: "", new: "something" }
     };
     const audit = new DataChangeAudit.Builder()
       .defaultDataChangeAudit()
       .withChanges(auditChanges);
-    const caseHistories = transformAuditToCaseHistory([audit], []);
+    const caseHistories = transformAuditToCaseHistory({
+      dataChangeAudits: [audit],
+      uploadAudits: []
+    });
 
     const expectedDetails = {
       "Complaint Type": { previous: " ", new: RANK_INITIATED },
-      Status: { previous: CASE_STATUS.INITIAL, new: " " }
+      Status: { previous: CASE_STATUS.INITIAL, new: " " },
+      Other: { previous: " ", new: "something" }
     };
+    expect(caseHistories[0].details).toEqual(expectedDetails);
+  });
+
+  test("it transforms true and false values to true or false strings", () => {
+    const auditChanges = {
+      includeRetaliationConcerns: { new: true, previous: false }
+    };
+    const audit = new DataChangeAudit.Builder()
+      .defaultDataChangeAudit()
+      .withChanges(auditChanges);
+    const caseHistories = transformAuditToCaseHistory({
+      dataChangeAudits: [audit]
+    });
+
+    const expectedDetails = {
+      "Include Retaliation Concerns": { previous: "false", new: "true" }
+    };
+
     expect(caseHistories[0].details).toEqual(expectedDetails);
   });
 
@@ -81,10 +117,36 @@ describe("transformAuditToCaseHistory", () => {
     const audit = new DataChangeAudit.Builder()
       .defaultDataChangeAudit()
       .withChanges(auditChanges);
-    const caseHistories = transformAuditToCaseHistory([audit], []);
+    const caseHistories = transformAuditToCaseHistory({
+      dataChangeAudits: [audit],
+      uploadAudits: []
+    });
 
     const expectedDetails = {
       Incident: { previous: " ", new: "something" }
+    };
+    expect(caseHistories[0].details).toEqual(expectedDetails);
+  });
+
+  test("filters out updates to lat, lng, and placeId", () => {
+    const auditChanges = {
+      lat: { previous: 90, new: 100 },
+      lng: { previous: 40, new: 45 },
+      placeId: { previous: "IEOIELKJSF", new: "OIERU2348" },
+      latch: { previous: "door", new: "window" },
+      slngs: { previous: "something", new: "something else" }
+    };
+    const audit = new DataChangeAudit.Builder()
+      .defaultDataChangeAudit()
+      .withChanges(auditChanges);
+    const caseHistories = transformAuditToCaseHistory({
+      dataChangeAudits: [audit],
+      uploadAudits: []
+    });
+
+    const expectedDetails = {
+      Latch: { previous: "door", new: "window" },
+      Slngs: { previous: "something", new: "something else" }
     };
     expect(caseHistories[0].details).toEqual(expectedDetails);
   });
@@ -93,12 +155,14 @@ describe("transformAuditToCaseHistory", () => {
     const auditChanges = {
       id: { previous: null, new: 6 },
       city: { previous: null, new: "Chicago" },
-      addressableType: { previous: null, new: "cases" }
+      addressableType: { previous: null, new: ADDRESSABLE_TYPE.CASES }
     };
     const audit = new DataChangeAudit.Builder()
       .defaultDataChangeAudit()
       .withChanges(auditChanges);
-    const caseHistories = transformAuditToCaseHistory([audit]);
+    const caseHistories = transformAuditToCaseHistory({
+      dataChangeAudits: [audit]
+    });
 
     const expectedDetails = {
       City: { previous: " ", new: "Chicago" }
@@ -106,15 +170,147 @@ describe("transformAuditToCaseHistory", () => {
     expect(caseHistories[0].details).toEqual(expectedDetails);
   });
 
-  test("filters out audits that are empty after filtering *Id fields", () => {
+  test("filters out update audits that are empty after filtering *Id fields", () => {
+    const auditChanges = {
+      someReferenceId: { previous: 4, new: 5 }
+    };
+    const audit = new DataChangeAudit.Builder()
+      .defaultDataChangeAudit()
+      .withAction(AUDIT_ACTION.DATA_UPDATED)
+      .withChanges(auditChanges);
+    const caseHistories = transformAuditToCaseHistory({
+      dataChangeAudits: [audit],
+      uploadAudits: []
+    });
+
+    expect(caseHistories).toHaveLength(0);
+  });
+
+  test("does not filter out create audits that are empty after filtering *Id fields", () => {
     const auditChanges = {
       incidentLocationId: { previous: null, new: 5 }
     };
     const audit = new DataChangeAudit.Builder()
       .defaultDataChangeAudit()
+      .withAction(AUDIT_ACTION.DATA_CREATED)
       .withChanges(auditChanges);
-    const caseHistories = transformAuditToCaseHistory([audit], []);
+    const caseHistories = transformAuditToCaseHistory({
+      dataChangeAudits: [audit],
+      uploadAudits: []
+    });
 
-    expect(caseHistories).toHaveLength(0);
+    expect(caseHistories).toHaveLength(1);
+    expect(caseHistories[0].details).toEqual({});
+  });
+
+  test("does not filter out delete audits that are empty after filtering *Id fields", () => {
+    const auditChanges = {
+      incidentLocationId: { previous: 5, new: null }
+    };
+    const audit = new DataChangeAudit.Builder()
+      .defaultDataChangeAudit()
+      .withAction(AUDIT_ACTION.DATA_DELETED)
+      .withChanges(auditChanges);
+    const caseHistories = transformAuditToCaseHistory({
+      dataChangeAudits: [audit],
+      uploadAudits: []
+    });
+
+    expect(caseHistories).toHaveLength(1);
+    expect(caseHistories[0].details).toEqual({});
+  });
+
+  test("strips html tags from results", () => {
+    const auditChanges = {
+      note: {
+        previous: "<p>something <b>nested</b></p> <div>more</div>",
+        new:
+          "<b>bold stuff</b> <em>italic stuff</em> This uses the < symbol that shouldn't be deleted. >"
+      }
+    };
+    const audit = new DataChangeAudit.Builder()
+      .defaultDataChangeAudit()
+      .withAction(AUDIT_ACTION.DATA_UPDATED)
+      .withChanges(auditChanges);
+    const caseHistories = transformAuditToCaseHistory({
+      dataChangeAudits: [audit],
+      uploadAudits: []
+    });
+
+    const expectedDetails = {
+      Note: {
+        previous: "something nested more",
+        new:
+          "bold stuff italic stuff This uses the < symbol that shouldn't be deleted. >"
+      }
+    };
+    expect(caseHistories).toHaveLength(1);
+    expect(caseHistories[0].details).toEqual(expectedDetails);
+  });
+  describe("transformDataChangeAuditToCaseHistory", async () => {
+    test("it returns case history for given dataChange audit", async () => {
+      const auditId = 123;
+      const dataChangeAudit = new DataChangeAudit.Builder()
+        .defaultDataChangeAudit()
+        .withModelName("Case Officer")
+        .withModelDescription("Jasmine Rodda")
+        .withModelId(5)
+        .withCaseId(5)
+        .withAction(AUDIT_ACTION.DATA_UPDATED)
+        .withChanges({
+          firstName: { previous: "Emily", new: "Jasmine" }
+        })
+        .withUser("bob")
+        .withCreatedAt(new Date("2018-06-12"));
+
+      const caseHistoryEntry = transformDataChangeAuditToCaseHistory(
+        dataChangeAudit,
+        auditId
+      );
+
+      expect(caseHistoryEntry).toEqual(
+        expect.objectContaining({
+          user: dataChangeAudit.user,
+          action: "Case Officer Updated",
+          details: {
+            "First Name": { previous: "Emily", new: "Jasmine" }
+          },
+          modelDescription: "Jasmine Rodda",
+          timestamp: dataChangeAudit.createdAt,
+          id: auditId
+        })
+      );
+    });
+  });
+
+  describe("transformUploadAuditToCaseHistory", async () => {
+    test("it returns case history for given upload audit", async () => {
+      const auditId = 123;
+      const uploadAudit = new ActionAudit.Builder()
+        .defaultActionAudit()
+        .withAction(AUDIT_ACTION.UPLOADED)
+        .withSubject(AUDIT_SUBJECT.REFERRAL_LETTER_PDF)
+        .withAuditType(AUDIT_TYPE.UPLOAD)
+        .withUser("nickname")
+        .withCreatedAt(new Date("2018-06-12"));
+
+      const caseHistoryEntry = transformUploadAuditToCaseHistory(
+        uploadAudit,
+        auditId
+      );
+
+      expect(caseHistoryEntry).toEqual(
+        expect.objectContaining({
+          user: uploadAudit.user,
+          action: `${AUDIT_SUBJECT.REFERRAL_LETTER_PDF} ${
+            AUDIT_ACTION.UPLOADED
+          }`,
+          details: AUDIT_UPLOAD_DETAILS.REFERRAL_LETTER_PDF,
+          modelDescription: "",
+          timestamp: uploadAudit.createdAt,
+          id: auditId
+        })
+      );
+    });
   });
 });

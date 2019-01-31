@@ -10,22 +10,14 @@ const getComponentOnType = (address, desired_types) => {
   return _.find(addressComponents, componentMatchesAllTypes);
 };
 
-const addIntersectionToAddressIfPresent = (name, address) => {
-  let intersection = "";
-  if (
-    address.streetAddress === "" &&
-    (name.includes("&") || name.includes("and")) &&
-    name !== address.city &&
-    name !== address.state &&
-    name !== address.country
-  ) {
-    intersection = name;
+const getLatLng = address => {
+  let lat = null,
+    lng = null;
+  if (address.geometry) {
+    lat = address.geometry.location.lat();
+    lng = address.geometry.location.lng();
   }
-
-  return {
-    ...address,
-    intersection
-  };
+  return { lat, lng };
 };
 
 const parseAddressFromGooglePlaceResult = address => {
@@ -37,32 +29,38 @@ const parseAddressFromGooglePlaceResult = address => {
   const streetName = streetNameComponent ? streetNameComponent.short_name : "";
   const streetAddress = `${streetNumber} ${streetName}`.trim();
 
-  const cityComponent = getComponentOnType(address, ["locality", "political"]);
+  const cityComponent = getComponentOnType(address, ["locality"]);
   const city = cityComponent ? cityComponent.long_name : "";
 
   const stateComponent = getComponentOnType(address, [
-    "administrative_area_level_1",
-    "political"
+    "administrative_area_level_1"
   ]);
   const state = stateComponent ? stateComponent.short_name : "";
 
   const zipCodeComponent = getComponentOnType(address, ["postal_code"]);
   const zipCode = zipCodeComponent ? zipCodeComponent.short_name : "";
 
-  const countryComponent = getComponentOnType(address, [
-    "country",
-    "political"
-  ]);
+  const countryComponent = getComponentOnType(address, ["country"]);
   const country = countryComponent ? countryComponent.short_name : "";
 
-  const parsedAddress = {
+  const intersectionComponent = getComponentOnType(address, ["intersection"]);
+  const intersection = intersectionComponent
+    ? intersectionComponent.short_name
+    : "";
+
+  const placeId = address.place_id ? address.place_id : null;
+  const lat = getLatLng(address).lat;
+  const lng = getLatLng(address).lng;
+  return {
     streetAddress,
+    intersection,
     city,
     state,
     zipCode,
-    country
+    country,
+    placeId,
+    lat,
+    lng
   };
-
-  return addIntersectionToAddressIfPresent(address.name, parsedAddress);
 };
 export default parseAddressFromGooglePlaceResult;

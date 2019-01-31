@@ -18,6 +18,24 @@ const styles = theme => ({
     width: `calc(100% - ${drawerWidthPercentage})`
   },
 
+  detailsPaneButtons: {
+    display: "inlineBlock"
+  },
+
+  detailsRow: {
+    display: "flex",
+    width: "100%",
+    paddingRight: 0,
+    marginBottom: "26px"
+  },
+
+  detailsLastRow: {
+    display: "flex",
+    width: "100%",
+    paddingRight: 0,
+    marginBottom: "0px"
+  },
+
   drawerHeader: theme.mixins.toolbar,
   drawerPaper: {
     width: drawerWidthPercentage,
@@ -25,13 +43,11 @@ const styles = theme => ({
     backgroundColor: "white"
   },
   drawerRow: {
-    marginLeft: "24px",
     display: "flex",
     marginBottom: "8px",
     flexWrap: "wrap"
   },
   drawerRowEnd: {
-    marginLeft: "24px",
     display: "flex",
     marginBottom: "24px",
     flexWrap: "wrap"

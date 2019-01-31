@@ -1,14 +1,7 @@
-import getAccessToken from "../../auth/getAccessToken";
-import { push } from "react-router-redux";
-import config from "../../config/config";
-import {
-  clearSelectedOfficer,
-  editCaseOfficerFailure,
-  editCaseOfficerSuccess
-} from "../../actionCreators/officersActionCreators";
+import { push } from "connected-react-router";
+import { clearSelectedOfficer } from "../../actionCreators/officersActionCreators";
 import axios from "axios";
-
-const hostname = config[process.env.NODE_ENV].hostname;
+import { snackbarSuccess } from "../../actionCreators/snackBarActionCreators";
 
 const editCaseOfficer = (
   caseId,
@@ -16,31 +9,16 @@ const editCaseOfficer = (
   officerId,
   values
 ) => async dispatch => {
-  const token = getAccessToken();
-
-  if (!token) {
-    return dispatch(push("/login"));
-  }
   try {
     const payload = { ...values, officerId };
-    const response = await axios(
-      `${hostname}/api/cases/${caseId}/cases-officers/${caseOfficerId}`,
-      {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        },
-        data: JSON.stringify(payload)
-      }
+    await axios.put(
+      `api/cases/${caseId}/cases-officers/${caseOfficerId}`,
+      JSON.stringify(payload)
     );
-
-    dispatch(editCaseOfficerSuccess(response.data));
+    dispatch(snackbarSuccess("Officer was successfully updated"));
     dispatch(clearSelectedOfficer());
     return dispatch(push(`/cases/${caseId}`));
-  } catch (error) {
-    return dispatch(editCaseOfficerFailure());
-  }
+  } catch (error) {}
 };
 
 export default editCaseOfficer;

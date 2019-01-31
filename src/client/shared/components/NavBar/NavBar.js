@@ -11,14 +11,8 @@ import {
 } from "@material-ui/core";
 import { Link } from "react-router-dom";
 import { connect } from "react-redux";
-import ExportConfirmationDialog from "./ExportConfirmationDialog";
+import ExportConfirmationDialog from "../../../export/ExportConfirmationDialog";
 import handleLogout from "../../../users/thunks/handleLogout";
-import { USER_PERMISSIONS } from "../../../../sharedUtilities/constants";
-import {
-  openExportAuditLogConfirmationDialog,
-  openExportAllCasesConfirmationDialog,
-  closeExportConfirmationDialog
-} from "../../../actionCreators/navBarActionCreators";
 
 const styles = {
   appBarStyle: {
@@ -34,10 +28,6 @@ class NavBar extends React.Component {
     exportDialogOpen: false
   };
 
-  componentWillUnmount() {
-    this.props.dispatch(closeExportConfirmationDialog());
-  }
-
   handleMenuOpen = event => {
     this.setState({
       menuOpen: true,
@@ -50,26 +40,6 @@ class NavBar extends React.Component {
       menuOpen: false,
       anchorEl: null
     });
-  };
-
-  renderExportAuditLogOption = () => {
-    if (
-      !this.props.permissions ||
-      !this.props.permissions.includes(USER_PERMISSIONS.EXPORT_AUDIT_LOG)
-    ) {
-      return null;
-    }
-    return (
-      <MenuItem
-        data-test="exportAuditLog"
-        onClick={() => {
-          this.setState({ menuOpen: false });
-          this.props.dispatch(openExportAuditLogConfirmationDialog());
-        }}
-      >
-        Export Audit Log
-      </MenuItem>
-    );
   };
 
   render() {
@@ -113,17 +83,12 @@ class NavBar extends React.Component {
             anchorEl={this.state.anchorEl}
             onClose={this.handleMenuClose}
           >
-            {this.renderExportAuditLogOption()}
             <MenuItem
-              onClick={() => {
-                this.setState({ menuOpen: false });
-                this.props.dispatch(openExportAllCasesConfirmationDialog());
-              }}
+              data-test="exportAllCases"
+              component={Link}
+              to="/export/all"
             >
-              Export All Case Information
-            </MenuItem>
-            <MenuItem data-test="adminButton" component={Link} to="/admin">
-              Manage Users
+              Export
             </MenuItem>
             <MenuItem
               data-test="logOutButton"

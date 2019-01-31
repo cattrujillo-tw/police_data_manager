@@ -1,14 +1,7 @@
-import { push } from "react-router-redux";
-import getAccessToken from "../../auth/getAccessToken";
-import {
-  removeAttachmentFailed,
-  removeAttachmentSuccess
-} from "../../actionCreators/attachmentsActionCreators";
-import config from "../../config/config";
+import { removeAttachmentSuccess } from "../../actionCreators/attachmentsActionCreators";
 import getCaseNotes from "./getCaseNotes";
 import axios from "axios";
-
-const hostname = config[process.env.NODE_ENV].hostname;
+import { snackbarSuccess } from "../../actionCreators/snackBarActionCreators";
 
 const removeAttachment = (
   caseId,
@@ -16,29 +9,14 @@ const removeAttachment = (
   shouldCloseDialog
 ) => async dispatch => {
   try {
-    const token = getAccessToken();
-
-    if (!token) {
-      dispatch(push(`/login`));
-      return dispatch(removeAttachmentFailed());
-    }
-    const response = await axios(
-      `${hostname}/api/cases/${caseId}/attachments/${fileName}`,
-      {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        }
-      }
+    const response = await axios.delete(
+      `api/cases/${caseId}/attachments/${fileName}`
     );
-
     shouldCloseDialog();
     dispatch(removeAttachmentSuccess(response.data));
+    dispatch(snackbarSuccess("File was successfully removed"));
     return await dispatch(getCaseNotes(response.data.id));
-  } catch (error) {
-    return dispatch(removeAttachmentFailed());
-  }
+  } catch (error) {}
 };
 
 export default removeAttachment;

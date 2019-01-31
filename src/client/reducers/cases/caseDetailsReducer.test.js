@@ -4,8 +4,9 @@ import {
   createCivilianSuccess,
   editCivilianSuccess,
   getCaseDetailsSuccess,
-  removePersonSuccess,
+  getMinimumCaseDetailsSuccess,
   removeCaseNoteSuccess,
+  removePersonSuccess,
   updateIncidentDetailsSuccess,
   updateNarrativeSuccess,
   uploadAttachmentSuccess
@@ -33,6 +34,17 @@ describe("caseDetailsReducers", () => {
       const caseDetails = { caseDetailProp: "case detail value" };
       const action = getCaseDetailsSuccess(caseDetails);
 
+      const newState = caseDetailsReducer(oldState, action);
+
+      expect(newState).toEqual(caseDetails);
+    });
+  });
+
+  describe("GET_MINIMUM_CASE_DETAILS_SUCCESS", () => {
+    test("should assign the case reference to the new state", () => {
+      const oldState = { aProp: "a value", bProp: "b value" };
+      const caseDetails = { caseReference: "CC2018-0034" };
+      const action = getMinimumCaseDetailsSuccess(caseDetails);
       const newState = caseDetailsReducer(oldState, action);
 
       expect(newState).toEqual(caseDetails);

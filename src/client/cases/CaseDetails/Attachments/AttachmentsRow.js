@@ -2,10 +2,23 @@ import React from "react";
 import { Divider, Typography } from "@material-ui/core";
 import styles from "../../../globalStyling/styles";
 import LinkButton from "../../../shared/components/LinkButton";
-import downloader from "../../thunks/downloader";
+import inBrowserDownload from "../../thunks/inBrowserDownload";
 import { connect } from "react-redux";
 
-const AttachmentsRow = ({ attachment, onRemoveAttachment, dispatch }) => {
+const AttachmentsRow = ({
+  attachment,
+  onRemoveAttachment,
+  dispatch,
+  isArchived
+}) => {
+  const onDownloadClick = () =>
+    dispatch(
+      inBrowserDownload(
+        `/api/cases/${attachment.caseId}/attachmentUrls/${attachment.fileName}`,
+        `attachment-${attachment.id}-DownloadLink`
+      )
+    );
+
   return (
     <div>
       <div
@@ -19,24 +32,19 @@ const AttachmentsRow = ({ attachment, onRemoveAttachment, dispatch }) => {
         data-test="attachmentRow"
       >
         <div style={{ flex: 1, textAlign: "left", marginRight: "32px" }}>
+          <a
+            href="#dynamicLink"
+            id={`attachment-${attachment.id}-DownloadLink`}
+          >
+            {" "}
+          </a>
           <Typography
             data-test="attachmentName"
             style={{
               ...styles.link,
               cursor: "pointer"
             }}
-            onClick={() =>
-              dispatch(
-                downloader(
-                  `/api/cases/${attachment.caseId}/attachments/${
-                    attachment.fileName
-                  }`,
-                  attachment.fileName,
-                  false,
-                  undefined
-                )
-              )
-            }
+            onClick={onDownloadClick}
           >
             {attachment.fileName}
           </Typography>
@@ -47,14 +55,16 @@ const AttachmentsRow = ({ attachment, onRemoveAttachment, dispatch }) => {
           </Typography>
         </div>
         <div>
-          <LinkButton
-            data-test={"removeAttachmentButton"}
-            onClick={() => {
-              onRemoveAttachment(attachment.id, attachment.fileName);
-            }}
-          >
-            Remove
-          </LinkButton>
+          {isArchived ? null : (
+            <LinkButton
+              data-test={"removeAttachmentButton"}
+              onClick={() => {
+                onRemoveAttachment(attachment.id, attachment.fileName);
+              }}
+            >
+              Remove
+            </LinkButton>
+          )}
         </div>
       </div>
       <Divider style={{ marginBottom: "8px" }} />
@@ -62,4 +72,8 @@ const AttachmentsRow = ({ attachment, onRemoveAttachment, dispatch }) => {
   );
 };
 
-export default connect()(AttachmentsRow);
+const mapStateToProps = state => ({
+  isArchived: state.currentCase.details.isArchived
+});
+
+export default connect(mapStateToProps)(AttachmentsRow);

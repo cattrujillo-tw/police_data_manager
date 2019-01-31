@@ -1,5 +1,9 @@
 "use strict";
-const { COMPLAINANT, WITNESS } = require("../../sharedUtilities/constants");
+import {
+  ADDRESSABLE_TYPE,
+  COMPLAINANT,
+  WITNESS
+} from "../../sharedUtilities/constants";
 
 module.exports = (sequelize, DataTypes) => {
   const Civilian = sequelize.define(
@@ -41,10 +45,6 @@ module.exports = (sequelize, DataTypes) => {
           "Unknown"
         ])
       },
-      raceEthnicity: {
-        field: "race_ethnicity",
-        type: DataTypes.STRING
-      },
       phoneNumber: {
         field: "phone_number",
         type: DataTypes.STRING(10)
@@ -56,6 +56,10 @@ module.exports = (sequelize, DataTypes) => {
       additionalInfo: {
         field: "additional_info",
         type: DataTypes.TEXT
+      },
+      title: {
+        field: "title",
+        type: DataTypes.ENUM(["N/A", "Dr.", "Miss", "Mr.", "Mrs.", "Ms."])
       },
       createdAt: {
         field: "created_at",
@@ -96,6 +100,12 @@ module.exports = (sequelize, DataTypes) => {
             ""
           );
         }
+      },
+      hooks: {
+        beforeSave: (civilian, options) => {
+          civilian.firstName = civilian.firstName.trim();
+          civilian.lastName = civilian.lastName.trim();
+        }
       }
     }
   );
@@ -115,7 +125,15 @@ module.exports = (sequelize, DataTypes) => {
     Civilian.hasOne(models.address, {
       foreignKey: { name: "addressableId", field: "addressable_id" },
       scope: {
-        addressable_type: "civilian"
+        addressable_type: ADDRESSABLE_TYPE.CIVILIAN
+      }
+    });
+    Civilian.belongsTo(models.race_ethnicity, {
+      as: "raceEthnicity",
+      foreignKey: {
+        name: "raceEthnicityId",
+        field: "race_ethnicity_id",
+        allowNull: true
       }
     });
   };

@@ -1,35 +1,40 @@
-import * as _ from "lodash";
 import {
-  CASE_CREATED_SUCCESS,
-  ATTACHMENT_UPLOAD_FAILED,
-  CREATE_CASE_DIALOG_OPENED,
-  CREATE_CASE_DIALOG_CLOSED,
-  CIVILIAN_DIALOG_OPENED,
-  CIVILIAN_CREATION_SUCCEEDED,
-  CIVILIAN_CREATION_FAILED,
-  INCIDENT_DETAILS_UPDATE_SUCCEEDED,
-  INCIDENT_DETAILS_UPDATE_FAILED,
-  CIVILIAN_ADDRESS_AUTOSUGGEST_UPDATED,
-  INCIDENT_LOCATION_AUTOSUGGEST_VALUE_UPDATED,
-  GET_CASE_NOTES_SUCCEEDED,
-  CASE_NOTE_DIALOG_OPENED,
-  CASE_NOTE_DIALOG_CLOSED,
-  ADD_CASE_NOTE_FAILED,
   ADD_CASE_NOTE_SUCCEEDED,
-  REMOVE_PERSON_DIALOG_OPENED,
-  REMOVE_PERSON_DIALOG_CLOSED,
-  REMOVE_PERSON_FAILED,
-  REMOVE_PERSON_SUCCEEDED,
-  REMOVE_CASE_NOTE_DIALOG_OPENED,
-  REMOVE_CASE_NOTE_DIALOG_CLOSED,
-  REMOVE_CASE_NOTE_SUCCEEDED,
-  REMOVE_CASE_NOTE_FAILED,
-  EDIT_CASE_NOTE_FAILED,
-  EDIT_CASE_NOTE_SUCCEEDED,
-  UPDATE_CASE_STATUS_SUCCESS,
-  CASE_STATUS_UPDATE_DIALOG_OPENED,
+  ADDRESS_DISPLAY_VALUE_UPDATED,
+  ADDRESS_ERROR_MESSAGE_UPDATED,
+  ADDRESS_MESSAGE_VISIBILITY_UPDATED,
+  ADDRESS_TO_CONFIRM_UPDATED,
+  ADDRESS_VALIDITY_UPDATED,
+  ARCHIVE_CASE_DIALOG_CLOSED,
+  ARCHIVE_CASE_DIALOG_OPENED,
+  ATTACHMENT_UPLOAD_FAILED,
+  CASE_CREATED_SUCCESS,
+  CASE_NOTE_DIALOG_CLOSED,
+  CASE_NOTE_DIALOG_OPENED,
   CASE_STATUS_UPDATE_DIALOG_CLOSED,
-  UPDATE_ALLEGATION_DETAILS_SUCCEEDED
+  CASE_STATUS_UPDATE_DIALOG_OPENED,
+  CIVILIAN_CREATION_SUCCEEDED,
+  CIVILIAN_DIALOG_OPENED,
+  CREATE_CASE_DIALOG_CLOSED,
+  CREATE_CASE_DIALOG_OPENED,
+  EDIT_CASE_NOTE_SUCCEEDED,
+  EDIT_CIVILIAN_DIALOG_CLOSED,
+  EDIT_INCIDENT_DETAILS_DIALOG_CLOSED,
+  EDIT_INCIDENT_DETAILS_DIALOG_OPENED,
+  GET_CASE_DETAILS_SUCCESS,
+  GET_CASE_NOTES_SUCCEEDED,
+  GET_MINIMUM_CASE_DETAILS_SUCCESS,
+  INCIDENT_DETAILS_UPDATE_SUCCEEDED,
+  REMOVE_CASE_NOTE_DIALOG_CLOSED,
+  REMOVE_CASE_NOTE_DIALOG_OPENED,
+  REMOVE_CASE_NOTE_SUCCEEDED,
+  REMOVE_PERSON_DIALOG_CLOSED,
+  REMOVE_PERSON_DIALOG_OPENED,
+  REMOVE_PERSON_SUCCEEDED,
+  RESTORE_ARCHIVED_CASE_DIALOG_CLOSED,
+  RESTORE_ARCHIVED_CASE_DIALOG_OPENED,
+  UPDATE_ALLEGATION_DETAILS_SUCCEEDED,
+  UPDATE_CASE_STATUS_SUCCESS
 } from "../../sharedUtilities/constants";
 
 export const createCaseSuccess = caseDetails => ({
@@ -41,17 +46,18 @@ export const requestCaseCreation = () => ({
   type: "CASE_CREATION_REQUESTED"
 });
 
-export const createCaseFailure = () => ({
-  type: "CASE_CREATION_FAILED"
-});
-
 export const getCasesSuccess = cases => ({
   type: "GET_CASES_SUCCESS",
   cases
 });
 
 export const getCaseDetailsSuccess = caseDetails => ({
-  type: "GET_CASE_DETAILS_SUCCESS",
+  type: GET_CASE_DETAILS_SUCCESS,
+  caseDetails
+});
+
+export const getMinimumCaseDetailsSuccess = caseDetails => ({
+  type: GET_MINIMUM_CASE_DETAILS_SUCCESS,
   caseDetails
 });
 
@@ -62,10 +68,6 @@ export const getCaseNotesSuccess = caseNotes => ({
 export const updateNarrativeSuccess = caseDetails => ({
   type: "NARRATIVE_UPDATE_SUCCEEDED",
   caseDetails
-});
-
-export const updateNarrativeFailure = () => ({
-  type: "NARRATIVE_UPDATE_FAILED"
 });
 
 export const updateSort = sortBy => ({
@@ -107,26 +109,20 @@ export const openCivilianDialog = (title, submitButtonText, submitAction) => ({
   submitAction
 });
 
-export const closeEditDialog = () => ({
-  type: "EDIT_DIALOG_CLOSED"
-});
+export const closeEditCivilianDialog = () => {
+  return {
+    type: EDIT_CIVILIAN_DIALOG_CLOSED
+  };
+};
 
 export const createCivilianSuccess = caseDetails => ({
   type: CIVILIAN_CREATION_SUCCEEDED,
   caseDetails
 });
 
-export const createCivilianFailure = () => ({
-  type: CIVILIAN_CREATION_FAILED
-});
-
 export const editCivilianSuccess = caseDetails => ({
   type: "EDIT_CIVILIAN_SUCCESS",
   caseDetails
-});
-
-export const editCivilianFailed = () => ({
-  type: "EDIT_CIVILIAN_FAILED"
 });
 
 export const uploadAttachmentSuccess = caseDetails => ({
@@ -148,32 +144,35 @@ export const updateIncidentDetailsSuccess = caseDetails => ({
   caseDetails
 });
 
-export const updateIncidentLocationAutoSuggest = autoSuggestValue => ({
-  type: INCIDENT_LOCATION_AUTOSUGGEST_VALUE_UPDATED,
-  autoSuggestValue
+export const updateAddressInputValidity = addressValid => ({
+  type: ADDRESS_VALIDITY_UPDATED,
+  addressValid
 });
 
-export const updateIncidentDetailsFailure = () => ({
-  type: INCIDENT_DETAILS_UPDATE_FAILED
+export const updateShowAddressMessage = addressMessageVisible => ({
+  type: ADDRESS_MESSAGE_VISIBILITY_UPDATED,
+  addressMessageVisible
 });
 
-export const updateAddressAutoSuggest = addressValue => ({
-  type: CIVILIAN_ADDRESS_AUTOSUGGEST_UPDATED,
-  addressValue
+export const updateAddressToConfirm = addressToConfirm => ({
+  type: ADDRESS_TO_CONFIRM_UPDATED,
+  addressToConfirm
 });
 
-export const addCaseNoteFailure = () => ({
-  type: ADD_CASE_NOTE_FAILED
+export const updateAddressDisplayValue = addressDisplayValue => ({
+  type: ADDRESS_DISPLAY_VALUE_UPDATED,
+  addressDisplayValue
+});
+
+export const updateAddressErrorMessage = addressErrorMessage => ({
+  type: ADDRESS_ERROR_MESSAGE_UPDATED,
+  addressErrorMessage
 });
 
 export const addCaseNoteSuccess = (caseDetails, caseNotes) => ({
   type: ADD_CASE_NOTE_SUCCEEDED,
   caseDetails,
   caseNotes
-});
-
-export const editCaseNoteFailure = () => ({
-  type: EDIT_CASE_NOTE_FAILED
 });
 
 export const editCaseNoteSuccess = caseNotes => ({
@@ -185,10 +184,6 @@ export const removeCaseNoteSuccess = currentCase => ({
   type: REMOVE_CASE_NOTE_SUCCEEDED,
   caseDetails: currentCase.caseDetails,
   caseNotes: currentCase.caseNotes
-});
-
-export const removeCaseNoteFailure = () => ({
-  type: REMOVE_CASE_NOTE_FAILED
 });
 
 export const updateAllegationDetailsSuccess = (allegationId, caseDetails) => ({
@@ -221,24 +216,40 @@ export const closeRemovePersonDialog = () => ({
   type: REMOVE_PERSON_DIALOG_CLOSED
 });
 
-export const removePersonFailure = personType => ({
-  type: REMOVE_PERSON_FAILED,
-  message: `Something went wrong on our end and your ${_.lowerCase(
-    personType
-  )} was not removed. Please try again.`
-});
-
-export const removePersonSuccess = (caseDetails, personType) => ({
+export const removePersonSuccess = caseDetails => ({
   type: REMOVE_PERSON_SUCCEEDED,
-  caseDetails,
-  message: `${_.startCase(personType)} has been successfully removed.`
+  caseDetails
 });
 
-export const openCaseStatusUpdateDialog = nextStatus => ({
+export const openCaseStatusUpdateDialog = redirectUrl => ({
   type: CASE_STATUS_UPDATE_DIALOG_OPENED,
-  nextStatus
+  redirectUrl: redirectUrl
 });
 
 export const closeCaseStatusUpdateDialog = () => ({
   type: CASE_STATUS_UPDATE_DIALOG_CLOSED
+});
+
+export const openArchiveCaseDialog = () => ({
+  type: ARCHIVE_CASE_DIALOG_OPENED
+});
+
+export const closeArchiveCaseDialog = () => ({
+  type: ARCHIVE_CASE_DIALOG_CLOSED
+});
+
+export const openEditIncidentDetailsDialog = () => ({
+  type: EDIT_INCIDENT_DETAILS_DIALOG_OPENED
+});
+
+export const closeEditIncidentDetailsDialog = () => ({
+  type: EDIT_INCIDENT_DETAILS_DIALOG_CLOSED
+});
+
+export const openRestoreArchivedCaseDialog = () => ({
+  type: RESTORE_ARCHIVED_CASE_DIALOG_OPENED
+});
+
+export const closeRestoreArchivedCaseDialog = () => ({
+  type: RESTORE_ARCHIVED_CASE_DIALOG_CLOSED
 });

@@ -1,41 +1,96 @@
+import {
+  AUDIT_ACTION,
+  AUDIT_SUBJECT,
+  AUDIT_UPLOAD_DETAILS
+} from "../../../../sharedUtilities/constants";
+import striptags from "striptags";
+
 const _ = require("lodash");
 const {
   AUDIT_FIELDS_TO_EXCLUDE
 } = require("../../../../sharedUtilities/constants");
 
-const transformAuditToCaseHistory = dataChangeAudits => {
+const transformAuditToCaseHistory = caseHistoryAudits => {
   const caseHistory = [];
   let auditId = 0;
-  dataChangeAudits.forEach(audit => {
-    const details = transformDetails(audit);
-    if (_.isEmpty(details)) return;
 
-    caseHistory.push({
-      id: auditId,
-      user: audit.user,
-      action: transformAction(audit),
-      modelDescription: audit.modelDescription,
-      details: details,
-      timestamp: audit.createdAt
+  let caseHistoryEntry;
+  if (caseHistoryAudits.dataChangeAudits) {
+    caseHistoryAudits.dataChangeAudits.forEach(audit => {
+      caseHistoryEntry = transformDataChangeAuditToCaseHistory(audit, auditId);
+      if (caseHistoryEntry) {
+        caseHistory.push(caseHistoryEntry);
+        auditId++;
+      }
     });
-    auditId++;
-  });
+  }
+
+  if (caseHistoryAudits.uploadAudits) {
+    caseHistoryAudits.uploadAudits.forEach(audit => {
+      caseHistory.push(transformUploadAuditToCaseHistory(audit, auditId));
+      auditId++;
+    });
+  }
 
   return _.orderBy(caseHistory, ["timestamp"], "desc");
 };
 
-const transformAction = audit => {
+export const transformDataChangeAuditToCaseHistory = (
+  dataChangeAudit,
+  auditId
+) => {
+  const details = transformDataChangeDetails(dataChangeAudit);
+  if (
+    dataChangeAudit.action === AUDIT_ACTION.DATA_UPDATED &&
+    _.isEmpty(details)
+  )
+    return;
+
+  return {
+    id: auditId,
+    user: dataChangeAudit.user,
+    action: transformDataChangeAction(dataChangeAudit),
+    modelDescription: dataChangeAudit.modelDescription,
+    details: details,
+    timestamp: dataChangeAudit.createdAt
+  };
+};
+
+export const transformUploadAuditToCaseHistory = (uploadAudit, auditId) => {
+  const details = transformUploadDetails(uploadAudit);
+  const caseHistoryEntry = {
+    id: auditId,
+    user: uploadAudit.user,
+    action: transformAuditAction(uploadAudit),
+    modelDescription: "",
+    details: details,
+    timestamp: uploadAudit.createdAt
+  };
+  return caseHistoryEntry;
+};
+
+const transformDataChangeAction = audit => {
   return `${audit.modelName} ${audit.action}`;
 };
 
-const transformDetails = audit => {
+const transformAuditAction = audit => {
+  return `${audit.subject} ${audit.action}`;
+};
+
+const transformUploadDetails = audit => {
+  return AUDIT_UPLOAD_DETAILS.REFERRAL_LETTER_PDF;
+};
+
+const transformDataChangeDetails = audit => {
   return _.reduce(
     audit.changes,
     (details, value, key) => {
-      if (key.match(AUDIT_FIELDS_TO_EXCLUDE)) return details;
+      if (key.match(AUDIT_FIELDS_TO_EXCLUDE)) {
+        return details;
+      }
       details[_.startCase(key)] = {
-        previous: transformNull(value.previous),
-        new: transformNull(value.new)
+        previous: transformValue(value.previous),
+        new: transformValue(value.new)
       };
       return details;
     },
@@ -43,8 +98,9 @@ const transformDetails = audit => {
   );
 };
 
-const transformNull = value => {
-  return value == null ? " " : value;
+const transformValue = value => {
+  if (value !== false && !value) return " ";
+  return striptags(value.toString());
 };
 
-module.exports = transformAuditToCaseHistory;
+export default transformAuditToCaseHistory;

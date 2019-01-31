@@ -5,12 +5,12 @@ const {
   AUDIT_TYPE,
   AUDIT_SUBJECT
 } = require("../../../../sharedUtilities/constants");
-const getCaseWithAllAssociations = require("../../getCaseWithAllAssociations");
+import { getCaseWithAllAssociations } from "../../getCaseHelpers";
 const getCase = require("./getCase");
 const models = require("../../../models");
 const httpMocks = require("node-mocks-http");
 
-jest.mock("../../getCaseWithAllAssociations");
+jest.mock("../../getCaseHelpers");
 
 describe("getCase", () => {
   let existingCase;
@@ -35,7 +35,7 @@ describe("getCase", () => {
       headers: {
         authorization: "Bearer token"
       },
-      params: { id: existingCase.id },
+      params: { caseId: existingCase.id },
       nickname: "nickname"
     });
 
@@ -66,7 +66,7 @@ describe("getCase", () => {
       headers: {
         authorization: "Bearer token"
       },
-      params: { id: existingCase.id },
+      params: { caseId: existingCase.id },
       nickname: "nickname"
     });
 
@@ -86,7 +86,7 @@ describe("getCase", () => {
       headers: {
         authorization: "Bearer token"
       },
-      params: { id: invalidId },
+      params: { caseId: invalidId },
       nickname: "nickname"
     });
 

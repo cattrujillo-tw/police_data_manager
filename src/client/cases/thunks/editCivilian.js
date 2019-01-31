@@ -1,39 +1,28 @@
-import { push } from "react-router-redux";
 import {
-  closeEditDialog,
-  editCivilianFailed,
+  closeEditCivilianDialog,
   editCivilianSuccess
 } from "../../actionCreators/casesActionCreators";
-import getAccessToken from "../../auth/getAccessToken";
-import config from "../../config/config";
 import getCaseNotes from "./getCaseNotes";
 import axios from "axios";
-
-const hostname = config[process.env.NODE_ENV].hostname;
+import { startSubmit, stopSubmit } from "redux-form";
+import { CIVILIAN_FORM_NAME } from "../../../sharedUtilities/constants";
+import { snackbarSuccess } from "../../actionCreators/snackBarActionCreators";
 
 const editCivilian = civilian => async dispatch => {
   try {
-    const token = getAccessToken();
-
-    if (!token) {
-      dispatch(push(`/login`));
-      return dispatch(editCivilianFailed());
-    }
-
-    const response = await axios(`${hostname}/api/civilian/${civilian.id}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`
-      },
-      data: JSON.stringify(civilian)
-    });
-
-    dispatch(closeEditDialog());
+    dispatch(startSubmit(CIVILIAN_FORM_NAME));
+    const response = await axios.put(
+      `api/cases/${civilian.caseId}/civilians/${civilian.id}`,
+      JSON.stringify(civilian)
+    );
+    dispatch(closeEditCivilianDialog());
     dispatch(editCivilianSuccess(response.data));
-    return await dispatch(getCaseNotes(response.data.id));
+    dispatch(snackbarSuccess("Civilian was successfully updated"));
+    const event = await dispatch(getCaseNotes(response.data.id));
+    dispatch(stopSubmit(CIVILIAN_FORM_NAME));
+    return event;
   } catch (e) {
-    return dispatch(editCivilianFailed());
+    dispatch(stopSubmit(CIVILIAN_FORM_NAME));
   }
 };
 

@@ -1,6 +1,5 @@
 import app from "./server";
 import request from "supertest";
-import ms from "smtp-tester";
 import models from "./models";
 import { AuthenticationClient } from "auth0";
 import Civilian from "../client/testUtilities/civilian";
@@ -9,9 +8,10 @@ import Attachment from "../client/testUtilities/attachment";
 import { civilianWithAddress } from "../client/testUtilities/ObjectMothers";
 import Address from "../client/testUtilities/Address";
 import {
+  ADDRESSABLE_TYPE,
+  AUDIT_ACTION,
   CASE_STATUS,
-  CIVILIAN_INITIATED,
-  AUDIT_ACTION
+  CIVILIAN_INITIATED
 } from "../sharedUtilities/constants";
 import AWS from "aws-sdk";
 import {
@@ -29,11 +29,22 @@ jest.mock("aws-sdk", () => ({
 }));
 
 describe("server", () => {
-  let token, user;
+  let token, user, raceEthnicity;
 
   beforeEach(async () => {
     user = "some_nickname";
     token = buildTokenWithPermissions("", user);
+
+    const raceEthnicityAttributes = {
+      name: "Samoan",
+      id: undefined
+    };
+    raceEthnicity = await models.race_ethnicity.create(
+      raceEthnicityAttributes,
+      {
+        auditUser: "test"
+      }
+    );
   });
 
   afterEach(async () => {
@@ -179,7 +190,7 @@ describe("server", () => {
           .defaultAddress()
           .withId(undefined)
           .withAddressableId(undefined)
-          .withAddressableType("cases")
+          .withAddressableType(ADDRESSABLE_TYPE.CASES)
           .withStreetAddress("123 fleet street")
           .build()
       };
@@ -198,7 +209,7 @@ describe("server", () => {
               incidentLocation: expect.objectContaining({
                 streetAddress: "123 fleet street",
                 addressableId: createdCaseId,
-                addressableType: "cases"
+                addressableType: ADDRESSABLE_TYPE.CASES
               }),
               complainantCivilians: expect.arrayContaining([
                 expect.objectContaining(requestBody.civilian)
@@ -243,7 +254,7 @@ describe("server", () => {
         .defaultAddress()
         .withId(undefined)
         .withAddressableId(existingCivilian.id)
-        .withAddressableType("civilian")
+        .withAddressableType(ADDRESSABLE_TYPE.CIVILIAN)
         .withCity("post city")
         .build();
       await existingCivilian.createAddress(existingCivilianAddress, {
@@ -264,10 +275,10 @@ describe("server", () => {
         .withId(undefined)
         .withCaseId(existingCase.id)
         .withFirstName("New Civilian")
-        .build();
+        .withRaceEthnicityId(raceEthnicity.id);
 
       await request(app)
-        .post(`/api/civilian`)
+        .post(`/api/cases/${existingCase.id}/civilians`)
         .set("Content-Header", "application/json")
         .set("Authorization", `Bearer ${token}`)
         .send(newCivilian)
@@ -290,7 +301,7 @@ describe("server", () => {
                   caseId: existingCase.id,
                   address: expect.objectContaining({
                     city: "post city",
-                    addressableType: "civilian"
+                    addressableType: ADDRESSABLE_TYPE.CIVILIAN
                   })
                 })
               ])
@@ -330,7 +341,7 @@ describe("server", () => {
         .defaultAddress()
         .withId(undefined)
         .withAddressableId(seededCivilian.id)
-        .withAddressableType("civilian")
+        .withAddressableType(ADDRESSABLE_TYPE.CIVILIAN)
         .build();
       await seededCivilian.createAddress(address, { auditUser: "someone" });
     });
@@ -341,7 +352,7 @@ describe("server", () => {
         lastName: "FISHHERRR"
       };
       await request(app)
-        .put(`/api/civilian/${seededCivilian.id}`)
+        .put(`/api/cases/${seededCase.id}/civilians/${seededCivilian.id}`)
         .set("Content-Header", "application/json")
         .set("Authorization", `Bearer ${token}`)
         .send(updatedCivilian)
@@ -370,7 +381,7 @@ describe("server", () => {
         }
       };
       await request(app)
-        .put(`/api/civilian/${seededCivilian.id}`)
+        .put(`/api/cases/${seededCase.id}/civilians/${seededCivilian.id}`)
         .set("Content-Header", "application/json")
         .set("Authorization", `Bearer ${token}`)
         .send(updatedCivilian)
@@ -384,7 +395,7 @@ describe("server", () => {
                 expect.objectContaining({
                   address: expect.objectContaining({
                     state: updatedCivilian.address.state,
-                    addressableType: "civilian"
+                    addressableType: ADDRESSABLE_TYPE.CIVILIAN
                   })
                 })
               ])
@@ -415,7 +426,7 @@ describe("server", () => {
       const address = new Address.Builder()
         .defaultAddress()
         .withId(undefined)
-        .withAddressableType("civilian")
+        .withAddressableType(ADDRESSABLE_TYPE.CIVILIAN)
         .withAddressableId(civilianToUpdate.id)
         .build();
 
@@ -423,7 +434,11 @@ describe("server", () => {
       await civilianToUpdate.reload({ include: [models.address] });
 
       await request(app)
-        .put(`/api/civilian/${civilianToUpdate.id}`)
+        .put(
+          `/api/cases/${civilianToUpdate.caseId}/civilians/${
+            civilianToUpdate.id
+          }`
+        )
         .set("Content-Header", "application/json")
         .set("Authorization", `Bearer ${token}`)
         .send({
@@ -479,7 +494,7 @@ describe("server", () => {
       let civilianToUpdate = caseToUpdate.dataValues.complainantCivilians[0];
 
       await request(app)
-        .put(`/api/civilian/${civilianToUpdate.id}`)
+        .put(`/api/cases/${caseToUpdate.id}/civilians/${civilianToUpdate.id}`)
         .set("Content-Header", "application/json")
         .set("Authorization", `Bearer ${token}`)
         .send({
@@ -521,112 +536,13 @@ describe("server", () => {
         firstName: "BOBBY"
       };
       await request(app)
-        .put(`/api/civilian/${seededCivilian.id}`)
+        .put(`/api/cases/${seededCase.id}/civilians/${seededCivilian.id}`)
         .set("Content-Header", "application/json")
         .set("Authorization", `Bearer ${token}`)
         .send(updatedCivilian)
         .expect(200)
         .then(response => {
           expect(response.body.status).toEqual(CASE_STATUS.ACTIVE);
-        });
-    });
-  });
-
-  describe("POST /users", () => {
-    let mailServer;
-    beforeEach(() => {
-      mailServer = ms.init(2525);
-    });
-    afterEach(async () => {
-      await models.users.destroy({
-        truncate: true
-      });
-      mailServer.stop();
-    });
-
-    test("should create a user", async () => {
-      mailServer.bind(
-        "rswanson@pawnee.gov",
-        (destinationAddress, id, email) => {
-          expect(destinationAddress).toEqual("rswanson@pawnee.gov");
-        }
-      );
-
-      await request(app)
-        .post("/api/users")
-        .set("Content-Header", "application/json")
-        .set("Authorization", `Bearer ${token}`)
-        .send({
-          firstName: "Ron",
-          lastName: "Swanson",
-          email: "rswanson@pawnee.gov"
-        })
-        .expect(201)
-        .then(response => {
-          expect(response.body.id).not.toBeUndefined();
-          expect(response.body.firstName).toEqual("Ron");
-          expect(response.body.lastName).toEqual("Swanson");
-          expect(response.body.email).toEqual("rswanson@pawnee.gov");
-          expect(response.body.createdAt).not.toBeUndefined();
-          expect(response.body.password).toBeUndefined();
-        });
-    });
-  });
-
-  describe("GET /users", () => {
-    let seededUsers;
-
-    beforeEach(async () => {
-      seededUsers = await models.users.bulkCreate(
-        [
-          {
-            firstName: "Carlman",
-            lastName: "Domen",
-            email: "cdomen@gmail.com",
-            password: "password123"
-          },
-          {
-            firstName: "Ellery",
-            lastName: "Salome",
-            email: "esalome@gmail.com",
-            password: "password123"
-          }
-        ],
-        {
-          returning: true
-        }
-      );
-    });
-
-    afterEach(async () => {
-      await models.users.destroy({
-        truncate: true
-      });
-    });
-
-    test("should get all users", async () => {
-      await request(app)
-        .get("/api/users")
-        .set("Content-Header", "application/json")
-        .set("Authorization", `Bearer ${token}`)
-        .expect(200)
-        .then(response => {
-          expect(response.body.users).toEqual(
-            expect.arrayContaining([
-              expect.objectContaining({
-                firstName: seededUsers[0].firstName,
-                lastName: seededUsers[0].lastName,
-                email: seededUsers[0].email,
-                createdAt: seededUsers[0].createdAt.toISOString()
-              }),
-              expect.objectContaining({
-                firstName: seededUsers[1].firstName,
-                lastName: seededUsers[1].lastName,
-                email: seededUsers[1].email,
-                createdAt: seededUsers[1].createdAt.toISOString()
-              })
-            ])
-          );
         });
     });
   });

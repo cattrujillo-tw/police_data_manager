@@ -1,12 +1,13 @@
+import { getCaseWithAllAssociations } from "../getCaseHelpers";
+
 const models = require("../../models/index");
 const asyncMiddleware = require("../asyncMiddleware");
-const getCaseWithAllAssociations = require("../getCaseWithAllAssociations");
 const { AUDIT_SUBJECT } = require("../../../sharedUtilities/constants");
 const auditDataAccess = require("../auditDataAccess");
 
-const updateCaseNarrative = asyncMiddleware(async (request, response) => {
+const updateCaseNarrative = asyncMiddleware(async (request, response, next) => {
   const updatedCase = await models.sequelize.transaction(async transaction => {
-    const caseId = request.params.id;
+    const caseId = request.params.caseId;
 
     await models.cases.update(
       {

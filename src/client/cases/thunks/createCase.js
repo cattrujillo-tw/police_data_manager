@@ -1,41 +1,25 @@
 import {
   closeCreateCaseDialog,
-  createCaseFailure,
   createCaseSuccess,
   requestCaseCreation
 } from "../../actionCreators/casesActionCreators";
 import { reset } from "redux-form";
-import { push } from "react-router-redux";
-import getAccessToken from "../../auth/getAccessToken";
+import { push } from "connected-react-router";
 import axios from "axios";
-import config from "../../config/config";
 import {
   CIVILIAN_INITIATED,
   RANK_INITIATED
 } from "../../../sharedUtilities/constants";
-
-const hostname = config[process.env.NODE_ENV].hostname;
+import { snackbarSuccess } from "../../actionCreators/snackBarActionCreators";
 
 const createCase = creationDetails => async dispatch => {
   dispatch(requestCaseCreation());
-
   try {
-    const token = getAccessToken();
-
-    if (!token) {
-      dispatch(push(`/login`));
-      return dispatch(createCaseFailure());
-    }
-
-    const response = await axios(`${hostname}/api/cases`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`
-      },
-      data: JSON.stringify(creationDetails.caseDetails)
-    });
-
+    const response = await axios.post(
+      `api/cases`,
+      JSON.stringify(creationDetails.caseDetails)
+    );
+    dispatch(snackbarSuccess("Case was successfully created"));
     dispatch(createCaseSuccess(response.data));
     dispatch(closeCreateCaseDialog());
     if (creationDetails.redirect) {
@@ -48,9 +32,7 @@ const createCase = creationDetails => async dispatch => {
       }
     }
     return dispatch(reset("CreateCase"));
-  } catch (e) {
-    return dispatch(createCaseFailure());
-  }
+  } catch (e) {}
 };
 
 export default createCase;

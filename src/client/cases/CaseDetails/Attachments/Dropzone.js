@@ -8,9 +8,13 @@ import {
   DUPLICATE_FILE_NAME,
   UPLOAD_CANCELED
 } from "../../../../sharedUtilities/constants";
-import { FormControl, FormHelperText } from "@material-ui/core";
+import {
+  FormControl,
+  FormHelperText,
+  Input,
+  InputLabel
+} from "@material-ui/core";
 import { PrimaryButton } from "../../../shared/components/StyledButtons";
-import { Input, InputLabel } from "@material-ui/core";
 
 class Dropzone extends Component {
   componentDidMount() {
@@ -25,7 +29,7 @@ class Dropzone extends Component {
   };
 
   dropZoneComponentConfig = {
-    postUrl: `${config[process.env.NODE_ENV].hostname}/api/cases/${
+    postUrl: `${config[process.env.REACT_APP_ENV].hostname}/api/cases/${
       this.props.caseId
     }/attachments`
   };

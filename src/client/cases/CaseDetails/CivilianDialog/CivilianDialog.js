@@ -6,29 +6,27 @@ import {
   reduxForm,
   SubmissionError
 } from "redux-form";
-import { RadioGroup } from "redux-form-material-ui";
+import { RadioGroup, TextField } from "redux-form-material-ui";
 import {
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
-  Typography,
   FormControlLabel,
-  Radio
+  Radio,
+  Typography
 } from "@material-ui/core";
 import FirstNameField from "../../sharedFormComponents/FirstNameField";
 import LastNameField from "../../sharedFormComponents/LastNameField";
 import {
-  SecondaryButton,
-  PrimaryButton
+  PrimaryButton,
+  SecondaryButton
 } from "../../../shared/components/StyledButtons";
-import {
-  closeEditDialog,
-  updateAddressAutoSuggest
-} from "../../../actionCreators/casesActionCreators";
+import { closeEditCivilianDialog } from "../../../actionCreators/casesActionCreators";
 import {
   genderIdentityIsRequired,
-  raceEthnicityIsRequired
+  raceEthnicityIsRequired,
+  titleIsRequired
 } from "../../../formFieldLevelValidations";
 import NoBlurTextField from "./FormSelect";
 import { withTheme } from "@material-ui/core/styles";
@@ -37,39 +35,48 @@ import MiddleInitialField from "../../sharedFormComponents/MiddleInitialField";
 import SuffixField from "../../sharedFormComponents/SuffixField";
 import PhoneNumberField from "../../sharedFormComponents/PhoneNumberField";
 import EmailField from "../../sharedFormComponents/EmailField";
-import formatAddress from "../../../utilities/formatAddress";
+import { formatAddressAsString } from "../../../utilities/formatAddress";
 import moment from "moment";
 import {
   genderIdentityMenu,
-  raceEthnicityMenu
+  generateMenu,
+  titleMenu
 } from "../../../utilities/generateMenus";
 import validate from "./helpers/validateCivilianFields";
 import AddressInput from "./AddressInput";
-import { TextField } from "redux-form-material-ui";
 import {
   CIVILIAN_FORM_NAME,
   COMPLAINANT,
   WITNESS
 } from "../../../../sharedUtilities/constants";
 import { nullifyFieldUnlessValid } from "../../../utilities/fieldNormalizers";
-import { addressMustBeAutoSuggested } from "../../../formValidations";
-import AdditionalAddressInfoField from "../../sharedFormComponents/AdditionalAddressInfoField";
+import { addressMustBeValid } from "../../../formValidations";
+import AddressSecondLine from "../../sharedFormComponents/AddressSecondLine";
+import _ from "lodash";
+import normalizeAddress from "../../../utilities/normalizeAddress";
+import getRaceEthnicityDropdownValues from "../../../raceEthnicities/thunks/getRaceEthnicityDropdownValues";
 
 class CivilianDialog extends Component {
+  componentDidMount() {
+    this.props.getRaceEthnicityDropdownValues();
+  }
+
   handleCivilian = (values, dispatch) => {
-    const errors = addressMustBeAutoSuggested(
-      values.address,
-      this.props.addressAutoSuggestValue
-    );
+    const errors = addressMustBeValid(this.props.addressValid);
 
     if (errors.autoSuggestValue) {
       throw new SubmissionError(errors);
+    }
+    const phoneNumErrors = validate(values);
+    if (!_.isEmpty(phoneNumErrors)) {
+      throw new SubmissionError(phoneNumErrors);
     }
 
     dispatch(
       this.props.submitAction({
         ...values,
-        birthDate: nullifyFieldUnlessValid(values.birthDate)
+        birthDate: nullifyFieldUnlessValid(values.birthDate),
+        address: normalizeAddress(values.address)
       })
     );
   };
@@ -108,21 +115,40 @@ class CivilianDialog extends Component {
             <Typography variant="body2" style={{ marginBottom: "8px" }}>
               Personal Information
             </Typography>
-            <FirstNameField name="firstName" />
-            <MiddleInitialField
-              name="middleInitial"
-              style={{
-                width: "40px",
-                marginRight: "5%"
-              }}
-            />
-            <LastNameField name="lastName" />
-            <SuffixField
-              name="suffix"
-              style={{
-                width: "120px"
-              }}
-            />
+            <div>
+              <Field
+                required
+                name="title"
+                component={NoBlurTextField}
+                label="Title"
+                hinttext="Title"
+                data-test="titleDropdown"
+                style={{
+                  width: "95px",
+                  marginBottom: "3%"
+                }}
+                validate={[titleIsRequired]}
+              >
+                {titleMenu}
+              </Field>
+            </div>
+            <div>
+              <FirstNameField name="firstName" />
+              <MiddleInitialField
+                name="middleInitial"
+                style={{
+                  width: "40px",
+                  marginRight: "5%"
+                }}
+              />
+              <LastNameField name="lastName" />
+              <SuffixField
+                name="suffix"
+                style={{
+                  width: "120px"
+                }}
+              />
+            </div>
             <div style={{ display: "flex" }}>
               <DateField
                 name="birthDate"
@@ -155,7 +181,7 @@ class CivilianDialog extends Component {
             </div>
             <Field
               required
-              name="raceEthnicity"
+              name="raceEthnicityId"
               component={NoBlurTextField}
               label="Race/Ethnicity"
               hinttext="Race/Ethnicity"
@@ -163,24 +189,36 @@ class CivilianDialog extends Component {
               style={{ width: "75%", marginBottom: "24px" }}
               validate={[raceEthnicityIsRequired]}
             >
-              {raceEthnicityMenu}
+              {generateMenu(this.props.raceEthnicities)}
             </Field>
-
             <Typography variant="body2" style={{ marginBottom: "8px" }}>
               Contact Information
             </Typography>
-            <PhoneNumberField name="phoneNumber" />
-            <EmailField name="email" />
-            <AddressInput
-              formName={CIVILIAN_FORM_NAME}
+            <div style={{ display: "flex" }}>
+              <PhoneNumberField name="phoneNumber" />
+              <Typography
+                variant="button"
+                style={{
+                  marginLeft: "22px",
+                  marginTop: "22px",
+                  marginRight: "22px"
+                }}
+              >
+                OR
+              </Typography>
+              <EmailField name="email" autoComplete="disabled" />
+            </div>
+            <div style={{ marginBottom: "16px" }}>
+              <AddressInput
+                formName={CIVILIAN_FORM_NAME}
+                fieldName={"address"}
+                addressLabel={"Address"}
+                formattedAddress={this.props.formattedAddress}
+              />
+            </div>
+            <AddressSecondLine
+              label={"Address Line 2"}
               fieldName={"address"}
-              addressLabel={"Address"}
-              onInputChanged={updateAddressAutoSuggest}
-              formattedAddress={this.props.formattedAddress}
-            />
-            <AdditionalAddressInfoField
-              label={"Additional Address Information"}
-              fieldName={`address`}
               style={{
                 marginRight: "5%",
                 marginBottom: "24px",
@@ -215,13 +253,14 @@ class CivilianDialog extends Component {
         >
           <SecondaryButton
             data-test="cancelEditCivilian"
-            onClick={() => this.props.dispatch(closeEditDialog())}
+            onClick={() => this.props.dispatch(closeEditCivilianDialog())}
           >
             Cancel
           </SecondaryButton>
           <PrimaryButton
             data-test="submitEditCivilian"
             onClick={this.props.handleSubmit(this.handleCivilian)}
+            disabled={this.props.submitting}
           >
             {this.props.submitButtonText}
           </PrimaryButton>
@@ -234,8 +273,7 @@ class CivilianDialog extends Component {
 const DialogWithTheme = withTheme()(CivilianDialog);
 
 const connectedForm = reduxForm({
-  form: CIVILIAN_FORM_NAME,
-  validate
+  form: CIVILIAN_FORM_NAME
 })(DialogWithTheme);
 
 const mapStateToProps = state => {
@@ -247,17 +285,28 @@ const mapStateToProps = state => {
     "address.city",
     "address.state",
     "address.zipCode",
-    "address.country"
+    "address.country",
+    "address.lat",
+    "address.lng",
+    "address.placeId"
   );
 
   return {
     open: state.ui.civilianDialog.open,
-    addressAutoSuggestValue: state.ui.civilianDialog.addressAutoSuggestValue,
-    formattedAddress: formatAddress(values.address),
+    formattedAddress: formatAddressAsString(values.address),
     submitAction: state.ui.civilianDialog.submitAction,
     title: state.ui.civilianDialog.title,
-    submitButtonText: state.ui.civilianDialog.submitButtonText
+    submitButtonText: state.ui.civilianDialog.submitButtonText,
+    addressValid: state.ui.addressInput.addressValid,
+    raceEthnicities: state.ui.raceEthnicities
   };
 };
 
-export default connect(mapStateToProps)(connectedForm);
+const mapDispatchToProps = {
+  getRaceEthnicityDropdownValues
+};
+
+export default connect(
+  mapStateToProps,
+  mapDispatchToProps
+)(connectedForm);

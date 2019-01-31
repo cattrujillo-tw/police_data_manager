@@ -1,37 +1,24 @@
-import getAccessToken from "../../auth/getAccessToken";
 import {
   closeRemoveCaseNoteDialog,
-  removeCaseNoteFailure,
   removeCaseNoteSuccess
 } from "../../actionCreators/casesActionCreators";
-import config from "../../config/config";
-import { push } from "react-router-redux";
+import { REMOVE_CASE_NOTE_FORM_NAME } from "../../../sharedUtilities/constants";
 import axios from "axios";
-
-const hostname = config[process.env.NODE_ENV].hostname;
+import { startSubmit, stopSubmit } from "redux-form";
+import { snackbarSuccess } from "../../actionCreators/snackBarActionCreators";
 
 const removeCaseNote = (caseId, caseNoteId) => async dispatch => {
   try {
-    const token = getAccessToken();
-    if (!token) {
-      return dispatch(push("/login"));
-    }
-
-    const response = await axios(
-      `${hostname}/api/cases/${caseId}/case-notes/${caseNoteId}`,
-      {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`
-        }
-      }
+    dispatch(startSubmit(REMOVE_CASE_NOTE_FORM_NAME));
+    const response = await axios.delete(
+      `api/cases/${caseId}/case-notes/${caseNoteId}`
     );
-
     dispatch(closeRemoveCaseNoteDialog());
+    dispatch(stopSubmit(REMOVE_CASE_NOTE_FORM_NAME));
+    dispatch(snackbarSuccess("Case note was successfully removed"));
     return dispatch(removeCaseNoteSuccess(response.data));
   } catch (error) {
-    return dispatch(removeCaseNoteFailure());
+    dispatch(stopSubmit(REMOVE_CASE_NOTE_FORM_NAME));
   }
 };
 

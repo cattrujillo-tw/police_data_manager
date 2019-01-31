@@ -1,6 +1,6 @@
 const { AUDIT_SUBJECT } = require("../../../../sharedUtilities/constants");
 const asyncMiddleware = require("../../asyncMiddleware");
-const getCaseWithAllAssociations = require("../../getCaseWithAllAssociations");
+import { getCaseWithAllAssociations } from "../../getCaseHelpers";
 const models = require("../../../models");
 const _ = require("lodash");
 const auditDataAccess = require("../../auditDataAccess");
@@ -8,7 +8,8 @@ const auditDataAccess = require("../../auditDataAccess");
 const createOfficerAllegation = asyncMiddleware(async (request, response) => {
   const allegationAttributes = _.pick(request.body, [
     "allegationId",
-    "details"
+    "details",
+    "severity"
   ]);
 
   const caseWithAssociations = await models.sequelize.transaction(

@@ -3,8 +3,6 @@ import {
   Divider,
   ExpansionPanel,
   ExpansionPanelSummary,
-  Icon,
-  IconButton,
   Typography
 } from "@material-ui/core";
 import OfficerInfoDisplay from "./OfficerInfoDisplay";
@@ -20,115 +18,144 @@ import {
   accusedOfficerPanelExpanded
 } from "../../../actionCreators/accusedOfficerPanelsActionCreators";
 import DateOfBirthAgeInfoDisplay from "../../../shared/components/DateOfBirthAgeInfoDisplay";
+import ExpansionPanelIconButton from "../../../shared/components/ExpansionPanelIconButton";
+import StyledInfoDisplay from "../../../shared/components/StyledInfoDisplay";
 
 const OfficerPanel = ({ dispatch, caseOfficer, officerAge, children }) => (
   <div>
-    <ExpansionPanel
-      data-test="officerPanel"
-      elevation={0}
-      onChange={(event, expanded) => {
-        expanded
-          ? dispatch(accusedOfficerPanelExpanded(caseOfficer.id))
-          : dispatch(accusedOfficerPanelCollapsed(caseOfficer.id));
-      }}
-      style={{ backgroundColor: "white" }}
+    <div
+      data-test="knownOfficerPanel"
+      style={{ display: "flex", width: "100%", paddingRight: 0 }}
     >
-      <ExpansionPanelSummary
-        style={{
-          padding: "0px 24px"
+      <ExpansionPanel
+        elevation={0}
+        onChange={(event, expanded) => {
+          expanded
+            ? dispatch(accusedOfficerPanelExpanded(caseOfficer.id))
+            : dispatch(accusedOfficerPanelCollapsed(caseOfficer.id));
         }}
+        style={{ backgroundColor: "white", width: "100%" }}
       >
-        <div style={{ display: "flex", width: "100%", paddingRight: 0 }}>
-          <IconButton
-            style={{ marginRight: 16 }}
-            color="secondary"
-            className="chevron-right"
-          >
-            <Icon>unfold_more</Icon>
-          </IconButton>
-          <OfficerNameDisplay
-            displayLabel="Officer"
-            fullName={caseOfficer.fullName}
-            windowsUsername={caseOfficer.windowsUsername}
-          />
-          <OfficerInfoDisplay
-            displayLabel="Rank/Title"
-            value={caseOfficer.rank}
-            testLabel="rank"
-          />
-          <OfficerNameDisplay
-            displayLabel="Supervisor"
-            fullName={caseOfficer.supervisorFullName}
-            windowsUsername={caseOfficer.supervisorWindowsUsername}
-          />
-          {children}
-        </div>
-      </ExpansionPanelSummary>
-      <StyledExpansionPanelDetails>
-        <OfficerInfoDisplay
-          displayLabel="Employee Type"
-          value={caseOfficer.employeeType}
-          testLabel="employeeType"
-        />
-        <OfficerInfoDisplay
-          displayLabel="District"
-          value={caseOfficer.district}
-          testLabel="district"
-        />
-        <OfficerInfoDisplay
-          displayLabel="Bureau"
-          value={caseOfficer.bureau}
-          testLabel="bureau"
-        />
-      </StyledExpansionPanelDetails>
-      <StyledExpansionPanelDetails>
-        <OfficerInfoDisplay
-          displayLabel="Status"
-          value={caseOfficer.workStatus}
-          testLabel="status"
-        />
-        <OfficerInfoDisplay
-          displayLabel="Hire Date"
-          value={formatDate(caseOfficer.hireDate)}
-          testLabel="hireDate"
-        />
-        <OfficerInfoDisplay
-          displayLabel="End of Employment"
-          value={formatDate(caseOfficer.endDate)}
-          testLabel="endDate"
-        />
-      </StyledExpansionPanelDetails>
-      <StyledExpansionPanelDetails>
-        <OfficerInfoDisplay
-          displayLabel="Race"
-          value={caseOfficer.race}
-          testLabel="race"
-        />
-        <OfficerInfoDisplay
-          displayLabel="Sex"
-          value={caseOfficer.sex}
-          testLabel="sex"
-        />
-        <DateOfBirthAgeInfoDisplay
-          displayLabel="Date of Birth (Age on Incident Date)"
-          testLabel="age"
-          birthDate={formatDate(caseOfficer.dob)}
-          age={officerAge}
-          marginRight="16px"
-        />
-      </StyledExpansionPanelDetails>
-      <StyledExpansionPanelDetails>
-        <OfficerInfoDisplay
-          displayLabel="Notes"
-          value={caseOfficer.notes}
-          testLabel="notes"
-        />
-      </StyledExpansionPanelDetails>
-      {caseOfficer &&
-        caseOfficer.roleOnCase === ACCUSED && (
+        <ExpansionPanelSummary
+          style={{
+            padding: "0px 24px"
+          }}
+        >
           <div
             style={{
-              marginLeft: "64px"
+              display: "flex",
+              width: "100%",
+              paddingRight: 0,
+              marginBottom: 4
+            }}
+          >
+            <ExpansionPanelIconButton />
+            <StyledInfoDisplay>
+              <OfficerNameDisplay
+                displayLabel="Officer"
+                fullName={caseOfficer.fullName}
+                windowsUsername={caseOfficer.windowsUsername}
+              />
+            </StyledInfoDisplay>
+            <StyledInfoDisplay>
+              <OfficerInfoDisplay
+                displayLabel="Rank/Title"
+                value={caseOfficer.rank}
+                testLabel="rank"
+              />
+            </StyledInfoDisplay>
+            <StyledInfoDisplay>
+              <OfficerNameDisplay
+                displayLabel="Supervisor"
+                fullName={caseOfficer.supervisorFullName}
+                windowsUsername={caseOfficer.supervisorWindowsUsername}
+              />
+            </StyledInfoDisplay>
+          </div>
+        </ExpansionPanelSummary>
+        <StyledExpansionPanelDetails>
+          <StyledInfoDisplay>
+            <OfficerInfoDisplay
+              displayLabel="Employee Type"
+              value={caseOfficer.employeeType}
+              testLabel="employeeType"
+            />
+          </StyledInfoDisplay>
+          <StyledInfoDisplay>
+            <OfficerInfoDisplay
+              displayLabel="District"
+              value={caseOfficer.district}
+              testLabel="district"
+            />
+          </StyledInfoDisplay>
+          <StyledInfoDisplay>
+            <OfficerInfoDisplay
+              displayLabel="Bureau"
+              value={caseOfficer.bureau}
+              testLabel="bureau"
+            />
+          </StyledInfoDisplay>
+        </StyledExpansionPanelDetails>
+        <StyledExpansionPanelDetails>
+          <StyledInfoDisplay>
+            <OfficerInfoDisplay
+              displayLabel="Status"
+              value={caseOfficer.workStatus}
+              testLabel="status"
+            />
+          </StyledInfoDisplay>
+          <StyledInfoDisplay>
+            <OfficerInfoDisplay
+              displayLabel="Hire Date"
+              value={formatDate(caseOfficer.hireDate)}
+              testLabel="hireDate"
+            />
+          </StyledInfoDisplay>
+          <StyledInfoDisplay>
+            <OfficerInfoDisplay
+              displayLabel="End of Employment"
+              value={formatDate(caseOfficer.endDate)}
+              testLabel="endDate"
+            />
+          </StyledInfoDisplay>
+        </StyledExpansionPanelDetails>
+        <StyledExpansionPanelDetails>
+          <StyledInfoDisplay>
+            <OfficerInfoDisplay
+              displayLabel="Race"
+              value={caseOfficer.race}
+              testLabel="race"
+            />
+          </StyledInfoDisplay>
+          <StyledInfoDisplay>
+            <OfficerInfoDisplay
+              displayLabel="Sex"
+              value={caseOfficer.sex}
+              testLabel="sex"
+            />
+          </StyledInfoDisplay>
+          <StyledInfoDisplay>
+            <DateOfBirthAgeInfoDisplay
+              displayLabel="Date of Birth (Age on Incident Date)"
+              testLabel="age"
+              birthDate={formatDate(caseOfficer.dob)}
+              age={officerAge}
+            />
+          </StyledInfoDisplay>
+        </StyledExpansionPanelDetails>
+        <StyledExpansionPanelDetails>
+          <StyledInfoDisplay>
+            <OfficerInfoDisplay
+              displayLabel="Notes"
+              value={caseOfficer.notes}
+              testLabel="notes"
+            />
+          </StyledInfoDisplay>
+        </StyledExpansionPanelDetails>
+        {caseOfficer && caseOfficer.roleOnCase === ACCUSED && (
+          <div
+            style={{
+              marginLeft: "52px"
             }}
           >
             <Typography
@@ -151,7 +178,9 @@ const OfficerPanel = ({ dispatch, caseOfficer, officerAge, children }) => (
             )}
           </div>
         )}
-    </ExpansionPanel>
+      </ExpansionPanel>
+      <div style={{ margin: "12px 24px" }}>{children}</div>
+    </div>
     <Divider />
   </div>
 );

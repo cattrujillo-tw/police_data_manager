@@ -4,7 +4,7 @@ import { Provider } from "react-redux";
 import createConfiguredStore from "../../../createConfiguredStore";
 import CivilianDialog from "./CivilianDialog";
 import {
-  closeEditDialog,
+  closeEditCivilianDialog,
   openCivilianDialog
 } from "../../../actionCreators/casesActionCreators";
 import {
@@ -17,12 +17,13 @@ import { initialize } from "redux-form";
 import Address from "../../../testUtilities/Address";
 import Civilian from "../../../testUtilities/civilian";
 import { CIVILIAN_FORM_NAME } from "../../../../sharedUtilities/constants";
+import { getRaceEthnicitiesSuccess } from "../../../actionCreators/raceEthnicityActionCreators";
 
 jest.mock("../../thunks/editCivilian", () =>
   jest.fn(() => ({ type: "MOCK_CIVILIAN_REQUESTED" }))
 );
 
-jest.mock("./SuggestionEngines/addressSuggestionEngine", () => {
+jest.mock("./MapServices/MapService", () => {
   return jest.fn().mockImplementation(() => ({
     healthCheck: callback => {
       callback({ googleAddressServiceIsAvailable: false });
@@ -36,8 +37,8 @@ jest.mock("./SuggestionEngines/addressSuggestionEngine", () => {
       callback([{ description: "200 East Randolph Street, Chicago, IL, US" }]);
     },
 
-    onSuggestionSelected: (suggestion, callback) => {
-      callback({
+    onSuggestionSelected: (suggestion, successCallback, failureCallback) => {
+      successCallback({
         streetAddress: "200 E Randolph St",
         city: "Chicago",
         state: "IL",
@@ -47,6 +48,15 @@ jest.mock("./SuggestionEngines/addressSuggestionEngine", () => {
     }
   }));
 });
+
+jest.mock(
+  "../../../raceEthnicities/thunks/getRaceEthnicityDropdownValues",
+  () =>
+    jest.fn(values => ({
+      type: "MOCK_GET_RACE_ETHNICITY_THUNK",
+      values
+    }))
+);
 
 describe("civilian dialog", () => {
   let civilianDialog, store, dispatchSpy, caseCivilian, save, submitAction;
@@ -75,12 +85,15 @@ describe("civilian dialog", () => {
       .withEmail(undefined)
       .withPhoneNumber(undefined)
       .withGenderIdentity(undefined)
-      .withRaceEthnicity(undefined)
+      .withRaceEthnicityId(undefined)
       .withBirthDate(undefined)
+      .withTitle(undefined)
       .build();
 
     store.dispatch(initialize(CIVILIAN_FORM_NAME, caseCivilian));
-
+    store.dispatch(
+      getRaceEthnicitiesSuccess([["Japanese", 1], ["unknown2", 2]])
+    );
     dispatchSpy = jest.spyOn(store, "dispatch");
     submitAction = jest.fn(() => ({ type: "MOCK_CIVILIAN_THUNK" }));
 
@@ -152,19 +165,81 @@ describe("civilian dialog", () => {
     });
   });
 
-  describe("email and phone number", () => {
-    test("should display phone and email errors when phone and email marked as touched on form submit", () => {
-      save.simulate("click");
+  describe("title", () => {
+    let titleDropdown;
+    beforeEach(() => {
+      titleDropdown = civilianDialog.find('[data-test="titleDropdown"]').last();
+    });
 
+    test("should show error if not set on save", () => {
+      save.simulate("click");
+      expect(titleDropdown.text()).toContain("Please enter Title");
+    });
+  });
+
+  describe("email and phone number", () => {
+    test("should display phone error when phone and email marked as touched on form submit", () => {
+      let civilianToSubmit = new Civilian.Builder()
+        .defaultCivilian()
+        .withFirstName("test first name")
+        .withLastName("test last name")
+        .withRaceEthnicityId(1)
+        .withGenderIdentity("Unknown")
+        .withEmail("")
+        .withPhoneNumber("")
+        .withTitle("Miss")
+        .build();
+
+      changeInput(
+        civilianDialog,
+        '[data-test="firstNameInput"]',
+        civilianToSubmit.firstName
+      );
+      changeInput(
+        civilianDialog,
+        '[data-test="lastNameInput"]',
+        civilianToSubmit.lastName
+      );
+      changeInput(
+        civilianDialog,
+        '[data-test="birthDateInput"]',
+        civilianToSubmit.birthDate
+      );
+      changeInput(
+        civilianDialog,
+        '[data-test="phoneNumberInput"]',
+        civilianToSubmit.phoneNumber
+      );
+      changeInput(
+        civilianDialog,
+        '[data-test="emailInput"]',
+        civilianToSubmit.email
+      );
+      selectDropdownOption(
+        civilianDialog,
+        '[data-test="genderDropdown"]',
+        civilianToSubmit.genderIdentity
+      );
+      selectDropdownOption(
+        civilianDialog,
+        '[data-test="raceDropdown"]',
+        "Japanese"
+      );
+      selectDropdownOption(
+        civilianDialog,
+        '[data-test="titleDropdown"]',
+        civilianToSubmit.title
+      );
       const phoneNumberField = civilianDialog.find(
         'div[data-test="phoneNumberField"]'
       );
-      const emailField = civilianDialog.find('div[data-test="emailField"]');
-
-      expect(phoneNumberField.text()).toContain(
-        "Please enter phone number or email address"
+      const phoneNumberInput = civilianDialog.find(
+        'input[data-test="phoneNumberInput"]'
       );
-      expect(emailField.text()).toContain(
+      phoneNumberInput.simulate("focus");
+      phoneNumberInput.simulate("blur");
+      save.simulate("click");
+      expect(phoneNumberField.text()).toContain(
         "Please enter phone number or email address"
       );
     });
@@ -179,7 +254,7 @@ describe("civilian dialog", () => {
 
       civilianDialog.update();
 
-      expect(dispatchSpy).toHaveBeenCalledWith(closeEditDialog());
+      expect(dispatchSpy).toHaveBeenCalledWith(closeEditCivilianDialog());
       await expectEventuallyNotToExist(
         civilianDialog,
         '[data-test="editDialogTitle"]'
@@ -197,10 +272,11 @@ describe("civilian dialog", () => {
         .withSuffix("updated test suffix")
         .withBirthDate("2012-02-13")
         .withGenderIdentity("Other")
-        .withRaceEthnicity("Other")
+        .withRaceEthnicityId(1)
         .withPhoneNumber("1234567890")
         .withEmail("example@test.com")
         .withAddress(caseCivilian.address)
+        .withTitle("Mr.")
         .withId(undefined)
         .build();
 
@@ -247,7 +323,12 @@ describe("civilian dialog", () => {
       selectDropdownOption(
         civilianDialog,
         '[data-test="raceDropdown"]',
-        civilianToSubmit.raceEthnicity
+        "Japanese"
+      );
+      selectDropdownOption(
+        civilianDialog,
+        '[data-test="titleDropdown"]',
+        civilianToSubmit.title
       );
 
       save.simulate("click");

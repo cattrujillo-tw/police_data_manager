@@ -1,51 +1,51 @@
 //TODO can we extract token management, failure dispatch, etc into something common?
 import nock from "nock";
-import { push } from "react-router-redux";
 import editCivilian from "./editCivilian";
 import Civilian from "../../testUtilities/civilian";
 import {
-  closeEditDialog,
-  editCivilianFailed,
+  closeEditCivilianDialog,
   editCivilianSuccess
 } from "../../actionCreators/casesActionCreators";
-import getAccessToken from "../../auth/getAccessToken";
+import configureInterceptors from "../../axiosInterceptors/interceptors";
+import RaceEthnicity from "../../testUtilities/raceEthnicity";
+import { startSubmit, stopSubmit } from "redux-form";
+import { CIVILIAN_FORM_NAME } from "../../../sharedUtilities/constants";
+import { snackbarSuccess } from "../../actionCreators/snackBarActionCreators";
 
 jest.mock("../../auth/getAccessToken", () => jest.fn(() => "TEST_TOKEN"));
 jest.mock("../../actionCreators/casesActionCreators", () => ({
   editCivilianSuccess: jest.fn(() => ({ type: "MOCK_EDIT_SUCCESS" })),
-  closeEditDialog: jest.fn(() => ({ type: "MOCK_CLOSE" })),
-  editCivilianFailed: jest.fn(() => ({ type: "MOCK_EDIT_FAILED" }))
+  closeEditCivilianDialog: jest.fn(() => ({ type: "MOCK_CLOSE" }))
 }));
 
 describe("edit civilian thunk", () => {
   const dispatch = jest.fn();
-  const civilian = new Civilian.Builder()
+  const responseBody = {};
+  let civilian = new Civilian.Builder()
     .defaultCivilian()
     .withCreatedAt("some time")
     .build();
-  const responseCivilians = [civilian];
-  const responseBody = {};
+  let responseCivilians;
 
   beforeEach(() => {
+    configureInterceptors({ dispatch });
     dispatch.mockClear();
-  });
-
-  test("should redirect immediately if token missing", async () => {
-    getAccessToken.mockImplementationOnce(() => false);
-    await editCivilian()(dispatch);
-
-    expect(dispatch).toHaveBeenCalledWith(editCivilianFailed());
-    expect(dispatch).toHaveBeenCalledWith(push(`/login`));
+    const raceEthnicity = new RaceEthnicity.Builder()
+      .defaultRaceEthnicity()
+      .build();
+    civilian = { ...civilian, raceEthnicityId: raceEthnicity.id };
+    responseCivilians = [civilian];
   });
 
   test("should dispatch error action if we get an unrecognized response", async () => {
     nock("http://localhost", {})
-      .put(`/api/civilian/${civilian.id}`, civilian)
+      .put(`/api/cases/${civilian.caseId}/civilians/${civilian.id}`, civilian)
       .reply(500, responseBody);
 
     await editCivilian(civilian)(dispatch);
 
-    expect(dispatch).toHaveBeenCalledWith(editCivilianFailed());
+    expect(dispatch).toHaveBeenCalledWith(startSubmit(CIVILIAN_FORM_NAME));
+    expect(dispatch).toHaveBeenCalledWith(stopSubmit(CIVILIAN_FORM_NAME));
   });
 
   test("should dispatch success when civilian edit was successful", async () => {
@@ -53,12 +53,18 @@ describe("edit civilian thunk", () => {
       "Content-Type": "application/json",
       Authorization: `Bearer TEST_TOKEN`
     })
-      .put(`/api/civilian/${civilian.id}`, civilian)
+      .put(`/api/cases/${civilian.caseId}/civilians/${civilian.id}`, civilian)
       .reply(200, responseCivilians);
 
     await editCivilian(civilian)(dispatch);
+
+    expect(dispatch).toHaveBeenCalledWith(startSubmit(CIVILIAN_FORM_NAME));
     expect(editCivilianSuccess).toHaveBeenCalledWith(responseCivilians);
     expect(dispatch).toHaveBeenCalledWith(editCivilianSuccess());
-    expect(dispatch).toHaveBeenCalledWith(closeEditDialog());
+    expect(dispatch).toHaveBeenCalledWith(
+      snackbarSuccess("Civilian was successfully updated")
+    );
+    expect(dispatch).toHaveBeenCalledWith(closeEditCivilianDialog());
+    expect(dispatch).toHaveBeenCalledWith(stopSubmit(CIVILIAN_FORM_NAME));
   });
 });

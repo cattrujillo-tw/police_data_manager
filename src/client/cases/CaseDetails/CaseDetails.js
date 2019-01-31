@@ -5,41 +5,33 @@ import Typography from "@material-ui/core/Typography";
 import NavBar from "../../shared/components/NavBar/NavBar";
 import { connect } from "react-redux";
 import Narrative from "./Narrative";
-import ComplainantWitnesses from "./ComplainantWitnesses/ComplainantWitnesses";
+import Complainants from "./ComplainantWitnesses/Complainants";
 import CivilianDialog from "./CivilianDialog/CivilianDialog";
 import getCaseDetails from "../thunks/getCaseDetails";
 import * as _ from "lodash";
 import Attachments from "./Attachments/Attachments";
 import styles from "./caseDetailsStyles";
 import CaseDrawer from "./CaseDrawer";
-import Button from "@material-ui/core/Button";
-import AddIcon from "@material-ui/icons/Add";
-import { Menu, MenuItem } from "@material-ui/core";
-import IncidentDetailsContainer from "./IncidentDetails/IncidentDetailsContainer";
+import IncidentDetails from "./IncidentDetails/IncidentDetails";
 import {
-  openCivilianDialog,
-  closeEditDialog,
   closeCaseNoteDialog,
-  openCaseNoteDialog,
   closeCaseStatusUpdateDialog,
+  closeEditCivilianDialog,
+  closeEditIncidentDetailsDialog,
   closeRemoveCaseNoteDialog,
   closeRemovePersonDialog
 } from "../../actionCreators/casesActionCreators";
-import createCivilian from "../thunks/createCivilian";
-import {
-  CASE_STATUS,
-  CIVILIAN_FORM_NAME,
-  COMPLAINANT,
-  TIMEZONE
-} from "../../../sharedUtilities/constants";
-import { initialize } from "redux-form";
-import { push } from "react-router-redux";
+import { CASE_STATUS } from "../../../sharedUtilities/constants";
 import AccusedOfficers from "./Officers/AccusedOfficers";
 import CaseNoteDialog from "./CaseNoteDialog/CaseNoteDialog";
-import timezone from "moment-timezone";
 import RemoveCivilianDialog from "../RemovePersonDialog/RemovePersonDialog";
-import CaseStatusStepper from "./CaseStatusStepper/CaseStatusStepper";
 import { clearOfficerPanelData } from "../../actionCreators/accusedOfficerPanelsActionCreators";
+import Witnesses from "./ComplainantWitnesses/Witnesses";
+import CaseStatusStepper from "./CaseStatusStepper/CaseStatusStepper";
+import EditLetterStatusMessage, {
+  PAGE_TYPE
+} from "./EditLetterStatusMessage/EditLetterStatusMessage";
+import getLetterType from "../ReferralLetter/thunks/getLetterType";
 
 const drawerWidthPercentage = "30%";
 
@@ -52,35 +44,47 @@ const appBar = {
 class CaseDetails extends React.Component {
   state = {
     mobileOpen: false,
-    menuOpen: false,
-    anchorEl: null
+    anchorEl: null,
+    complainantMenuOpen: false,
+    witnessMenuOpen: false
   };
 
-  handleMenuOpen = event => {
-    this.setState({ menuOpen: true, anchorEl: event.currentTarget });
+  handleComplainantMenuOpen = event => {
+    this.setState({ complainantMenuOpen: true, anchorEl: event.currentTarget });
   };
 
-  handleMenuClose = () => {
-    this.setState({ menuOpen: false });
+  handleComplainantMenuClose = () => {
+    this.setState({ complainantMenuOpen: false });
+  };
+
+  handleWitnessMenuOpen = event => {
+    this.setState({ witnessMenuOpen: true, anchorEl: event.currentTarget });
+  };
+
+  handleWitnessMenuClose = () => {
+    this.setState({ witnessMenuOpen: false });
   };
 
   componentDidMount() {
-    this.props.dispatch(getCaseDetails(this.props.match.params.id));
+    const caseId = this.props.match.params.id;
+    this.props.dispatch(getCaseDetails(caseId));
+    this.props.dispatch(getLetterType(caseId));
   }
 
   componentWillUnmount() {
     this.props.dispatch(clearOfficerPanelData());
-    this.props.dispatch(closeEditDialog());
+    this.props.dispatch(closeEditCivilianDialog());
     this.props.dispatch(closeCaseNoteDialog());
     this.props.dispatch(closeCaseStatusUpdateDialog());
     this.props.dispatch(closeRemoveCaseNoteDialog());
     this.props.dispatch(closeRemovePersonDialog());
+    this.props.dispatch(closeEditIncidentDetailsDialog());
   }
 
   caseDetailsNotYetLoaded() {
     return (
-      _.isEmpty(this.props.caseDetail) ||
-      `${this.props.caseDetail.id}` !== this.props.match.params.id
+      _.isEmpty(this.props.caseDetails) ||
+      `${this.props.caseDetails.id}` !== this.props.match.params.id
     );
   }
 
@@ -89,11 +93,13 @@ class CaseDetails extends React.Component {
       return null;
     }
 
-    const statusIsClosed = this.props.caseDetail.status === CASE_STATUS.CLOSED;
+    const statusIsClosed = this.props.caseDetails.status === CASE_STATUS.CLOSED;
+    const status = this.props.caseDetails.status;
+
     const { classes } = this.props;
 
     return (
-      <div className={classes.root}>
+      <div className={classes.root} data-test="case-details-page">
         <div className={classes.appFrame}>
           <NavBar isHome={false} customStyle={appBar}>
             <Typography
@@ -102,7 +108,7 @@ class CaseDetails extends React.Component {
               color="inherit"
               style={{ marginRight: "20px" }}
             >
-              {`Case #${this.props.caseDetail.id}`}
+              {`Case #${this.props.caseDetails.caseReference}`}
             </Typography>
             <Typography
               data-test="caseStatusBox"
@@ -112,99 +118,53 @@ class CaseDetails extends React.Component {
                 statusIsClosed ? classes.closedStatusBox : classes.statusBox
               }
             >
-              {this.props.caseDetail.status}
+              {status}
             </Typography>
           </NavBar>
-          <CaseDrawer classes={classes} caseDetail={this.props.caseDetail} />
+          <CaseDrawer classes={classes} caseDetails={this.props.caseDetails} />
           <main className={classes.content}>
             <CaseStatusStepper />
-            <IncidentDetailsContainer />
-            <ComplainantWitnesses
-              caseDetail={this.props.caseDetail}
+            <div style={{ marginLeft: "5%", marginRight: "5%" }}>
+              <EditLetterStatusMessage pageType={PAGE_TYPE.CASE_DETAILS} />
+            </div>
+            <IncidentDetails classes={classes} />
+            <Complainants
+              caseDetails={this.props.caseDetails}
               dispatch={this.props.dispatch}
+              handleMenuOpen={this.handleComplainantMenuOpen}
+              menuOpen={this.state.complainantMenuOpen}
+              handleMenuClose={this.handleComplainantMenuClose}
+              anchorEl={this.state.anchorEl}
+              classes={classes}
+            />
+            <Witnesses
+              caseDetails={this.props.caseDetails}
+              dispatch={this.props.dispatch}
+              handleMenuOpen={this.handleWitnessMenuOpen}
+              menuOpen={this.state.witnessMenuOpen}
+              handleMenuClose={this.handleWitnessMenuClose}
+              anchorEl={this.state.anchorEl}
+              classes={classes}
             />
             <Narrative
               initialValues={{
-                narrativeDetails: this.props.caseDetail.narrativeDetails,
-                narrativeSummary: this.props.caseDetail.narrativeSummary
+                narrativeDetails: this.props.caseDetails.narrativeDetails,
+                narrativeSummary: this.props.caseDetails.narrativeSummary
               }}
-              caseId={this.props.caseDetail.id}
+              caseId={this.props.caseDetails.id}
+              isArchived={this.props.caseDetails.isArchived}
             />
             <AccusedOfficers
-              accusedOfficers={this.props.caseDetail.accusedOfficers}
-              incidentDate={this.props.caseDetail.incidentDate}
+              caseId={this.props.caseDetails.id}
+              incidentDate={this.props.caseDetails.incidentDate}
+              accusedOfficers={this.props.caseDetails.accusedOfficers}
+              dispatch={this.props.dispatch}
+              isArchived={this.props.caseDetails.isArchived}
             />
-            <Attachments />
+            <Attachments isArchived={this.props.caseDetails.isArchived} />
           </main>
           <CivilianDialog />
           <RemoveCivilianDialog data-test="removeCivilianDialog" />
-          <Button
-            data-test="caseActionMenu"
-            variant="fab"
-            color="primary"
-            style={{ position: "fixed", bottom: "32px", right: "32px" }}
-            onClick={this.handleMenuOpen}
-          >
-            <AddIcon />
-          </Button>
-          <Menu
-            open={this.state.menuOpen}
-            onClose={this.handleMenuClose}
-            anchorEl={this.state.anchorEl}
-            getContentAnchorEl={null}
-            anchorOrigin={{
-              vertical: "center",
-              horizontal: "center"
-            }}
-            transformOrigin={{
-              vertical: "bottom",
-              horizontal: "right"
-            }}
-          >
-            <MenuItem
-              data-test="addCivilianButton"
-              onClick={() => {
-                this.handleMenuClose();
-                this.props.dispatch(
-                  initialize(CIVILIAN_FORM_NAME, {
-                    roleOnCase: COMPLAINANT,
-                    caseId: this.props.caseDetail.id
-                  })
-                );
-                this.props.dispatch(
-                  openCivilianDialog("Add Civilian", "Create", createCivilian)
-                );
-              }}
-            >
-              Add Civilian
-            </MenuItem>
-            <MenuItem
-              data-test="addOfficerButton"
-              onClick={() => {
-                this.props.dispatch(
-                  push(`/cases/${this.props.caseDetail.id}/officers/search`)
-                );
-              }}
-            >
-              Add Officer
-            </MenuItem>
-            <MenuItem
-              data-test="logCaseNoteButton"
-              onClick={() => {
-                this.props.dispatch(
-                  initialize("CaseNotes", {
-                    actionTakenAt: timezone
-                      .tz(new Date(Date.now()), TIMEZONE)
-                      .format("YYYY-MM-DDTHH:mm")
-                  })
-                );
-                this.props.dispatch(openCaseNoteDialog("Add", {}));
-                this.handleMenuClose();
-              }}
-            >
-              Add Case Note
-            </MenuItem>
-          </Menu>
           <CaseNoteDialog />
         </div>
       </div>
@@ -218,7 +178,8 @@ CaseDetails.propTypes = {
 };
 
 const mapStateToProps = state => ({
-  caseDetail: state.currentCase.details
+  caseDetails: state.currentCase.details,
+  letterType: state.referralLetter.letterType
 });
 
 export default withStyles(styles, { withTheme: true })(

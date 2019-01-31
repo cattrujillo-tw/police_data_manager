@@ -1,6 +1,6 @@
 //TODO Should we use a Civilian class in our app code?
 import Address from "./Address";
-import { COMPLAINANT } from "../../sharedUtilities/constants";
+import { ADDRESSABLE_TYPE, COMPLAINANT } from "../../sharedUtilities/constants";
 
 class Civilian {
   constructor(build) {
@@ -15,11 +15,12 @@ class Civilian {
     this.phoneNumber = build.phoneNumber;
     this.birthDate = build.birthDate;
     this.email = build.email;
-    this.raceEthnicity = build.raceEthnicity;
+    this.raceEthnicityId = build.raceEthnicityId;
     this.genderIdentity = build.genderIdentity;
     this.address = build.address;
     this.additionalInfo = build.additionalInfo;
     this.fullName = build.fullName;
+    this.title = build.title;
   }
 
   //TODO: Builders are not usually part of the class that they're building.  The class is usually a domain object used in the app, not just tests.  Should this be refactored?
@@ -30,7 +31,7 @@ class Civilian {
         const address = new Address.Builder()
           .defaultAddress()
           .withAddressableId(id)
-          .withAddressableType("civilian")
+          .withAddressableType(ADDRESSABLE_TYPE.CIVILIAN)
           .build();
 
         this.id = id;
@@ -44,11 +45,12 @@ class Civilian {
         this.email = "cberry@cberry.com";
         this.birthDate = "1994-04-24";
         this.genderIdentity = "Female";
-        this.raceEthnicity = "Korean";
+        this.raceEthnicityId = undefined;
         this.address = address;
         this.additionalInfo =
           "Some additional information about this civilian.";
         this.fullName = "Chuck E. Berry XVI";
+        this.title = "Miss";
         return this;
       }
 
@@ -130,11 +132,6 @@ class Civilian {
         return this;
       }
 
-      withRaceEthnicity(raceEthnicity) {
-        this.raceEthnicity = raceEthnicity;
-        return this;
-      }
-
       withGenderIdentity(genderIdentity) {
         this.genderIdentity = genderIdentity;
         return this;
@@ -147,6 +144,16 @@ class Civilian {
 
       withFullName(fullName) {
         this.fullName = fullName;
+        return this;
+      }
+
+      withTitle(title) {
+        this.title = title;
+        return this;
+      }
+
+      withRaceEthnicityId(raceEthnicityId) {
+        this.raceEthnicityId = raceEthnicityId;
         return this;
       }
 

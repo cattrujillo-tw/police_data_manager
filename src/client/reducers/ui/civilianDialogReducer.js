@@ -1,14 +1,13 @@
 import {
-  CIVILIAN_ADDRESS_AUTOSUGGEST_UPDATED,
-  CIVILIAN_DIALOG_OPENED
+  CIVILIAN_DIALOG_OPENED,
+  EDIT_CIVILIAN_DIALOG_CLOSED
 } from "../../../sharedUtilities/constants";
 
 const initialState = {
   open: false,
   title: "",
   submitButtonText: "",
-  submitAction: undefined,
-  addressAutoSuggestValue: ""
+  submitAction: undefined
 };
 
 const civilianDialogReducer = (state = initialState, action) => {
@@ -21,13 +20,8 @@ const civilianDialogReducer = (state = initialState, action) => {
         submitButtonText: action.submitButtonText,
         submitAction: action.submitAction
       };
-    case "EDIT_DIALOG_CLOSED":
+    case EDIT_CIVILIAN_DIALOG_CLOSED:
       return initialState;
-    case CIVILIAN_ADDRESS_AUTOSUGGEST_UPDATED:
-      return {
-        ...state,
-        addressAutoSuggestValue: action.addressValue
-      };
     default:
       return state;
   }

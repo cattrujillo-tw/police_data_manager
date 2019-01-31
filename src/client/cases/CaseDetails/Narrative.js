@@ -5,6 +5,7 @@ import updateNarrative from "../thunks/updateNarrative";
 import { CardActions, CardContent, Typography } from "@material-ui/core";
 import { PrimaryButton } from "../../shared/components/StyledButtons";
 import BaseCaseDetailsCard from "./BaseCaseDetailsCard";
+import { NARRATIVE_FORM } from "../../../sharedUtilities/constants";
 
 const Narrative = props => {
   return (
@@ -23,33 +24,56 @@ const Narrative = props => {
           <Field
             name="narrativeSummary"
             label="Narrative Summary"
+            disabled={props.isArchived}
             component={TextField}
             fullWidth
             multiline
             rowsMax={5}
-            placeholder="Enter a brief, 2-3 sentence summary of the incident"
+            placeholder={
+              props.isArchived
+                ? ""
+                : "Enter a brief, 2-3 sentence summary of the incident"
+            }
             inputProps={{
               "data-test": "narrativeSummaryInput",
-              maxLength: 500
+              maxLength: 500,
+              style: {
+                color: "black"
+              }
             }}
             InputLabelProps={{
+              style: {
+                color: "black"
+              },
               shrink: true
             }}
-            data-test="narrativeSummaryInput"
+            data-test="narrativeSummaryField"
             style={{ marginBottom: "24px" }}
           />
           <Field
             name="narrativeDetails"
             label="Narrative Details"
+            disabled={props.isArchived}
             component={TextField}
             fullWidth
             multiline
-            rowsMax={5}
-            placeholder="Enter a transcript or details of the incident"
+            rowsMax={20}
+            rows={5}
+            placeholder={
+              props.isArchived
+                ? ""
+                : "Enter a transcript or details of the incident"
+            }
             inputProps={{
-              "data-test": "narrativeDetailsInput"
+              "data-test": "narrativeDetailsInput",
+              style: {
+                color: "black"
+              }
             }}
             InputLabelProps={{
+              style: {
+                color: "black"
+              },
               shrink: true
             }}
             data-test="narrativeDetailsField"
@@ -63,14 +87,16 @@ const Narrative = props => {
           padding: "0px 16px 16px 0px"
         }}
       >
-        <PrimaryButton
-          data-test="saveNarrative"
-          disabled={props.pristine}
-          onClick={() => props.dispatch(submit("Narrative"))}
-          style={{ margin: "0px" }}
-        >
-          Save
-        </PrimaryButton>
+        {props.isArchived ? null : (
+          <PrimaryButton
+            data-test="saveNarrative"
+            disabled={props.pristine}
+            onClick={() => props.dispatch(submit(NARRATIVE_FORM))}
+            style={{ margin: "0px" }}
+          >
+            Save
+          </PrimaryButton>
+        )}
       </CardActions>
     </BaseCaseDetailsCard>
   );
@@ -85,6 +111,7 @@ const dispatchUpdateNarrative = (values, dispatch, props) => {
 };
 
 export default reduxForm({
-  form: "Narrative",
-  onSubmit: dispatchUpdateNarrative
+  form: NARRATIVE_FORM,
+  onSubmit: dispatchUpdateNarrative,
+  enableReinitialize: true
 })(Narrative);

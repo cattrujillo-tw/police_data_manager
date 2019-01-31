@@ -1,7 +1,11 @@
+import {
+  ADDRESSABLE_TYPE,
+  AUDIT_SUBJECT
+} from "../../../sharedUtilities/constants";
+
 const asyncMiddleware = require("../asyncMiddleware");
 const models = require("../../models/index");
-const getCaseWithAllAssociations = require("../getCaseWithAllAssociations");
-const { AUDIT_SUBJECT } = require("../../../sharedUtilities/constants");
+import { getCaseWithAllAssociations } from "../getCaseHelpers";
 const auditDataAccess = require("../auditDataAccess");
 
 async function upsertAddress(civilianId, address, transaction, nickname) {
@@ -10,7 +14,7 @@ async function upsertAddress(civilianId, address, transaction, nickname) {
       {
         ...address,
         addressableId: civilianId,
-        addressableType: "civilian"
+        addressableType: ADDRESSABLE_TYPE.CIVILIAN
       },
       {
         transaction,
@@ -32,9 +36,14 @@ const editCivilian = asyncMiddleware(async (req, res) => {
   const updatedCaseDetails = await models.sequelize.transaction(
     async transaction => {
       if (address) {
-        await upsertAddress(req.params.id, address, transaction, req.nickname);
+        await upsertAddress(
+          req.params.civilianId,
+          address,
+          transaction,
+          req.nickname
+        );
       }
-      const civilian = await models.civilian.findById(req.params.id);
+      const civilian = await models.civilian.findById(req.params.civilianId);
       await civilian.update(civilianValues, {
         transaction,
         auditUser: req.nickname

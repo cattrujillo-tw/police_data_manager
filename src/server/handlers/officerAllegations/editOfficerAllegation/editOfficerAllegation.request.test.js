@@ -8,31 +8,46 @@ import {
   cleanupDatabase,
   suppressWinstonLogs
 } from "../../../testHelpers/requestTestHelpers";
-import { createCaseWithoutCivilian } from "../../../testHelpers/modelMothers";
-import { ACCUSED } from "../../../../sharedUtilities/constants";
+import { createTestCaseWithoutCivilian } from "../../../testHelpers/modelMothers";
+import {
+  ACCUSED,
+  ALLEGATION_SEVERITY
+} from "../../../../sharedUtilities/constants";
 import OfficerAllegation from "../../../../client/testUtilities/OfficerAllegation";
+import { BAD_REQUEST_ERRORS } from "../../../../sharedUtilities/errorMessageConstants";
 
 describe("PUT /officers-allegations/:officerAllegationId", function() {
+  let createdCase;
+
+  beforeEach(async () => {
+    createdCase = await createTestCaseWithoutCivilian();
+  });
+
   afterEach(async () => {
     await cleanupDatabase();
   });
 
   test(
-    "should reply a 404 if officer allegation doesnt exist ",
+    "should reply a 400 if officer allegation doesnt exist ",
     suppressWinstonLogs(async () => {
       const token = buildTokenWithPermissions("", "TEST_NICKNAME");
       const nonExistantAllegationId = 9;
       await request(app)
-        .put(`/api/officers-allegations/${nonExistantAllegationId}`)
+        .put(
+          `/api/cases/${
+            createdCase.id
+          }/officers-allegations/${nonExistantAllegationId}`
+        )
         .set("Content-Header", "application/json")
         .set("Authorization", `Bearer ${token}`)
         .send({})
-        .expect(404)
+        .expect(400)
         .then(response => {
           expect(response.body).toEqual({
-            statusCode: 404,
-            error: "Not Found",
-            message: `Officer Allegation does not exist`
+            statusCode: 400,
+            error: "Bad Request",
+            message: BAD_REQUEST_ERRORS.OFFICER_ALLEGATION_NOT_FOUND,
+            caseId: `${createdCase.id}`
           });
         });
     })
@@ -41,7 +56,6 @@ describe("PUT /officers-allegations/:officerAllegationId", function() {
   test("should update officer allegation details", async () => {
     const token = buildTokenWithPermissions("", "TEST_NICKNAME");
 
-    const createdCase = await createCaseWithoutCivilian();
     const anAllegation = new Allegation.Builder()
       .defaultAllegation()
       .withId(undefined)
@@ -91,11 +105,16 @@ describe("PUT /officers-allegations/:officerAllegationId", function() {
     const newDetailsValue = "new details";
 
     const data = {
-      details: newDetailsValue
+      details: newDetailsValue,
+      severity: ALLEGATION_SEVERITY.HIGH
     };
 
     await request(app)
-      .put(`/api/officers-allegations/${officerAllegationToUpdate.id}`)
+      .put(
+        `/api/cases/${createdCase.id}/officers-allegations/${
+          officerAllegationToUpdate.id
+        }`
+      )
       .set("Content-Header", "application/json")
       .set("Authorization", `Bearer ${token}`)
       .send(data)
@@ -109,6 +128,7 @@ describe("PUT /officers-allegations/:officerAllegationId", function() {
                 allegations: [
                   expect.objectContaining({
                     details: newDetailsValue,
+                    severity: ALLEGATION_SEVERITY.HIGH,
                     allegation: expect.objectContaining({
                       rule: createdAllegation.rule,
                       paragraph: createdAllegation.paragraph,

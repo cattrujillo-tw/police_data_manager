@@ -3,9 +3,8 @@ import { composeWithDevTools } from "redux-devtools-extension";
 import { reducer as formReducer } from "redux-form";
 import thunk from "redux-thunk";
 import history from "./history";
-import { routerMiddleware, routerReducer } from "react-router-redux";
+import { routerMiddleware, connectRouter } from "connected-react-router";
 import allCasesReducer from "./reducers/cases/allCasesReducer";
-import allUsersReducer from "./reducers/users/allUsersReducer";
 import snackbarReducer from "./reducers/ui/snackbarReducer";
 import caseDetailsReducer from "./reducers/cases/caseDetailsReducer";
 import caseHistoryReducer from "./reducers/cases/caseHistoryReducer";
@@ -14,7 +13,6 @@ import civilianDialogReducer from "./reducers/ui/civilianDialogReducer";
 import userInfoReducer from "./auth/reducers/userInfoReducer";
 import attachmentsReducer from "./reducers/ui/attachmentsReducer";
 import searchOfficersReducer from "./reducers/officers/searchOfficersReducer";
-import incidentDetailsDialogReducer from "./reducers/ui/incidentDetailsDialogReducer";
 import caseNotesReducer from "./reducers/cases/caseNotesReducer";
 import caseNoteDialogReducer from "./reducers/ui/caseNoteDialogReducer";
 import removePersonDialogReducer from "./reducers/ui/removePersonDialogReducer";
@@ -28,10 +26,28 @@ import editAllegationFormsReducer from "./reducers/ui/editAllegationFormsReducer
 import removeOfficerAllegationDialogReducer from "./reducers/ui/removeOfficerAllegationDialogReducer";
 import exportDialogReducer from "./reducers/ui/exportDialogReducer";
 import featureTogglesReducer from "./reducers/featureToggles/featureTogglesReducer";
+import addressInputReducer from "./reducers/ui/addressInputReducer";
+import classificationReducer from "./reducers/ui/classificationReducer";
+import officerHistoryNoteDialogReducer from "./reducers/ui/officerHistoryNoteDialogReducer";
+import referralLetterReducer from "./reducers/cases/referralLetterReducer";
+import exportJobDownloadUrlReducer from "./reducers/export/exportJobDownloadUrlReducer";
+import generateJobReducer from "./reducers/export/generateJobReducer";
+import iaProCorrectionsReducer from "./reducers/ui/iaProCorrectionDialogReducer";
+import allExportsReducer from "./reducers/ui/allExportsReducer";
+import recommendedActionsReducer from "./reducers/cases/recommendedActionsReducer";
+import editReferralLetterReducer from "./reducers/ui/editReferralLetterReducer";
+import cancelEditLetterConfirmationDialogReducer from "./reducers/ui/cancelEditlLetterConfirmationDialogReducer";
+import letterDownloadReducer from "./reducers/ui/letterDownloadReducer";
+import loadPdfPreviewReducer from "./reducers/ui/loadPdfPreviewReducer";
+import intakeSourceReducer from "./reducers/ui/intakeSourceReducer";
+import raceEthnicityReducer from "./reducers/ui/raceEthnicityReducer";
+import archiveCaseDialogReducer from "./reducers/ui/archiveCaseDialogReducer";
+import editIncidentDetailsDialogReducer from "./reducers/ui/editIncidentDetailsDialogReducer";
+import restoreArchivedCaseDialogReducer from "./reducers/ui/restoreArchivedCaseDialogReducer";
 
 const rootReducer = combineReducers({
   form: formReducer,
-  routing: routerReducer,
+  router: connectRouter(history),
   cases: combineReducers({
     all: allCasesReducer
   }),
@@ -40,8 +56,9 @@ const rootReducer = combineReducers({
     caseNotes: caseNotesReducer,
     caseHistory: caseHistoryReducer
   }),
+  referralLetter: referralLetterReducer,
+  recommendedActions: recommendedActionsReducer,
   users: combineReducers({
-    all: allUsersReducer,
     current: userInfoReducer
   }),
   ui: combineReducers({
@@ -52,18 +69,35 @@ const rootReducer = combineReducers({
     civilianDialog: civilianDialogReducer,
     createCaseDialog: createCaseDialogReducer,
     exportDialog: exportDialogReducer,
+    allExports: allExportsReducer,
     removePersonDialog: removePersonDialogReducer,
     removeCaseNoteDialog: removeCaseNoteDialogReducer,
-    incidentDetailsDialog: incidentDetailsDialogReducer,
+    editLetterConfirmationDialog: editReferralLetterReducer,
+    cancelEditLetterConfirmationDialog: cancelEditLetterConfirmationDialogReducer,
     attachments: attachmentsReducer,
     search: searchReducer,
     allegations: allegationMenuDisplay,
+    classifications: classificationReducer,
+    intakeSources: intakeSourceReducer,
+    raceEthnicities: raceEthnicityReducer,
     editAllegationForms: editAllegationFormsReducer,
     removeOfficerAllegationDialog: removeOfficerAllegationDialogReducer,
-    accusedOfficerPanels: accusedOfficerPanelsReducer
+    accusedOfficerPanels: accusedOfficerPanelsReducer,
+    addressInput: addressInputReducer,
+    officerHistoryNoteDialog: officerHistoryNoteDialogReducer,
+    iaProCorrectionsDialog: iaProCorrectionsReducer,
+    letterDownload: letterDownloadReducer,
+    pdfPreview: loadPdfPreviewReducer,
+    archiveCaseDialog: archiveCaseDialogReducer,
+    restoreArchivedCaseDialog: restoreArchivedCaseDialogReducer,
+    editIncidentDetailsDialog: editIncidentDetailsDialogReducer
   }),
   officers: searchOfficersReducer,
-  featureToggles: featureTogglesReducer
+  featureToggles: featureTogglesReducer,
+  export: combineReducers({
+    downloadUrl: exportJobDownloadUrlReducer,
+    generateJob: generateJobReducer
+  })
 });
 
 const routingMiddleware = routerMiddleware(history);
