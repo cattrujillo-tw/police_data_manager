@@ -7,7 +7,7 @@
     "start": "yarn setup:db && concurrently 'yarn start:client' 'yarn start:server'",
     "create:migrate:db": "sequelize db:create; sequelize db:migrate",
     "seed:db": "sequelize db:seed:all",
-    "setup:db": "sequelize db:create; sequelize db:migrate || exit 0; sequelize db:seed:all",
+    "setup:db": "yarn create:migrate:db && yarn seed:db",
     "setup:test:db": "sequelize db:create; sequelize db:migrate",
     "drop:db": "sequelize db:drop",
     "start:client": "react-scripts start",
