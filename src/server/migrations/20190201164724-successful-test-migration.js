@@ -2,10 +2,14 @@
 
 module.exports = {
   up: (queryInterface, Sequelize) => {
-    console.log("successful migration up");
+    throw Error(
+      "this error should not be thrown because the migration up will already have run"
+    );
   },
 
   down: (queryInterface, Sequelize) => {
-    console.log("successful migration down");
+    throw Error(
+      "this error should not be thrown because the migration down will already have run"
+    );
   }
 };
