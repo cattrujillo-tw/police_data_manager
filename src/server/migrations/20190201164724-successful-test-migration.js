@@ -2,10 +2,10 @@
 
 module.exports = {
   up: (queryInterface, Sequelize) => {
-    throw Error("migrate up failed");
+    console.log("successful migration up");
   },
 
   down: (queryInterface, Sequelize) => {
-    throw Error("migrate down failed");
+    console.log("successful migration down");
   }
 };
