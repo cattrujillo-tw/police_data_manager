@@ -2,11 +2,11 @@ const asyncMiddleware = require("../asyncMiddleware");
 const models = require("../../models");
 import { getCaseWithAllAssociations } from "../getCaseHelpers";
 const { AUDIT_SUBJECT } = require("../../../sharedUtilities/constants");
-const auditDataAccess = require("../auditDataAccess");
+import auditDataAccess from "../auditDataAccess";
 
 const removeCivilian = asyncMiddleware(async (request, response) => {
   const caseDetails = await models.sequelize.transaction(async t => {
-    const civilian = await models.civilian.findById(request.params.civilianId, {
+    const civilian = await models.civilian.findByPk(request.params.civilianId, {
       include: [
         {
           model: models.address

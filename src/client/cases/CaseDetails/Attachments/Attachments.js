@@ -3,28 +3,28 @@ import BaseCaseDetailsCard from "../BaseCaseDetailsCard";
 import { CardContent, Typography } from "@material-ui/core";
 import styles from "../../../globalStyling/styles";
 import DropzoneContainer from "./DropzoneContainer";
-import AttachmentsListContainer from "./AttachmentsListContainer";
+import AttachmentsList from "./AttachmentsList";
 
 const Attachments = props => {
   return (
     <BaseCaseDetailsCard title="Attachments">
       <CardContent style={{ paddingBottom: "24px" }}>
-        <div style={{ display: "flex", width: "100%" }}>
+        <div style={{ display: "flex" }}>
           <div
             style={{
-              flex: 1,
+              flex: 4,
               textAlign: "left",
-              marginRight: "32px",
               marginBottom: "8px"
             }}
           >
             <Typography style={styles.section}>File Name</Typography>
           </div>
-          <div style={{ flex: 1, textAlign: "left", marginRight: "112px" }}>
+          <div style={{ flex: 2, textAlign: "left" }}>
             <Typography style={styles.section}>Description</Typography>
           </div>
+          <div style={{ flex: 1 }} />
         </div>
-        <AttachmentsListContainer />
+        <AttachmentsList />
         {props.isArchived ? null : (
           <div style={{ marginTop: "48px" }}>
             <div style={{ marginBottom: "8px" }}>

@@ -1,4 +1,4 @@
-const e2e = require("../e2eUtilities.js");
+const e2e = require("./e2eUtilities.js");
 
 const complaintHistoryCommands = {
   isOnPage: function() {
@@ -20,6 +20,9 @@ const complaintHistoryCommands = {
   },
   setLowAllegations: function(numAllegations) {
     return this.setValue("@officerLowAllegations", [`${numAllegations}`]);
+  },
+  clickFourthOption: function() {
+    return this.click("@officerHistoryOptionFour");
   }
 };
 
@@ -43,6 +46,9 @@ module.exports = {
     officerLowAllegations: {
       selector:
         '[data-test="letterOfficers[0]-numHistoricalLowAllegations"] input'
+    },
+    officerHistoryOptionFour: {
+      selector: '[data-test="letterOfficers[0]-option-4"]'
     }
   }
 };

@@ -63,20 +63,16 @@ export const sumAllegations = letterOfficer => {
 };
 Handlebars.registerHelper("sumAllegations", sumAllegations);
 
-export const showOfficerHistory = letterOfficer => {
-  return (
-    sumAllegations(letterOfficer) ||
-    isPresent(letterOfficer.historicalBehaviorNotes) ||
-    letterOfficer.referralLetterOfficerHistoryNotes.length > 0
-  );
-};
-Handlebars.registerHelper("showOfficerHistory", showOfficerHistory);
-
 export const showOfficerHistoryHeader = accusedOfficers => {
-  const letterOfficers = accusedOfficers
-    .map(officer => officer.letterOfficer)
-    .filter(letterOfficer => letterOfficer != null);
-  return letterOfficers.some(showOfficerHistory);
+  const officersWithLetterOfficers = accusedOfficers.filter(
+    accusedOfficer => accusedOfficer.letterOfficer !== null
+  );
+  return officersWithLetterOfficers.some(accusedOfficer => {
+    return (
+      isPresent(accusedOfficer.letterOfficer.officerHistoryOptionId) ||
+      accusedOfficer.fullName === "Unknown Officer"
+    );
+  });
 };
 Handlebars.registerHelper("showOfficerHistoryHeader", showOfficerHistoryHeader);
 
@@ -140,8 +136,30 @@ Handlebars.registerHelper("generateSignature", generateSignature);
 
 export const generateSubjectLine = (caseReference, pibCaseNumber) => {
   if (pibCaseNumber) {
-    return `Supplemental Referral; IPM Complaint ${caseReference}; PIB Case ${pibCaseNumber}`;
+    return `Supplemental Referral; OIPM Complaint ${caseReference}; PIB Case ${pibCaseNumber}`;
   }
-  return `Complaint Referral; IPM Complaint ${caseReference}`;
+  return `Complaint Referral; OIPM Complaint ${caseReference}`;
 };
 Handlebars.registerHelper("generateSubjectLine", generateSubjectLine);
+
+export const addNumbers = (num1, num2) => {
+  return num1 + num2;
+};
+Handlebars.registerHelper("addNumbers", addNumbers);
+
+export const isGreaterThan = (num1, num2) => {
+  return num1 > num2;
+};
+Handlebars.registerHelper("isGreaterThan", isGreaterThan);
+
+export const atLeastOneInputDefined = (input1, input2) => {
+  const boolInput1 = Array.isArray(input1) && input1.length > 0;
+  const boolInput2 = Array.isArray(input2) && input2.length > 0;
+  return (input1 !== null && boolInput1) || (input2 !== null && boolInput2);
+};
+Handlebars.registerHelper("atLeastOneInputDefined", atLeastOneInputDefined);
+
+export const isEqual = (input1, input2) => {
+  return input1 === input2;
+};
+Handlebars.registerHelper("isEqual", isEqual);

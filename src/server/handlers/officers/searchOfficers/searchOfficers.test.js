@@ -1,6 +1,7 @@
 import Case from "../../../../client/testUtilities/case";
 import Officer from "../../../../client/testUtilities/Officer";
 import models from "../../../models/index";
+
 const { cleanupDatabase } = require("../../../testHelpers/requestTestHelpers");
 const httpMocks = require("node-mocks-http");
 const searchOfficers = require("./searchOfficers");
@@ -47,7 +48,7 @@ describe("searchOfficers", function() {
 
     await searchOfficers(request, response, next);
 
-    const actionAudit = await models.action_audit.find({
+    const actionAudit = await models.action_audit.findOne({
       where: { subject: AUDIT_SUBJECT.OFFICER_DATA },
       returning: true
     });

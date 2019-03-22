@@ -7,10 +7,10 @@ const models = require("../../../server/models/index");
 const stringify = require("csv-stringify");
 const util = require("util");
 const promisifiedStringify = util.promisify(stringify);
-const moment = require("moment");
+const moment = require("moment-timezone");
 const _ = require("lodash");
 const transformDataChangeAuditForExport = require("./transformDataChangeAuditForExport");
-const transformActionAuditForExport = require("./transformActionAuditForExport");
+const transformActionAuditForExport = require("./transformActionAuditsForExport");
 const uploadFileToS3 = require("../fileUpload/uploadFileToS3");
 const winston = require("winston");
 
@@ -32,7 +32,7 @@ const exportAuditLog = async (job, done) => {
       snapshot: "Subject Details",
       created_at: "Timestamp"
     };
-    const csvOptions = { header: true, columns, formatters: dateFormatter };
+    const csvOptions = { header: true, columns, cast: dateFormatter };
 
     await models.sequelize.transaction(async t => {
       const actionAudits = await models.action_audit.findAll({

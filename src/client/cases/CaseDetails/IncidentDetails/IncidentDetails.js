@@ -32,6 +32,7 @@ class IncidentDetails extends React.Component {
       district: this.props.district,
       classificationId: this.props.classificationId,
       intakeSourceId: this.props.intakeSourceId,
+      howDidYouHearAboutUsSourceId: this.props.howDidYouHearAboutUsSourceId,
       pibCaseNumber: this.props.pibCaseNumber
     };
 
@@ -54,6 +55,7 @@ class IncidentDetails extends React.Component {
       district,
       classification,
       intakeSource,
+      howDidYouHearAboutUsSource,
       classes,
       pibCaseNumber,
       featureToggles
@@ -62,6 +64,11 @@ class IncidentDetails extends React.Component {
       ? classification.initialism
       : "";
     const intakeSourceName = intakeSource ? intakeSource.name : "";
+    const howDidYouHearAboutUsSourceName = howDidYouHearAboutUsSource
+      ? howDidYouHearAboutUsSource.name
+      : "";
+    const toggleHowDidYouHearAboutUsSource =
+      featureToggles.HowDidYouHearAboutUsFeature;
 
     return (
       <BaseCaseDetailsCard title="Incident Details">
@@ -77,7 +84,7 @@ class IncidentDetails extends React.Component {
               <div className={classes.detailsRow}>
                 <StyledInfoDisplay>
                   <CivilianInfoDisplay
-                    displayLabel="First Contacted IPM"
+                    displayLabel="First Contacted OIPM"
                     value={formatDate(firstContactDate)}
                     testLabel="firstContactDate"
                   />
@@ -132,17 +139,27 @@ class IncidentDetails extends React.Component {
                     testLabel="intakeSource"
                   />
                 </StyledInfoDisplay>
-              </div>
-              <div className={classes.detailsLastRow}>
-                {!featureToggles.pibCaseNumberFeature ? null : (
+                {toggleHowDidYouHearAboutUsSource ? (
                   <StyledInfoDisplay>
                     <CivilianInfoDisplay
-                      displayLabel="PIB Case Number"
-                      value={pibCaseNumber}
-                      testLabel="pibCaseNumber"
+                      displayLabel="How did you hear about us?"
+                      value={howDidYouHearAboutUsSourceName}
+                      testLabel="howDidYouHearAboutUsSource"
                     />
                   </StyledInfoDisplay>
-                )}
+                ) : null}
+                <div
+                  style={{ flex: 1, textAlign: "left", marginRight: "10px" }}
+                />
+              </div>
+              <div className={classes.detailsLastRow}>
+                <StyledInfoDisplay>
+                  <CivilianInfoDisplay
+                    displayLabel="PIB Case Number"
+                    value={pibCaseNumber}
+                    testLabel="pibCaseNumber"
+                  />
+                </StyledInfoDisplay>
               </div>
             </div>
             <div className={classes.detailsPaneButtons}>
@@ -163,6 +180,7 @@ class IncidentDetails extends React.Component {
           dialogOpen={this.props.open}
           handleDialogClose={this.handleDialogClose}
           caseId={caseId}
+          toggleHowDidYouHearAboutUsSource={toggleHowDidYouHearAboutUsSource}
         />
       </BaseCaseDetailsCard>
     );
@@ -180,6 +198,10 @@ const mapStateToProps = state => ({
   classification: state.currentCase.details.classification,
   intakeSourceId: state.currentCase.details.intakeSourceId,
   intakeSource: state.currentCase.details.intakeSource,
+  howDidYouHearAboutUsSourceId:
+    state.currentCase.details.howDidYouHearAboutUsSourceId,
+  howDidYouHearAboutUsSource:
+    state.currentCase.details.howDidYouHearAboutUsSource,
   isArchived: state.currentCase.details.isArchived,
   open: state.ui.editIncidentDetailsDialog.open,
   featureToggles: state.featureToggles,

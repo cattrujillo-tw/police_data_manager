@@ -10,7 +10,7 @@ const models = require("../../models");
 const asyncMiddleware = require("../asyncMiddleware");
 import { getCaseWithAllAssociations } from "../getCaseHelpers";
 const _ = require("lodash");
-const auditDataAccess = require("../auditDataAccess");
+import auditDataAccess from "../auditDataAccess";
 const Boom = require("boom");
 
 async function upsertAddress(caseId, incidentLocation, transaction, nickname) {
@@ -63,7 +63,7 @@ const editCase = asyncMiddleware(async (request, response, next) => {
           );
         }
 
-        const caseToUpdate = await models.cases.findById(request.params.caseId);
+        const caseToUpdate = await models.cases.findByPk(request.params.caseId);
         await caseToUpdate.update(valuesToUpdate, {
           individualHooks: true,
           transaction,

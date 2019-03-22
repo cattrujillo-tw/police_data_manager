@@ -1,5 +1,7 @@
 "use strict";
 
+import { getOfficerFullName } from "./modelUtilities/getFullName";
+
 const {
   ACCUSED,
   COMPLAINANT,
@@ -123,6 +125,11 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.ENUM([ACCUSED, COMPLAINANT, WITNESS]),
         allowNull: false
       },
+      isAnonymous: {
+        field: "is_anonymous",
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
+      },
       createdAt: {
         field: "created_at",
         type: DataTypes.DATE
@@ -156,15 +163,12 @@ module.exports = (sequelize, DataTypes) => {
       },
       getterMethods: {
         fullName() {
-          if (this.officerId) {
-            const firstName = this.firstName ? this.firstName : "";
-            const middleName = this.middleName ? this.middleName : "";
-            const lastName = this.lastName ? this.lastName : "";
-
-            return `${firstName} ${middleName} ${lastName}`.replace("  ", " ");
-          }
-
-          return "Unknown Officer";
+          return getOfficerFullName(
+            this.firstName,
+            this.middleName,
+            this.lastName,
+            this.isUnknownOfficer
+          );
         },
         isUnknownOfficer() {
           return !this.officerId;

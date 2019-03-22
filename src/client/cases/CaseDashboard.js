@@ -4,12 +4,14 @@ import CreateCaseButton from "./CreateCaseButton";
 import NavBar from "../shared/components/NavBar/NavBar";
 import { Typography } from "@material-ui/core";
 import { connect } from "react-redux";
-import { closeSnackbar } from "../actionCreators/snackBarActionCreators";
-import getCases from "./thunks/getCases";
+import {
+  resetWorkingCasesLoaded,
+  updateSort
+} from "../actionCreators/casesActionCreators";
 
 class CaseDashboard extends Component {
-  componentDidMount() {
-    this.props.getCases();
+  componentWillUnmount() {
+    this.props.resetWorkingCasesLoaded();
   }
 
   render() {
@@ -21,15 +23,15 @@ class CaseDashboard extends Component {
           </Typography>
         </NavBar>
         <CreateCaseButton />
-        <CasesTable />
+        <CasesTable archived={false} />
       </div>
     );
   }
 }
 
 const mapDispatchToProps = {
-  getCases,
-  closeSnackbar
+  updateSort,
+  resetWorkingCasesLoaded
 };
 
 export default connect(

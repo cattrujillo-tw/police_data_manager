@@ -106,7 +106,7 @@ module.exports = (sequelize, DataTypes) => {
 
     const civilian = await sequelize
       .model("civilian")
-      .findById(this.addressableId, { transaction: transaction });
+      .findByPk(this.addressableId, { transaction: transaction });
 
     return [
       { "Address Type": "Civilian" },
@@ -120,7 +120,7 @@ module.exports = (sequelize, DataTypes) => {
     }
     const civilian = await sequelize
       .model("civilian")
-      .findById(this.addressableId, {
+      .findByPk(this.addressableId, {
         transaction: transaction
       });
 

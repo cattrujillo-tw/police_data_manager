@@ -37,6 +37,7 @@ import AdditionalLocationInfo from "../../sharedFormComponents/AdditionalLocatio
 import normalizeAddress from "../../../utilities/normalizeAddress";
 import { intakeSourceIsRequired } from "../../../formFieldLevelValidations";
 import { INCIDENT_DETAILS_FORM_NAME } from "../../../../sharedUtilities/constants";
+import getHowDidYouHearAboutUsSourceDropdownValues from "../../../howDidYouHearAboutUsSources/thunks/getHowDidYouHearAboutUsSourceDropdownValues";
 
 const submitIncidentDetails = (values, dispatch, props) => {
   const errors = addressMustBeValid(props.addressValid);
@@ -51,6 +52,9 @@ const submitIncidentDetails = (values, dispatch, props) => {
     incidentTime: nullifyFieldUnlessValid(values.incidentTime),
     classificationId: nullifyFieldUnlessValid(values.classificationId),
     intakeSourceId: nullifyFieldUnlessValid(values.intakeSourceId),
+    howDidYouHearAboutUsSourceId: nullifyFieldUnlessValid(
+      values.howDidYouHearAboutUsSourceId
+    ),
     id: props.caseId
   };
 
@@ -69,6 +73,7 @@ class IncidentDetailsDialog extends Component {
   componentDidMount() {
     this.props.getClassificationDropDownOptions();
     this.props.getIntakeSourceDropdownValues();
+    this.props.getHowDidYouHearAboutUsSourceDropdownValues();
   }
 
   render() {
@@ -91,7 +96,7 @@ class IncidentDetailsDialog extends Component {
               <DateField
                 required={true}
                 name="firstContactDate"
-                label="First Contacted IPM"
+                label="First Contacted OIPM"
                 data-test="editFirstContactDateField"
                 inputProps={{
                   "data-test": "editFirstContactDateInput",
@@ -204,28 +209,40 @@ class IncidentDetailsDialog extends Component {
                 {generateMenu(props.intakeSources)}
               </Field>
             </div>
-            {!props.featureToggles.pibCaseNumberFeature ? null : (
-              <div style={{ display: "flex", marginTop: "16px" }}>
+            {this.props.toggleHowDidYouHearAboutUsSource ? (
+              <div style={{ marginTop: "16px" }}>
                 <Field
-                  name="pibCaseNumber"
-                  component={TextField}
-                  label="PIB Case Number"
-                  data-test="pibCaseNumber"
-                  placeholder="Enter PIB Case Number"
-                  inputProps={{
-                    "data-test": "pibCaseNumberInput",
-                    maxLength: 25
-                  }}
-                  InputLabelProps={{ shrink: true }}
-                  style={{
-                    marginRight: "5%",
-                    flex: "2"
-                  }}
-                  autoComplete="off"
-                />
-                <div style={{ flex: 1 }} />
+                  name="howDidYouHearAboutUsSourceId"
+                  component={NoBlurTextField}
+                  label="How did you hear about us?"
+                  hinttext="How did you hear about us?"
+                  data-test="howDidYouHearAboutUsSourceDropdown"
+                  style={{ width: "60%" }}
+                >
+                  {generateMenu(props.howDidYouHearAboutUsSources)}
+                </Field>
               </div>
-            )}
+            ) : null}
+            <div style={{ display: "flex", marginTop: "16px" }}>
+              <Field
+                name="pibCaseNumber"
+                component={TextField}
+                label="PIB Case Number"
+                data-test="pibCaseNumber"
+                placeholder="Enter PIB Case Number"
+                inputProps={{
+                  "data-test": "pibCaseNumberInput",
+                  maxLength: 25
+                }}
+                InputLabelProps={{ shrink: true }}
+                style={{
+                  marginRight: "5%",
+                  flex: "2"
+                }}
+                autoComplete="off"
+              />
+              <div style={{ flex: 1 }} />
+            </div>
           </form>
         </DialogContent>
         <DialogActions
@@ -274,13 +291,14 @@ const mapStateToProps = state => {
     addressValid: state.ui.addressInput.addressValid,
     classifications: state.ui.classifications,
     intakeSources: state.ui.intakeSources,
-    featureToggles: state.featureToggles
+    howDidYouHearAboutUsSources: state.ui.howDidYouHearAboutUsSources
   };
 };
 
 const mapDispatchToProps = {
   getClassificationDropDownOptions,
-  getIntakeSourceDropdownValues
+  getIntakeSourceDropdownValues,
+  getHowDidYouHearAboutUsSourceDropdownValues
 };
 
 export default withStyles(styles)(

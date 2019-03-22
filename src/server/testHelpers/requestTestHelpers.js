@@ -61,6 +61,27 @@ export const buildTokenWithPermissions = (permissions, nickname) => {
   return jwt.sign(payload, cert, options);
 };
 
+export const expectResponse = async (
+  responsePromise,
+  statusCode,
+  responseBodyContents = null
+) => {
+  return await responsePromise.then(
+    response => {
+      expect(response.statusCode).toEqual(statusCode);
+      responseBodyContents &&
+        expect(response.body).toEqual(responseBodyContents);
+      return response;
+    },
+    error => {
+      expect(error.response.statusCode).toEqual(statusCode);
+      responseBodyContents &&
+        expect(error.response.body).toEqual(responseBodyContents);
+      return error;
+    }
+  );
+};
+
 export const cleanupDatabase = async () => {
   const truncationQuery =
     "TRUNCATE referral_letter_officer_recommended_actions CASCADE;" +
@@ -81,7 +102,9 @@ export const cleanupDatabase = async () => {
     "TRUNCATE action_audits CASCADE;" +
     "TRUNCATE data_change_audits CASCADE;" +
     "TRUNCATE intake_sources CASCADE;" +
+    "TRUNCATE how_did_you_hear_about_us_sources CASCADE;" +
     "TRUNCATE race_ethnicities CASCADE;" +
+    "TRUNCATE officer_history_options CASCADE;" +
     "TRUNCATE cases CASCADE;";
   await models.sequelize.query(truncationQuery, {
     type: models.sequelize.QueryTypes.RAW

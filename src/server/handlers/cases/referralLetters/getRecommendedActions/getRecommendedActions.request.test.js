@@ -1,10 +1,13 @@
 import {
   buildTokenWithPermissions,
-  cleanupDatabase
+  cleanupDatabase,
+  expectResponse
 } from "../../../../testHelpers/requestTestHelpers";
 import request from "supertest";
 import app from "../../../../server";
 import models from "../../../../models";
+
+jest.mock("../../export/jobQueue");
 
 describe("getRecommendedActions", function() {
   afterEach(async () => {
@@ -35,13 +38,11 @@ describe("getRecommendedActions", function() {
       { id: insight.id, description: insight.description }
     ];
 
-    await request(app)
+    const responsePromise = request(app)
       .get("/api/recommended-actions")
       .set("Content-Header", "application/json")
-      .set("Authorization", `Bearer ${token}`)
-      .expect(200)
-      .then(response => {
-        expect(response.body).toEqual(expectedResponseBody);
-      });
+      .set("Authorization", `Bearer ${token}`);
+
+    await expectResponse(responsePromise, 200, expectedResponseBody);
   });
 });

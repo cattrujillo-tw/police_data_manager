@@ -9,6 +9,7 @@ import {
 } from "../../sharedUtilities/constants";
 import { cleanupDatabase } from "../testHelpers/requestTestHelpers";
 import IntakeSource from "../../client/testUtilities/intakeSource";
+import HowDidYouHearAboutUsSource from "../../client/testUtilities/HowDidYouHearAboutUsSource";
 
 describe("dataChangeAuditHooks", () => {
   afterEach(async () => {
@@ -27,6 +28,7 @@ describe("dataChangeAuditHooks", () => {
     let initialCaseAttributes = {};
     let utdClassification;
     let emailIntakeSource;
+    let friendHowDidYouHearAboutUsSource;
 
     beforeEach(async () => {
       initialCaseAttributes = new Case.Builder()
@@ -54,6 +56,12 @@ describe("dataChangeAuditHooks", () => {
         .withName("Email");
       emailIntakeSource = await models.intake_source.create(
         emailIntakeSourceAttributes
+      );
+      const friendHowDidYouHearAboutUsSourceAttributes = new HowDidYouHearAboutUsSource.Builder()
+        .defaultHowDidYouHearAboutUsSource()
+        .withName("Friend");
+      friendHowDidYouHearAboutUsSource = await models.how_did_you_hear_about_us_source.create(
+        friendHowDidYouHearAboutUsSourceAttributes
       );
     });
 
@@ -123,6 +131,39 @@ describe("dataChangeAuditHooks", () => {
       };
       expect(audit.changes).toEqual(expectedChanges);
     });
+
+    test("it saves the changes of the new values of how did you hear about us source", async () => {
+      Object.assign(initialCaseAttributes, {
+        howDidYouHearAboutUsSourceId: friendHowDidYouHearAboutUsSource.id
+      });
+      const createdCase = await models.cases.create(initialCaseAttributes, {
+        auditUser: "someone"
+      });
+      const audit = (await createdCase.getDataChangeAudits())[0];
+
+      const expectedChanges = {
+        narrativeSummary: { new: "original narrative summary" },
+        narrativeDetails: { new: null },
+        incidentTime: { new: null },
+        incidentDate: { new: null },
+        firstContactDate: { new: "2017-12-24" },
+        district: { new: null },
+        complaintType: { new: RANK_INITIATED },
+        assignedTo: { new: "originalAssignedToPerson" },
+        status: { new: CASE_STATUS.INITIAL },
+        classificationId: { new: null },
+        classification: { new: null },
+        howDidYouHearAboutUsSourceId: {
+          new: friendHowDidYouHearAboutUsSource.id
+        },
+        howDidYouHearAboutUsSource: {
+          new: friendHowDidYouHearAboutUsSource.name
+        },
+        caseNumber: { new: 1 },
+        year: { new: 2017 }
+      };
+      expect(audit.changes).toEqual(expectedChanges);
+    });
     test("it saves the changes of the new values including the initialism of the classification", async () => {
       Object.assign(initialCaseAttributes, {
         classificationId: utdClassification.id
@@ -162,6 +203,8 @@ describe("dataChangeAuditHooks", () => {
         incidentTime: null,
         incidentDate: null,
         firstContactDate: "2017-12-24",
+        howDidYouHearAboutUsSourceId: null,
+        howDidYouHearAboutUsSource: null,
         district: null,
         complaintType: RANK_INITIATED,
         assignedTo: "originalAssignedToPerson",
@@ -173,7 +216,7 @@ describe("dataChangeAuditHooks", () => {
         classificationId: null,
         classification: null,
         intakeSourceId: null,
-        intake_source: null,
+        intakeSource: null,
         deletedAt: null,
         caseNumber: 1,
         year: 2017,
@@ -195,6 +238,8 @@ describe("dataChangeAuditHooks", () => {
         incidentTime: null,
         incidentDate: null,
         firstContactDate: "2017-12-24",
+        howDidYouHearAboutUsSourceId: null,
+        howDidYouHearAboutUsSource: null,
         district: null,
         complaintType: RANK_INITIATED,
         assignedTo: "originalAssignedToPerson",
@@ -206,7 +251,7 @@ describe("dataChangeAuditHooks", () => {
         classificationId: utdClassification.id,
         classification: utdClassification.initialism,
         intakeSourceId: null,
-        intake_source: null,
+        intakeSource: null,
         deletedAt: null,
         year: 2017,
         caseNumber: 1,
@@ -247,7 +292,7 @@ describe("dataChangeAuditHooks", () => {
             { firstContactDate: "2018-01-01" },
             { auditUser: "test user" }
           );
-          const audit = await models.data_change_audit.find({
+          const audit = await models.data_change_audit.findOne({
             where: { modelName: "Case", action: AUDIT_ACTION.DATA_UPDATED }
           });
           expect(audit).toEqual(null);
@@ -269,7 +314,7 @@ describe("dataChangeAuditHooks", () => {
             { firstContactDate: "2018-01-01" },
             { auditUser: "test user" }
           );
-          const audit = await models.data_change_audit.find({
+          const audit = await models.data_change_audit.findOne({
             where: { modelName: "Case", action: AUDIT_ACTION.DATA_UPDATED }
           });
           expect(audit).toEqual(null);
@@ -521,6 +566,8 @@ describe("dataChangeAuditHooks", () => {
         incidentTime: "12:59:59",
         incidentDate: "2017-12-05",
         firstContactDate: "2018-01-01",
+        howDidYouHearAboutUsSourceId: null,
+        howDidYouHearAboutUsSource: null,
         district: "2nd District",
         complaintType: CIVILIAN_INITIATED,
         assignedTo: "updatedAssignedPerson",
@@ -532,7 +579,7 @@ describe("dataChangeAuditHooks", () => {
         classificationId: existingCase.classificationId,
         classification: utdClassification.initialism,
         intakeSourceId: existingCase.intakeSourceId,
-        intake_source: emailIntakeSource.name,
+        intakeSource: emailIntakeSource.name,
         deletedAt: null,
         caseNumber: 1,
         year: 2017,
@@ -587,7 +634,7 @@ describe("dataChangeAuditHooks", () => {
           );
         }
 
-        const refreshedCase = await models.cases.findById(existingCase.id);
+        const refreshedCase = await models.cases.findByPk(existingCase.id);
         expect(refreshedCase.narrativeDetails).toEqual(
           initialCaseAttributes.narrativeDetails
         );
@@ -611,7 +658,7 @@ describe("dataChangeAuditHooks", () => {
           );
         }
 
-        const refreshedCase = await models.cases.findById(existingCase.id);
+        const refreshedCase = await models.cases.findByPk(existingCase.id);
         expect(refreshedCase.narrativeDetails).toEqual(
           initialCaseAttributes.narrativeDetails
         );
@@ -631,7 +678,7 @@ describe("dataChangeAuditHooks", () => {
           );
         }
 
-        const refreshedCase = await models.cases.findById(existingCase.id);
+        const refreshedCase = await models.cases.findByPk(existingCase.id);
         expect(refreshedCase.narrativeDetails).toEqual(
           initialCaseAttributes.narrativeDetails
         );
@@ -675,7 +722,7 @@ describe("dataChangeAuditHooks", () => {
         await models.cases.count().then(numCases => {
           expect(numCases).toEqual(1);
         });
-        const refreshedCase = await models.cases.findById(existingCase.id);
+        const refreshedCase = await models.cases.findByPk(existingCase.id);
         expect(refreshedCase.narrativeDetails).toEqual(
           initialCaseAttributes.narrativeDetails
         );
@@ -729,7 +776,7 @@ describe("dataChangeAuditHooks", () => {
       await existingCase.destroy({ auditUser: "someone" });
       await existingCase.restore({ auditUser: "someone" });
 
-      const audit = await models.data_change_audit.find({
+      const audit = await models.data_change_audit.findOne({
         where: {
           modelName: "Case",
           action: AUDIT_ACTION.DATA_RESTORED
@@ -743,6 +790,8 @@ describe("dataChangeAuditHooks", () => {
         complaintType: { new: "Civilian Initiated" },
         district: { new: "First District" },
         firstContactDate: { new: "2017-12-24" },
+        howDidYouHearAboutUsSourceId: { new: null },
+        howDidYouHearAboutUsSource: { new: null },
         year: { new: 2017 },
         caseNumber: { new: 1 },
         id: { new: existingCase.id },
@@ -753,7 +802,6 @@ describe("dataChangeAuditHooks", () => {
         status: { new: "Initial" },
         intakeSourceId: { new: intakeSource.id },
         intakeSource: { new: intakeSource.name },
-        intake_source: {},
         pibCaseNumber: {
           new: null
         }
@@ -764,7 +812,7 @@ describe("dataChangeAuditHooks", () => {
 
     test("should audit destroy including changes including classification association value", async () => {
       await existingCase.destroy({ auditUser: "someone" });
-      const audit = await models.data_change_audit.find({
+      const audit = await models.data_change_audit.findOne({
         where: {
           modelName: "Case",
           action: AUDIT_ACTION.DATA_ARCHIVED
@@ -778,6 +826,8 @@ describe("dataChangeAuditHooks", () => {
         complaintType: { previous: "Civilian Initiated" },
         district: { previous: "First District" },
         firstContactDate: { previous: "2017-12-24" },
+        howDidYouHearAboutUsSourceId: { previous: null },
+        howDidYouHearAboutUsSource: { previous: null },
         year: { previous: 2017 },
         caseNumber: { previous: 1 },
         id: { previous: existingCase.id },
@@ -788,7 +838,6 @@ describe("dataChangeAuditHooks", () => {
         status: { previous: "Initial" },
         intakeSourceId: { previous: intakeSource.id },
         intakeSource: { previous: intakeSource.name },
-        intake_source: {},
         pibCaseNumber: {
           previous: null
         }

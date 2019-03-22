@@ -1,4 +1,5 @@
 import {
+  ASCENDING,
   AUDIT_ACTION,
   AUDIT_SUBJECT,
   AUDIT_TYPE,
@@ -52,7 +53,7 @@ describe("createCase handler", () => {
   test("should create case with civilian if civilian complainant type ", async () => {
     await createCase(request, response, next);
 
-    const insertedCase = await models.cases.find({
+    const insertedCase = await models.cases.findOne({
       where: { complaintType: CIVILIAN_INITIATED },
       include: [{ model: models.civilian, as: "complainantCivilians" }]
     });
@@ -93,7 +94,7 @@ describe("createCase handler", () => {
     });
 
     await createCase(policeOfficerRequest, response, next);
-    const insertedCase = await models.cases.find({
+    const insertedCase = await models.cases.findOne({
       where: { complaintType: RANK_INITIATED },
       include: [{ model: models.civilian, as: "complainantCivilians" }]
     });
@@ -196,7 +197,7 @@ describe("createCase handler", () => {
 
       const cases = await models.cases.findAll({ returning: true });
 
-      const audit = await models.action_audit.find({
+      const audit = await models.action_audit.findOne({
         where: { caseId: cases[0].id }
       });
 
@@ -216,7 +217,7 @@ describe("createCase handler", () => {
 
       const cases = await models.cases.findAll({ returning: true });
 
-      const audit = await models.action_audit.find({
+      const audit = await models.action_audit.findOne({
         where: { caseId: cases[0].id }
       });
 
@@ -239,7 +240,7 @@ describe("createCase handler", () => {
       await createCaseForYear(2018); //case 2018-0002
       await createCase(request, response, next); //case 2018-0003
       const insertedCases = await models.cases.findAll({
-        order: [["created_at", "ASC"]]
+        order: [["created_at", ASCENDING]]
       });
       expect(
         insertedCases.map(insertedCase => [
@@ -251,7 +252,7 @@ describe("createCase handler", () => {
 
     test("assigns the case number of 1 for this year when no cases for this year exist yet", async () => {
       await createCase(request, response, next);
-      const insertedCase = await models.cases.find();
+      const insertedCase = await models.cases.findOne();
       expect(insertedCase.year).toEqual(2018);
       expect(insertedCase.caseNumber).toEqual(1);
     });
@@ -260,7 +261,7 @@ describe("createCase handler", () => {
       request.body.case.year = 1900;
       request.body.case.caseNumber = 5;
       await createCase(request, response, next);
-      const insertedCase = await models.cases.find();
+      const insertedCase = await models.cases.findOne();
       expect(insertedCase.year).toEqual(2018);
       expect(insertedCase.caseNumber).toEqual(1);
     });
@@ -319,7 +320,7 @@ describe("createCase handler", () => {
       expect(response3._getData().caseNumber).not.toBeUndefined();
 
       const insertedCases = await models.cases.findAll({
-        order: [["created_at", "ASC"]]
+        order: [["created_at", ASCENDING]]
       });
       expect(
         insertedCases.map(insertedCase => [

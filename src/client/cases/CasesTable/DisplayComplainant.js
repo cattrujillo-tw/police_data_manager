@@ -1,32 +1,13 @@
 import React from "react";
-import getFirstComplainant from "../../utilities/getFirstComplainant";
 import WarningMessage from "../../shared/components/WarningMessage";
+import { PERSON_TYPE } from "../../../sharedUtilities/constants";
 
-const DisplayComplainant = ({ caseDetails }) => {
-  const { complainantOfficers = [], complainantCivilians = [] } = caseDetails;
-
-  const civilianComplainant = getFirstComplainant(complainantCivilians);
-  const officerComplainant = getFirstComplainant(complainantOfficers);
-
-  let formattedComplainant;
-
-  if (Boolean(civilianComplainant)) {
-    formattedComplainant = civilianComplainant.fullName;
-  } else if (Boolean(officerComplainant)) {
-    if (officerComplainant.isUnknownOfficer) {
-      formattedComplainant = officerComplainant.fullName;
-    } else {
-      formattedComplainant = `Officer ${officerComplainant.fullName}`;
-    }
-  } else {
-    formattedComplainant = "";
-  }
-
-  return formattedComplainant ? (
-    <div>{formattedComplainant}</div>
+export default ({ complainant }) =>
+  complainant ? (
+    <div>{complainantName(complainant)}</div>
   ) : (
     <WarningMessage variant="grayText">No Complainants</WarningMessage>
   );
-};
 
-export default DisplayComplainant;
+const complainantName = ({ fullName, personType }) =>
+  personType === PERSON_TYPE.KNOWN_OFFICER ? `Officer ${fullName}` : fullName;

@@ -9,10 +9,13 @@ const {
   ACCUSED,
   AUDIT_SUBJECT
 } = require("../../../../sharedUtilities/constants");
-const auditDataAccess = require("../../auditDataAccess");
+import auditDataAccess from "../../auditDataAccess";
 
 const editCaseOfficer = asyncMiddleware(async (request, response) => {
   const { officerId, notes, roleOnCase } = request.body;
+  const isAnonymous = request.body.isAnonymous
+    ? request.body.isAnonymous
+    : false;
   const caseOfficerToUpdate = await models.case_officer.findOne({
     where: {
       id: request.params.caseOfficerId
@@ -52,6 +55,7 @@ const editCaseOfficer = asyncMiddleware(async (request, response) => {
       {
         notes,
         roleOnCase,
+        isAnonymous,
         ...officerAttributes
       },
       {

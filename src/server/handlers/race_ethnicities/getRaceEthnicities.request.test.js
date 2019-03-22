@@ -1,10 +1,13 @@
 import {
   buildTokenWithPermissions,
-  cleanupDatabase
+  cleanupDatabase,
+  expectResponse
 } from "../../testHelpers/requestTestHelpers";
 import app from "../../server";
 import models from "../../models";
 import request from "supertest";
+
+jest.mock("../cases/export/jobQueue");
 
 describe("getRaceEthnicities", () => {
   afterEach(async () => {
@@ -30,13 +33,11 @@ describe("getRaceEthnicities", () => {
       [unknownRaceEthnicity.name, unknownRaceEthnicity.id]
     ];
 
-    await request(app)
+    const responsePromise = request(app)
       .get("/api/race-ethnicities")
       .set("Content-Header", "application/json")
-      .set("Authorization", `Bearer ${token}`)
-      .expect(200)
-      .then(response => {
-        expect(response.body).toEqual(expectedOrderedRaceEthnicities);
-      });
+      .set("Authorization", `Bearer ${token}`);
+
+    await expectResponse(responsePromise, 200, expectedOrderedRaceEthnicities);
   });
 });

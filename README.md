@@ -29,7 +29,7 @@ and run all tests before pushing.
 
 If you are a core team member:
 * Log into AWS with root user (credentials are in the team 1Password)
-* Create a new user for yourself in the development group
+* Create a new user for yourself in the development group in IAM
 
 If you are a contributor, ask a core team member to setup AWS credentials for you.
 
@@ -56,7 +56,7 @@ circleci build --job <job name from .circleci/config.yml>
 ### Build the app:
 
 ```bash
-docker-compose build
+./scripts/docker-compose-build
 ```
 
 ### Run the app locally in watch mode:
@@ -83,6 +83,14 @@ Set up a test DB and run all tests in `src/server` sequentially:
 docker-compose run app yarn test:server
 ```
 
+#### Running worker tests in watch mode:
+
+Set up a test DB and run all tests in `src/worker` sequentially:
+
+```bash
+docker-compose run app yarn test:worker
+```
+
 #### Running all tests (no watch mode)
 
 ```bash
@@ -105,7 +113,7 @@ docker-compose up app
 
 #### Then, set up environment variables for:
 
-(Use your credentials for auth0 staging and a host of http://localhost:3000/)
+(Use your credentials for auth0 ci and a host of http://localhost:3000/)
 
     TEST_USER
     TEST_PASS

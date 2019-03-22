@@ -39,6 +39,14 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.TEXT,
         field: "recommended_action_notes"
       },
+      officerHistoryOptionId: {
+        type: DataTypes.INTEGER,
+        field: "officer_history_option_id",
+        references: {
+          model: models.officer_history_option,
+          key: "id"
+        }
+      },
       createdAt: {
         allowNull: false,
         type: DataTypes.DATE,
@@ -107,14 +115,14 @@ module.exports = (sequelize, DataTypes) => {
   LetterOfficer.prototype.getCaseId = async function(transaction) {
     const caseOfficer = await sequelize
       .model("case_officer")
-      .findById(this.caseOfficerId, { transaction: transaction });
+      .findByPk(this.caseOfficerId, { transaction: transaction });
     return caseOfficer.caseId;
   };
 
   LetterOfficer.prototype.modelDescription = async function(transaction) {
     const caseOfficer = await sequelize
       .model("case_officer")
-      .findById(this.caseOfficerId, { transaction: transaction });
+      .findByPk(this.caseOfficerId, { transaction: transaction });
     return [{ "Officer Name": caseOfficer.fullName }];
   };
 

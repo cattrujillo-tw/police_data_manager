@@ -14,24 +14,32 @@ import styles from "./caseDetailsStyles";
 import CaseDrawer from "./CaseDrawer";
 import IncidentDetails from "./IncidentDetails/IncidentDetails";
 import {
+  closeArchiveCaseDialog,
   closeCaseNoteDialog,
   closeCaseStatusUpdateDialog,
   closeEditCivilianDialog,
   closeEditIncidentDetailsDialog,
+  closeRemoveAttachmentConfirmationDialog,
   closeRemoveCaseNoteDialog,
-  closeRemovePersonDialog
+  closeRemovePersonDialog,
+  closeRestoreArchivedCaseDialog
 } from "../../actionCreators/casesActionCreators";
-import { CASE_STATUS } from "../../../sharedUtilities/constants";
+import {
+  CASE_STATUS,
+  NARRATIVE_FORM
+} from "../../../sharedUtilities/constants";
 import AccusedOfficers from "./Officers/AccusedOfficers";
 import CaseNoteDialog from "./CaseNoteDialog/CaseNoteDialog";
 import RemoveCivilianDialog from "../RemovePersonDialog/RemovePersonDialog";
 import { clearOfficerPanelData } from "../../actionCreators/accusedOfficerPanelsActionCreators";
 import Witnesses from "./ComplainantWitnesses/Witnesses";
 import CaseStatusStepper from "./CaseStatusStepper/CaseStatusStepper";
-import EditLetterStatusMessage, {
+import LetterStatusMessage, {
   PAGE_TYPE
-} from "./EditLetterStatusMessage/EditLetterStatusMessage";
-import getLetterType from "../ReferralLetter/thunks/getLetterType";
+} from "./LetterStatusMessage/LetterStatusMessage";
+import getReferralLetterEditStatus from "../ReferralLetter/thunks/getReferralLetterEditStatus";
+import { scrollToTop } from "../../ScrollToTop";
+import { reset } from "redux-form";
 
 const drawerWidthPercentage = "30%";
 
@@ -41,7 +49,29 @@ const appBar = {
   width: `calc(100% - ${drawerWidthPercentage})`
 };
 
+export const resetCaseDetailsPage = dispatch => {
+  dispatch(reset(NARRATIVE_FORM));
+  dispatch(clearOfficerPanelData());
+  dispatch(closeEditCivilianDialog());
+  dispatch(closeCaseNoteDialog());
+  dispatch(closeCaseStatusUpdateDialog());
+  dispatch(closeRemoveCaseNoteDialog());
+  dispatch(closeRemovePersonDialog());
+  dispatch(closeEditIncidentDetailsDialog());
+  dispatch(closeRestoreArchivedCaseDialog());
+  dispatch(closeArchiveCaseDialog());
+  dispatch(closeRemoveAttachmentConfirmationDialog());
+};
 class CaseDetails extends React.Component {
+  componentDidUpdate(prevProps, prevState, snapshot) {
+    if (
+      !prevProps.caseDetails.isArchived &&
+      this.props.caseDetails.isArchived
+    ) {
+      scrollToTop();
+    }
+  }
+
   state = {
     mobileOpen: false,
     anchorEl: null,
@@ -68,17 +98,11 @@ class CaseDetails extends React.Component {
   componentDidMount() {
     const caseId = this.props.match.params.id;
     this.props.dispatch(getCaseDetails(caseId));
-    this.props.dispatch(getLetterType(caseId));
+    this.props.dispatch(getReferralLetterEditStatus(caseId));
   }
 
   componentWillUnmount() {
-    this.props.dispatch(clearOfficerPanelData());
-    this.props.dispatch(closeEditCivilianDialog());
-    this.props.dispatch(closeCaseNoteDialog());
-    this.props.dispatch(closeCaseStatusUpdateDialog());
-    this.props.dispatch(closeRemoveCaseNoteDialog());
-    this.props.dispatch(closeRemovePersonDialog());
-    this.props.dispatch(closeEditIncidentDetailsDialog());
+    resetCaseDetailsPage(this.props.dispatch);
   }
 
   caseDetailsNotYetLoaded() {
@@ -125,7 +149,7 @@ class CaseDetails extends React.Component {
           <main className={classes.content}>
             <CaseStatusStepper />
             <div style={{ marginLeft: "5%", marginRight: "5%" }}>
-              <EditLetterStatusMessage pageType={PAGE_TYPE.CASE_DETAILS} />
+              <LetterStatusMessage pageType={PAGE_TYPE.CASE_DETAILS} />
             </div>
             <IncidentDetails classes={classes} />
             <Complainants
@@ -178,8 +202,7 @@ CaseDetails.propTypes = {
 };
 
 const mapStateToProps = state => ({
-  caseDetails: state.currentCase.details,
-  letterType: state.referralLetter.letterType
+  caseDetails: state.currentCase.details
 });
 
 export default withStyles(styles, { withTheme: true })(

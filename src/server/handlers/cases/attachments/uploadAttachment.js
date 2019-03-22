@@ -1,16 +1,17 @@
-const Busboy = require("busboy");
-const asyncMiddleware = require("../../asyncMiddleware");
-const models = require("../../../models/index");
-const isDuplicateFileName = require("./isDuplicateFileName");
-const createConfiguredS3Instance = require("../../../createConfiguredS3Instance");
-const config = require("../../../config/config");
-const {
-  DUPLICATE_FILE_NAME,
-  AUDIT_SUBJECT
-} = require("../../../../sharedUtilities/constants");
+import Busboy from "busboy";
+import asyncMiddleware from "../../asyncMiddleware";
+import models from "../../../models/index";
+import isDuplicateFileName from "./isDuplicateFileName";
+import createConfiguredS3Instance from "../../../createConfiguredS3Instance";
+import config from "../../../config/config";
+import {
+  AUDIT_SUBJECT,
+  DUPLICATE_FILE_NAME
+} from "../../../../sharedUtilities/constants";
 import { getCaseWithAllAssociations } from "../../getCaseHelpers";
-const Boom = require("boom");
-const auditDataAccess = require("../../auditDataAccess");
+import Boom from "boom";
+import auditDataAccess from "../../auditDataAccess";
+import { BAD_REQUEST_ERRORS } from "../../../../sharedUtilities/errorMessageConstants";
 
 const uploadAttachment = asyncMiddleware((request, response, next) => {
   let managedUpload;
@@ -36,7 +37,9 @@ const uploadAttachment = asyncMiddleware((request, response, next) => {
   ) {
     const s3 = createConfiguredS3Instance();
 
-    if (await isDuplicateFileName(caseId, fileName)) {
+    if (request.isArchived) {
+      response.status(400).send(BAD_REQUEST_ERRORS.CANNOT_UPDATE_ARCHIVED_CASE);
+    } else if (await isDuplicateFileName(caseId, fileName)) {
       response.status(409).send(DUPLICATE_FILE_NAME);
     } else {
       managedUpload = s3.upload({
@@ -92,4 +95,4 @@ const uploadAttachment = asyncMiddleware((request, response, next) => {
   request.pipe(busboy);
 });
 
-module.exports = uploadAttachment;
+export default uploadAttachment;

@@ -4,7 +4,7 @@ import ReferralLetter from "../../client/testUtilities/ReferralLetter";
 import {
   RECIPIENT,
   SENDER
-} from "../handlers/cases/referralLetters/letterDefaults";
+} from "../handlers/cases/referralLetters/referralLetterDefaults";
 import { cleanupDatabase } from "../testHelpers/requestTestHelpers";
 import ReferralLetterIAProCorrection from "../../client/testUtilities/ReferralLetterIAProCorrection";
 import { AUDIT_ACTION } from "../../sharedUtilities/constants";
@@ -49,7 +49,7 @@ describe("dataChangeAuditHooks for referral letter iapro correction", () => {
   });
 
   test("creates audit on referral letter iapro corrections creation", async () => {
-    const audit = await models.data_change_audit.find({
+    const audit = await models.data_change_audit.findOne({
       where: {
         modelName: "Referral Letter Iapro Correction",
         action: AUDIT_ACTION.DATA_CREATED

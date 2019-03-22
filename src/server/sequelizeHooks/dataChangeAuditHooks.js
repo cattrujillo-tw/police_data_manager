@@ -11,7 +11,8 @@ const MODEL_ASSOCIATIONS_TO_LOOKUP = [
   {
     foreignKey: "recommendedActionId",
     modelName: "recommended_action",
-    identifyingAttribute: "description"
+    identifyingAttribute: "description",
+    as: "recommendedAction"
   },
   {
     foreignKey: "intakeSourceId",
@@ -22,7 +23,14 @@ const MODEL_ASSOCIATIONS_TO_LOOKUP = [
   {
     foreignKey: "raceEthnicityId",
     modelName: "race_ethnicity",
-    identifyingAttribute: "name"
+    identifyingAttribute: "name",
+    as: "raceEthnicity"
+  },
+  {
+    foreignKey: "howDidYouHearAboutUsSourceId",
+    modelName: "how_did_you_hear_about_us_source",
+    identifyingAttribute: "name",
+    as: "howDidYouHearAboutUsSource"
   }
 ];
 
@@ -233,15 +241,17 @@ exports.init = sequelize => {
     snapshotValues,
     association
   ) => {
+    const snapshotKey = association.as ? association.as : association.modelName;
+
     if (Object.keys(instance.dataValues).includes(association.foreignKey)) {
       if (instance.dataValues[association.foreignKey]) {
         const associationInstance = await instance.sequelize.models[
           association.modelName
-        ].findById(instance.dataValues[association.foreignKey]);
-        snapshotValues[association.modelName] =
+        ].findByPk(instance.dataValues[association.foreignKey]);
+        snapshotValues[snapshotKey] =
           associationInstance[association.identifyingAttribute];
       } else {
-        snapshotValues[association.modelName] =
+        snapshotValues[snapshotKey] =
           instance.dataValues[association.foreignKey];
       }
     }
@@ -277,7 +287,7 @@ exports.init = sequelize => {
       if (objectChanges[association.foreignKey][newOrPrevious]) {
         const associationInstance = await instance.sequelize.models[
           association.modelName
-        ].findById(objectChanges[association.foreignKey][newOrPrevious]);
+        ].findByPk(objectChanges[association.foreignKey][newOrPrevious]);
         objectChanges[modelNameCamelCase][newOrPrevious] =
           associationInstance[association.identifyingAttribute];
       } else {

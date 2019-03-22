@@ -7,6 +7,7 @@ class LetterOfficer {
     this.numHistoricalLowAllegations = build.numHistoricalLowAllegations;
     this.historicalBehaviorNotes = build.historicalBehaviorNotes;
     this.recommendedActionNotes = build.recommendedActionNotes;
+    this.officerHistoryOptionId = build.officerHistoryOptionId;
   }
 
   static get Builder() {
@@ -14,6 +15,7 @@ class LetterOfficer {
       defaultLetterOfficer() {
         this.id = 123;
         this.caseOfficerId = 55;
+        this.officerHistoryOptionId = null;
         this.numHistoricalHighAllegations = 3;
         this.numHistoricalMedAllegations = 2;
         this.numHistoricalLowAllegations = 1;
@@ -54,6 +56,11 @@ class LetterOfficer {
 
       withRecommendedActionNotes(notes) {
         this.recommendedActionNotes = notes;
+        return this;
+      }
+
+      withOfficerHistoryOptionId(optionId) {
+        this.officerHistoryOptionId = optionId;
         return this;
       }
     }

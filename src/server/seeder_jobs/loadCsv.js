@@ -10,7 +10,7 @@ const loadCsv = async (fileName, model) => {
 
   const filePath = path.join(__dirname, fileName);
   try {
-    const parser = csvParse({ auto_parse: parse, columns: true, trim: true });
+    const parser = csvParse({ cast: parse, columns: true, trim: true });
     const entries = [];
 
     const stream = fs
@@ -27,7 +27,6 @@ const loadCsv = async (fileName, model) => {
       });
     });
   } catch (error) {
-    console.log("Error", error);
     throw error; // do not continue if there is an error.
   }
 };

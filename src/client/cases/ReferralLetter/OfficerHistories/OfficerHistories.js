@@ -19,20 +19,33 @@ import {
   SecondaryButton
 } from "../../../shared/components/StyledButtons";
 import editOfficerHistory from "../thunks/editOfficerHistory";
-import EditLetterStatusMessage from "../../CaseDetails/EditLetterStatusMessage/EditLetterStatusMessage";
-import getLetterType from "../thunks/getLetterType";
+import LetterStatusMessage from "../../CaseDetails/LetterStatusMessage/LetterStatusMessage";
+import getReferralLetterEditStatus from "../thunks/getReferralLetterEditStatus";
 import getMinimumCaseDetails from "../../thunks/getMinimumCaseDetails";
 import { push } from "connected-react-router";
 
 class OfficerHistories extends Component {
   constructor(props) {
     super(props);
-    this.state = { selectedTab: 0, caseId: this.props.match.params.id };
+    let selectedTab;
+    if (
+      this.props.location &&
+      this.props.location.state &&
+      this.props.location.state.selectedTab
+    ) {
+      selectedTab = this.props.location.state.selectedTab;
+    } else {
+      selectedTab = 0;
+    }
+    this.state = {
+      selectedTab: selectedTab,
+      caseId: this.props.match.params.id
+    };
   }
 
   componentDidMount() {
     this.props.getReferralLetterData(this.state.caseId);
-    this.props.getLetterType(this.state.caseId);
+    this.props.getReferralLetterEditStatus(this.state.caseId);
     this.props.getMinimumCaseDetails(this.state.caseId);
   }
 
@@ -96,6 +109,7 @@ class OfficerHistories extends Component {
       return (
         <OfficerHistoryTabContent
           letterOfficer={letterOfficerField}
+          letterOfficerIndex={index}
           caseOfficerName={letterOfficerInstance.fullName}
           caseOfficerId={letterOfficerInstance.caseOfficerId}
           key={letterOfficerInstance.caseOfficerId}
@@ -131,7 +145,7 @@ class OfficerHistories extends Component {
               onChange={this.handleTabChange}
               indicatorColor="primary"
               textColor="primary"
-              scrollable
+              variant="scrollable"
               scrollButtons="auto"
             >
               {this.renderTabHeaders()}
@@ -184,7 +198,7 @@ class OfficerHistories extends Component {
                 Officer Complaint History
               </Typography>
             </div>
-            <EditLetterStatusMessage />
+            <LetterStatusMessage />
 
             {letterOfficers.length === 0
               ? this.renderNoOfficers()
@@ -228,7 +242,7 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = {
   getReferralLetterData,
-  getLetterType,
+  getReferralLetterEditStatus,
   getMinimumCaseDetails
 };
 
@@ -236,7 +250,9 @@ export default connect(
   mapStateToProps,
   mapDispatchToProps
 )(
-  reduxForm({ form: "OfficerHistories", enableReinitialize: true })(
-    OfficerHistories
-  )
+  reduxForm({
+    form: "OfficerHistories",
+    enableReinitialize: true,
+    destroyOnUnmount: false
+  })(OfficerHistories)
 );

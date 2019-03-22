@@ -5,13 +5,13 @@ const asyncMiddleware = require("../../asyncMiddleware");
 import { getCaseWithAllAssociations } from "../../getCaseHelpers";
 const models = require("../../../models");
 const Boom = require("boom");
-const auditDataAccess = require("../../auditDataAccess");
+import auditDataAccess from "../../auditDataAccess";
 
 const removeOfficerAllegation = asyncMiddleware(
   async (request, response, next) => {
     const updatedCase = await models.sequelize.transaction(
       async transaction => {
-        const officerAllegation = await models.officer_allegation.findById(
+        const officerAllegation = await models.officer_allegation.findByPk(
           request.params.officerAllegationId,
           { transaction }
         );

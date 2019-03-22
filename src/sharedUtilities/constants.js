@@ -7,6 +7,11 @@ export const INVALID_FILE_TYPE_DROPPED = "INVALID_FILE_TYPE_DROPPED";
 export const DUPLICATE_FILE_DROPPED = "DUPLICATE_FILE_DROPPED";
 export const DROPZONE_FILE_REMOVED = "DROPZONE_FILE_REMOVED";
 
+export const GET_WORKING_CASES_SUCCESS = "GET_WORKING_CASES_SUCCESS";
+export const RESET_WORKING_CASES_LOADED = "RESET_WORKING_CASES_LOADED";
+export const GET_ARCHIVED_CASES_SUCCESS = "GET_ARCHIVED_CASES_SUCCESS";
+export const RESET_ARCHIVED_CASES_LOADED = "RESET_ARCHIVED_CASES_LOADED";
+export const UPDATE_CASES_TABLE_SORTING = "UPDATE_CASES_TABLE_SORTING";
 export const CASE_CREATED_SUCCESS = "CASE_CREATED_SUCCESS";
 export const GET_CASE_DETAILS_SUCCESS = "GET_CASE_DETAILS_SUCCESS";
 export const GET_MINIMUM_CASE_DETAILS_SUCCESS =
@@ -50,6 +55,8 @@ export const CREATE_CASE_DIALOG_OPENED = "CREATE_CASE_DIALOG_OPENED";
 export const CREATE_CASE_DIALOG_CLOSED = "CREATE_CASE_DIALOG_CLOSED";
 export const CASE_STATUS_UPDATE_DIALOG_OPENED =
   "CASE_STATUS_UPDATE_DIALOG_OPENED";
+export const CASE_STATUS_UPDATE_DIALOG_SUBMITTING =
+  "CASE_STATUS_UPDATE_DIALOG_SUBMITTING";
 export const CASE_STATUS_UPDATE_DIALOG_CLOSED =
   "CASE_STATUS_UPDATE_DIALOG_CLOSED";
 export const REMOVE_PERSON_DIALOG_OPENED = "REMOVE_PERSON_DIALOG_OPENED";
@@ -64,14 +71,21 @@ export const ADD_OFFICER_ALLEGATION_SUCCEEDED =
 
 export const GET_CLASSIFICATIONS_SUCCEEDED = "GET_CLASSIFICATIONS_SUCCEEDED";
 export const GET_INTAKE_SOURCES_SUCCEEDED = "GET_INTAKE_SOURCES_SUCCEEDED";
+export const GET_HOW_DID_YOU_HEAR_ABOUT_US_SOURCES_SUCCEEDED =
+  "GET_HOW_DID_YOU_HEAR_ABOUT_US_SOURCES_SUCCEEDED";
 export const GET_RACE_ETHNICITIES_SUCCEEDED = "GET_RACE_ETHNICITIES_SUCCEEDED";
+export const GET_OFFICER_HISTORY_OPTIONS_SUCCEEDED =
+  "GET_OFFICER_HISTORY_OPTIONS_SUCCEEDED";
 
 export const GET_RECOMMENDED_ACTIONS_SUCCESS =
   "GET_RECOMMENDED_ACTIONS_SUCCESS";
 export const GET_REFERRAL_LETTER_SUCCESS = "GET_REFERRAL_LETTER_SUCCESS";
-export const GET_LETTER_PREVIEW_SUCCESS = "GET_LETTER_PREVIEW_SUCCESS";
-export const GET_LETTER_PDF_SUCCESS = "GET_LETTER_PDF_SUCCESS";
-export const GET_LETTER_TYPE_SUCCESS = "GET_LETTER_TYPE_SUCCESS";
+export const GET_REFERRAL_LETTER_PREVIEW_SUCCESS =
+  "GET_REFERRAL_LETTER_PREVIEW_SUCCESS";
+export const GET_REFERRAL_LETTER_PDF_SUCCESS =
+  "GET_REFERRAL_LETTER_PDF_SUCCESS";
+export const GET_REFERRAL_LETTER_EDIT_STATUS_SUCCESS =
+  "GET_REFERRAL_LETTER_EDIT_STATUS_SUCCESS";
 export const OPEN_EDIT_LETTER_CONFIRMATION_DIALOG =
   "OPEN_EDIT_LETTER_CONFIRMATION_DIALOG";
 export const CLOSE_EDIT_LETTER_CONFIRMATION_DIALOG =
@@ -96,6 +110,13 @@ export const REMOVE_IAPRO_CORRECTION_DIALOG_OPENED =
   "REMOVE_IAPRO_CORRECTION_DIALOG_OPENED";
 export const REMOVE_IAPRO_CORRECTION_DIALOG_CLOSED =
   "REMOVE_IAPRO_CORRECTION_DIALOG_CLOSED";
+export const REMOVE_ATTACHMENT_CONFIRMATION_DIALOG_EXITED =
+  "REMOVE_ATTACHMENT_CONFIRMATION_DIALOG_EXITED";
+
+export const REMOVE_ATTACHMENT_CONFIRMATION_DIALOG_OPENED =
+  "REMOVE_ATTACHMENT_CONFIRMATION_DIALOG_OPENED";
+export const REMOVE_ATTACHMENT_CONFIRMATION_DIALOG_CLOSED =
+  "REMOVE_ATTACHMENT_CONFIRMATION_DIALOG_CLOSED";
 
 export const EXPORT_AUDIT_LOG_CONFIRMATION_OPENED =
   "EXPORT_AUDIT_LOG_CONFIRMATION_OPENED";
@@ -179,6 +200,7 @@ export const OFFICER_SELECTED = "OFFICER_SELECTED";
 export const CASE_OFFICER_SELECTED = "CASE_OFFICER_SELECTED";
 export const UNKNOWN_OFFICER_SELECTED = "UNKNOWN_OFFICER_SELECTED";
 export const CLEAR_SELECTED_OFFICER = "CLEAR_SELECTED_OFFICER";
+export const UNKNOWN_OFFICER_NAME = "Unknown Officer";
 
 // ----------------------------------------
 //          Case History Actions
@@ -214,17 +236,18 @@ export const AUDIT_TYPE = {
 export const AUDIT_SUBJECT = {
   AUDIT_LOG: "Audit Log",
   CASE_DETAILS: "Case Details",
-  ALL_CASES: "All Cases",
+  ALL_WORKING_CASES: "All Working Cases",
+  ALL_ARCHIVED_CASES: "All Archived Cases",
   ALL_CASE_INFORMATION: "All Case Information",
   OFFICER_DATA: "Officer Data",
   CASE_HISTORY: "Case History",
   CASE_NOTES: "Case Notes",
-  ATTACHMENTS: "Attachments",
+  ATTACHMENT: "Attachment",
+  REFERRAL_LETTER_PREVIEW: "Referral Letter Preview",
   REFERRAL_LETTER_DATA: "Referral Letter Data", //this refers to letter data only (not case data)
-  REFERRAL_LETTER: "Referral Letter", //this refers to the full compiled letter including all case data,
-  REFERRAL_LETTER_PDF: "Referral Letter PDF",
-  MINIMUM_CASE_DETAILS: "Minimum Case Details",
-  LETTER_TYPE: "Letter Type"
+  DRAFT_REFERRAL_LETTER_PDF: "Draft Referral Letter PDF",
+  FINAL_REFERRAL_LETTER_PDF: "Final Referral Letter PDF",
+  LETTER_TO_COMPLAINANT_PDF: "Letter to Complainant PDF"
 };
 
 export const AUDIT_ACTION = {
@@ -251,11 +274,36 @@ export const AUDIT_SNAPSHOT_FIELDS_TO_EXCLUDE =
   "(createdAt|updatedAt|deletedAt|addressableType)";
 
 // ----------------------------------------
+//          Sort Cases By Options
+// ----------------------------------------
+
+export const SORT_CASES_BY = {
+  CASE_REFERENCE: "caseReference",
+  STATUS: "status",
+  PRIMARY_COMPLAINANT: "primaryComplainant",
+  PRIMARY_ACCUSED_OFFICER: "primaryAccusedOfficer",
+  FIRST_CONTACT_DATE: "firstContactDate",
+  ASSIGNED_TO: "assignedTo"
+};
+
+export const DESCENDING = "desc";
+export const ASCENDING = "asc";
+
+// ----------------------------------------
 //          Role on Case Options
 // ----------------------------------------
 export const ACCUSED = "Accused";
 export const WITNESS = "Witness";
 export const COMPLAINANT = "Complainant";
+
+// ----------------------------------------
+//          Person Type Options
+// ----------------------------------------
+export const PERSON_TYPE = {
+  CIVILIAN: "Civilian",
+  KNOWN_OFFICER: "Known Officer",
+  UNKNOWN_OFFICER: "Unknown Officer"
+};
 
 // ----------------------------------------
 //          Complaint Type Options
@@ -264,9 +312,9 @@ export const CIVILIAN_INITIATED = "Civilian Initiated";
 export const RANK_INITIATED = "Rank Initiated";
 
 // ----------------------------------------
-//          Complaint Type Options
+//          Edit Status Options
 // ----------------------------------------
-export const LETTER_TYPE = {
+export const EDIT_STATUS = {
   GENERATED: "Generated",
   EDITED: "Edited"
 };
@@ -278,6 +326,9 @@ export const REFERRAL_LETTER_VERSION = {
   FINAL: "Final",
   DRAFT: "Draft"
 };
+
+export const COMPLAINANT_LETTER = "Letter to Complainant";
+export const OFFICER_COMPLAINANT_TITLE = "Officer";
 
 // ----------------------------------------
 //          Case Status Map
@@ -342,6 +393,16 @@ export const LETTER_PROGRESS_MAP = {
 };
 
 // ----------------------------------------
+//       Officers Allegations Options
+// ----------------------------------------
+export const ALLEGATION_OPTIONS = {
+  NO_NOTEWORTHY_HISTORY: "No noteworthy officer history to include in letter",
+  RECRUIT: "Officer is a recruit so there is no history",
+  NO_IAPRO_HISTORY: "No officer history included in IAPro",
+  NOTEWORTHY_HISTORY: "Officer has signifcant/noteworthy history"
+};
+
+// ----------------------------------------
 //       Officers Allegations Severity
 // ----------------------------------------
 export const ALLEGATION_SEVERITY = {
@@ -357,7 +418,7 @@ export const ALLEGATION_SEVERITY = {
 
 export const SIGNATURE_URLS = {
   STELLA:
-    "file:/app/src/server/handlers/cases/referralLetters/getPdf/assets/signatures/signature.png"
+    "file:/app/src/server/handlers/cases/referralLetters/assets/signatures/signature.png"
 };
 
 // ----------------------------------------
@@ -381,6 +442,10 @@ export const REMOVE_ALLEGATION_DIALOG_CLOSED =
   "REMOVE_ALLEGATION_DIALOG_CLOSED";
 export const REMOVE_OFFICER_ALLEGATION_SUCCEEDED =
   "REMOVE_OFFICER_ALLEGATION_SUCCEEDED";
+export const OPEN_INCOMPLETE_OFFICER_HISTORY_DIALOG =
+  "OPEN_INCOMPLETE_OFFICER_HISTORY_DIALOG";
+export const CLOSE_INCOMPLETE_OFFICER_HISTORY_DIALOG =
+  "CLOSE_INCOMPLETE_OFFICER_HISTORY_DIALOG";
 
 // ------------------------------------------
 //           Feature Toggles
@@ -414,3 +479,8 @@ export const JOB_OPERATION = {
 };
 
 export const QUEUE_PREFIX = "noimp_q";
+// ------------------------------------------
+//           Front-end Labels
+// ------------------------------------------
+export const ALLEGATION_DETAILS_LABEL =
+  "Enter narrative details pertaining to this allegation";

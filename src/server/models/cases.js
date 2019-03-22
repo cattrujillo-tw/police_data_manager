@@ -1,12 +1,13 @@
 import { ADDRESSABLE_TYPE } from "../../sharedUtilities/constants";
 import moment from "moment";
-import _ from "lodash";
+import { head, isEmpty, sortBy } from "lodash";
 import models from "./index";
 import winston from "winston";
 import {
   BAD_DATA_ERRORS,
   BAD_REQUEST_ERRORS
 } from "../../sharedUtilities/errorMessageConstants";
+import { getCaseReference } from "./modelUtilities/getCaseReference";
 
 const determineNextCaseStatus = require("./modelUtilities/determineNextCaseStatus");
 const Boom = require("boom");
@@ -158,10 +159,22 @@ export default (sequelize, DataTypes) => {
           return determineNextCaseStatus(this.status);
         },
         caseReference() {
-          const prefix =
-            this.complaintType === CIVILIAN_INITIATED ? "CC" : "PO";
-          const paddedCaseId = `${this.caseNumber}`.padStart(4, "0");
-          return `${prefix}${this.year}-${paddedCaseId}`;
+          return getCaseReference(
+            this.complaintType,
+            this.caseNumber,
+            this.year
+          );
+        },
+        primaryComplainant() {
+          return head(
+            sortBy(
+              [
+                ...(this.complainantCivilians || []),
+                ...(this.complainantOfficers || [])
+              ],
+              "createdAt"
+            )
+          );
         }
       }
     }
@@ -218,7 +231,7 @@ export default (sequelize, DataTypes) => {
         CASE_STATUS.CLOSED
       ].includes(this.status)
     ) {
-      if (value === null || _.isEmpty(value)) {
+      if (value === null || isEmpty(value)) {
         throw { model: "Case", errorMessage: `${field} is required` };
       }
     }
@@ -275,6 +288,14 @@ export default (sequelize, DataTypes) => {
       foreignKey: {
         name: "classificationId",
         field: "classification_id",
+        allowNull: true
+      }
+    });
+    Case.belongsTo(models.how_did_you_hear_about_us_source, {
+      as: "howDidYouHearAboutUsSource",
+      foreignKey: {
+        name: "howDidYouHearAboutUsSourceId",
+        field: "how_did_you_hear_about_us_source_id",
         allowNull: true
       }
     });

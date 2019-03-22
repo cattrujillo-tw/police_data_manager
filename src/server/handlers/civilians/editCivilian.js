@@ -6,7 +6,7 @@ import {
 const asyncMiddleware = require("../asyncMiddleware");
 const models = require("../../models/index");
 import { getCaseWithAllAssociations } from "../getCaseHelpers";
-const auditDataAccess = require("../auditDataAccess");
+import auditDataAccess from "../auditDataAccess";
 
 async function upsertAddress(civilianId, address, transaction, nickname) {
   if (!address.id) {
@@ -43,7 +43,7 @@ const editCivilian = asyncMiddleware(async (req, res) => {
           req.nickname
         );
       }
-      const civilian = await models.civilian.findById(req.params.civilianId);
+      const civilian = await models.civilian.findByPk(req.params.civilianId);
       await civilian.update(civilianValues, {
         transaction,
         auditUser: req.nickname

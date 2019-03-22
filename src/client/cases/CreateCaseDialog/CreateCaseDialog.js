@@ -62,6 +62,7 @@ class CreateCaseDialog extends React.Component {
           civilianComplainant={civilianComplainant}
           handleSubmit={handleSubmit}
           disabled={submitting}
+          change={this.props.change}
         />
       </Dialog>
     );
@@ -76,7 +77,7 @@ const Timeline = () => (
     <DateField
       required
       name="case.firstContactDate"
-      label="First Contacted IPM"
+      label="First Contacted OIPM"
       data-test="firstContactDateField"
       inputProps={{
         "data-test": "firstContactDateInput",
@@ -113,7 +114,10 @@ const IntakeSource = props => {
 
 const mapStateToProps = state => ({
   open: state.ui.createCaseDialog.open,
-  complaintType: formValueSelector("CreateCase")(state, "case.complaintType"),
+  complaintType: formValueSelector(CREATE_CASE_FORM_NAME)(
+    state,
+    "case.complaintType"
+  ),
   intakeSources: state.ui.intakeSources
 });
 

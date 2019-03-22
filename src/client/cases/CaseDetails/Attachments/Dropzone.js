@@ -42,14 +42,17 @@ class Dropzone extends Component {
       this.setState({ attachmentValid: true });
     },
     success: async (file, response) => {
+      this.props.snackbarSuccess("File was successfully attached");
       this.props.uploadAttachmentSuccess(response);
       this.dropzone.removeFile(file);
       this.setState({ attachmentDescription: "", touched: false });
       await this.props.getCaseNotes(this.props.caseId);
     },
-    error: (file, errorMessage, xhr) => {
+    error: (file, error, xhr) => {
       this.setState({ attachmentValid: false });
       this.hideDropzoneErrorPopup();
+
+      const errorMessage = this.parseDropzoneError(error, xhr.status);
 
       switch (errorMessage) {
         case DUPLICATE_FILE_NAME:
@@ -58,7 +61,12 @@ class Dropzone extends Component {
         case UPLOAD_CANCELED:
           break;
         default:
-          this.props.uploadAttachmentFailed();
+          this.props.transformAndHandleError(
+            errorMessage,
+            this.props.caseId,
+            xhr.status,
+            `/cases/${this.props.caseId}`
+          );
       }
     },
     complete: file => {
@@ -71,6 +79,19 @@ class Dropzone extends Component {
     sending: (file, xhr, formData) => {
       formData.append("description", this.state.attachmentDescription);
     }
+  };
+
+  parseDropzoneError = (errorMessage, responseStatus) => {
+    if (responseStatus === 503) {
+      return "Something went wrong and the file was not attached";
+    }
+    if (errorMessage.isBoom) {
+      return errorMessage.output.payload.message;
+    }
+    if (errorMessage.message) {
+      return errorMessage.message;
+    }
+    return errorMessage;
   };
 
   djsconfig = {

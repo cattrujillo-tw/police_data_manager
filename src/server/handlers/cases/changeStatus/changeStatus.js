@@ -1,4 +1,4 @@
-import { RECIPIENT, SENDER } from "../referralLetters/letterDefaults";
+import { RECIPIENT, SENDER } from "../referralLetters/referralLetterDefaults";
 import {
   ACCUSED,
   USER_PERMISSIONS
@@ -11,7 +11,7 @@ const models = require("../../../models/index");
 import { getCaseWithAllAssociations } from "../../getCaseHelpers";
 const Boom = require("boom");
 const { AUDIT_SUBJECT } = require("../../../../sharedUtilities/constants");
-const auditDataAccess = require("../../auditDataAccess");
+import auditDataAccess from "../../auditDataAccess";
 import _ from "lodash";
 import { BAD_REQUEST_ERRORS } from "../../../../sharedUtilities/errorMessageConstants";
 
@@ -40,10 +40,7 @@ const changeStatus = asyncMiddleware(async (request, response, next) => {
   const currentCase = await models.sequelize.transaction(async transaction => {
     let validationErrors = [];
 
-    const caseToUpdate = await models.cases.findById(request.params.caseId);
-    if (!caseToUpdate) {
-      throw Boom.badRequest(BAD_REQUEST_ERRORS.CASE_DOES_NOT_EXIST);
-    }
+    const caseToUpdate = await models.cases.findByPk(request.params.caseId);
 
     if (!canUpdateCaseToNewStatus(newStatus, request.permissions)) {
       throw Boom.badRequest(

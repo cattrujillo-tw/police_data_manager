@@ -19,7 +19,7 @@ const updateOfficerDataFromS3 = async (
     const officerBucketName = config[process.env.NODE_ENV].officerBucket;
 
     const parser = csvParse({
-      auto_parse: parseNullValues,
+      cast: parseNullValues,
       columns: true,
       trim: true
     });
@@ -70,7 +70,7 @@ const updateOfficerDataFromS3 = async (
 
 const determineWhetherToCreateOrUpdateOfficer = async seedDataRow => {
   const officerNumber = seedDataRow.officerNumber;
-  const existingOfficer = await models.officer.find({
+  const existingOfficer = await models.officer.findOne({
     where: { officerNumber }
   });
 

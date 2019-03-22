@@ -7,12 +7,12 @@ const models = require("../../../models/index");
 const asyncMiddleware = require("../../asyncMiddleware");
 import { getCaseWithAllAssociations } from "../../getCaseHelpers";
 const { AUDIT_SUBJECT } = require("../../../../sharedUtilities/constants");
-const auditDataAccess = require("../../auditDataAccess");
+import auditDataAccess from "../../auditDataAccess";
 
 const addCaseOfficer = asyncMiddleware(async (request, response, next) => {
   const { officerId, notes, roleOnCase } = request.body;
 
-  const retrievedCase = await models.cases.findById(request.params.caseId);
+  const retrievedCase = await models.cases.findByPk(request.params.caseId);
   const referralLetter = await models.referral_letter.findOne({
     where: { caseId: request.params.caseId }
   });

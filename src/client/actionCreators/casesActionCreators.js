@@ -7,12 +7,13 @@ import {
   ADDRESS_VALIDITY_UPDATED,
   ARCHIVE_CASE_DIALOG_CLOSED,
   ARCHIVE_CASE_DIALOG_OPENED,
-  ATTACHMENT_UPLOAD_FAILED,
+  ATTACHMENT_UPLOAD_SUCCEEDED,
   CASE_CREATED_SUCCESS,
   CASE_NOTE_DIALOG_CLOSED,
   CASE_NOTE_DIALOG_OPENED,
   CASE_STATUS_UPDATE_DIALOG_CLOSED,
   CASE_STATUS_UPDATE_DIALOG_OPENED,
+  CASE_STATUS_UPDATE_DIALOG_SUBMITTING,
   CIVILIAN_CREATION_SUCCEEDED,
   CIVILIAN_DIALOG_OPENED,
   CREATE_CASE_DIALOG_CLOSED,
@@ -21,20 +22,28 @@ import {
   EDIT_CIVILIAN_DIALOG_CLOSED,
   EDIT_INCIDENT_DETAILS_DIALOG_CLOSED,
   EDIT_INCIDENT_DETAILS_DIALOG_OPENED,
+  GET_ARCHIVED_CASES_SUCCESS,
   GET_CASE_DETAILS_SUCCESS,
   GET_CASE_NOTES_SUCCEEDED,
   GET_MINIMUM_CASE_DETAILS_SUCCESS,
+  GET_WORKING_CASES_SUCCESS,
   INCIDENT_DETAILS_UPDATE_SUCCEEDED,
+  REMOVE_ATTACHMENT_CONFIRMATION_DIALOG_CLOSED,
+  REMOVE_ATTACHMENT_CONFIRMATION_DIALOG_EXITED,
+  REMOVE_ATTACHMENT_CONFIRMATION_DIALOG_OPENED,
   REMOVE_CASE_NOTE_DIALOG_CLOSED,
   REMOVE_CASE_NOTE_DIALOG_OPENED,
   REMOVE_CASE_NOTE_SUCCEEDED,
   REMOVE_PERSON_DIALOG_CLOSED,
   REMOVE_PERSON_DIALOG_OPENED,
   REMOVE_PERSON_SUCCEEDED,
+  RESET_ARCHIVED_CASES_LOADED,
+  RESET_WORKING_CASES_LOADED,
   RESTORE_ARCHIVED_CASE_DIALOG_CLOSED,
   RESTORE_ARCHIVED_CASE_DIALOG_OPENED,
   UPDATE_ALLEGATION_DETAILS_SUCCEEDED,
-  UPDATE_CASE_STATUS_SUCCESS
+  UPDATE_CASE_STATUS_SUCCESS,
+  UPDATE_CASES_TABLE_SORTING
 } from "../../sharedUtilities/constants";
 
 export const createCaseSuccess = caseDetails => ({
@@ -46,9 +55,22 @@ export const requestCaseCreation = () => ({
   type: "CASE_CREATION_REQUESTED"
 });
 
-export const getCasesSuccess = cases => ({
-  type: "GET_CASES_SUCCESS",
+export const getWorkingCasesSuccess = cases => ({
+  type: GET_WORKING_CASES_SUCCESS,
   cases
+});
+
+export const resetWorkingCasesLoaded = () => ({
+  type: RESET_WORKING_CASES_LOADED
+});
+
+export const getArchivedCasesSuccess = cases => ({
+  type: GET_ARCHIVED_CASES_SUCCESS,
+  cases
+});
+
+export const resetArchivedCasesLoaded = () => ({
+  type: RESET_ARCHIVED_CASES_LOADED
 });
 
 export const getCaseDetailsSuccess = caseDetails => ({
@@ -70,10 +92,13 @@ export const updateNarrativeSuccess = caseDetails => ({
   caseDetails
 });
 
-export const updateSort = sortBy => ({
-  type: "SORT_UPDATED",
-  sortBy
-});
+export const updateSort = (sortBy, sortDirection) => {
+  return {
+    type: UPDATE_CASES_TABLE_SORTING,
+    sortBy,
+    sortDirection
+  };
+};
 
 export const openCaseNoteDialog = (dialogType, initialCaseNote) => ({
   type: CASE_NOTE_DIALOG_OPENED,
@@ -92,6 +117,19 @@ export const openRemoveCaseNoteDialog = (activity = {}) => ({
 
 export const closeRemoveCaseNoteDialog = () => ({
   type: REMOVE_CASE_NOTE_DIALOG_CLOSED
+});
+
+export const openRemoveAttachmentConfirmationDialog = attachmentFileName => ({
+  type: REMOVE_ATTACHMENT_CONFIRMATION_DIALOG_OPENED,
+  attachmentFileName
+});
+
+export const closeRemoveAttachmentConfirmationDialog = () => ({
+  type: REMOVE_ATTACHMENT_CONFIRMATION_DIALOG_CLOSED
+});
+
+export const exitedRemoveAttachmentConfirmationDialog = () => ({
+  type: REMOVE_ATTACHMENT_CONFIRMATION_DIALOG_EXITED
 });
 
 export const openCreateCaseDialog = () => ({
@@ -126,17 +164,13 @@ export const editCivilianSuccess = caseDetails => ({
 });
 
 export const uploadAttachmentSuccess = caseDetails => ({
-  type: "ATTACHMENT_UPLOAD_SUCCEEDED",
+  type: ATTACHMENT_UPLOAD_SUCCEEDED,
   caseDetails
 });
 
 export const updateCaseStatusSuccess = caseDetails => ({
   type: UPDATE_CASE_STATUS_SUCCESS,
   caseDetails
-});
-
-export const uploadAttachmentFailed = () => ({
-  type: ATTACHMENT_UPLOAD_FAILED
 });
 
 export const updateIncidentDetailsSuccess = caseDetails => ({
@@ -221,9 +255,14 @@ export const removePersonSuccess = caseDetails => ({
   caseDetails
 });
 
-export const openCaseStatusUpdateDialog = redirectUrl => ({
+export const openCaseStatusUpdateDialog = (nextStatus, redirectUrl = null) => ({
   type: CASE_STATUS_UPDATE_DIALOG_OPENED,
-  redirectUrl: redirectUrl
+  redirectUrl: redirectUrl,
+  nextStatus: nextStatus
+});
+
+export const submitCaseStatusUpdateDialog = () => ({
+  type: CASE_STATUS_UPDATE_DIALOG_SUBMITTING
 });
 
 export const closeCaseStatusUpdateDialog = () => ({

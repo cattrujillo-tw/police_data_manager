@@ -6,12 +6,15 @@ import models from "../../models";
 import Address from "../../../client/testUtilities/Address";
 import {
   buildTokenWithPermissions,
-  cleanupDatabase
+  cleanupDatabase,
+  expectResponse
 } from "../../testHelpers/requestTestHelpers";
 import {
   ADDRESSABLE_TYPE,
   CASE_STATUS
 } from "../../../sharedUtilities/constants";
+
+jest.mock("../cases/export/jobQueue");
 
 describe("DELETE /cases/:caseId/civilians/:civilianId", () => {
   let token;
@@ -52,20 +55,20 @@ describe("DELETE /cases/:caseId/civilians/:civilianId", () => {
     });
     const createdCivilian = createdCase.complainantCivilians[0];
 
-    await request(app)
+    const responsePromise = request(app)
       .delete(`/api/cases/${createdCase.id}/civilians/${createdCivilian.id}`)
       .set("Content-Header", "application/json")
-      .set("Authorization", `Bearer ${token}`)
-      .expect(200)
-      .then(response => {
-        expect(response.body).toEqual(
-          expect.objectContaining({
-            id: createdCase.id,
-            status: CASE_STATUS.ACTIVE,
-            complainantCivilians: []
-          })
-        );
-      });
+      .set("Authorization", `Bearer ${token}`);
+
+    await expectResponse(
+      responsePromise,
+      200,
+      expect.objectContaining({
+        id: createdCase.id,
+        status: CASE_STATUS.ACTIVE,
+        complainantCivilians: []
+      })
+    );
   });
 
   test("should soft delete an existing civilian that has an address", async () => {
@@ -102,33 +105,33 @@ describe("DELETE /cases/:caseId/civilians/:civilianId", () => {
     await createdCivilian.createAddress(address, { auditUser: "someone" });
     await createdCivilian.reload({ include: [models.address] });
 
-    await request(app)
+    const responsePromise = request(app)
       .delete(`/api/cases/${createdCase.id}/civilians/${createdCivilian.id}`)
       .set("Content-Header", "application/json")
-      .set("Authorization", `Bearer ${token}`)
-      .expect(200)
-      .then(response => {
-        expect(response.body).toEqual(
-          expect.objectContaining({
-            id: createdCase.id,
-            status: CASE_STATUS.ACTIVE,
-            complainantCivilians: []
-          })
-        );
-      });
+      .set("Authorization", `Bearer ${token}`);
+
+    await expectResponse(
+      responsePromise,
+      200,
+      expect.objectContaining({
+        id: createdCase.id,
+        status: CASE_STATUS.ACTIVE,
+        complainantCivilians: []
+      })
+    );
 
     //assert that address is not returned by find
-    const civilianAddress = await models.address.findById(
+    const civilianAddress = await models.address.findByPk(
       createdCivilian.address.id
     );
     expect(civilianAddress).toEqual(null);
 
     //assert that civilian is not returned by find
-    const civilianInTable = await models.civilian.findById(createdCivilian.id);
+    const civilianInTable = await models.civilian.findByPk(createdCivilian.id);
     expect(civilianInTable).toEqual(null);
 
     //assert that civilian is still in table
-    const softDeletedCivilianInTable = await models.civilian.findById(
+    const softDeletedCivilianInTable = await models.civilian.findByPk(
       createdCivilian.id,
       {
         paranoid: false

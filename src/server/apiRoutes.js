@@ -1,5 +1,5 @@
 import getCase from "./handlers/cases/getCase/getCase";
-import getCases from "./handlers/cases/getCases";
+import getWorkingCases from "./handlers/cases/getCases/getWorkingCases";
 import createCase from "./handlers/cases/createCase";
 import editCase from "./handlers/cases/editCase";
 import archiveCase from "./handlers/cases/archiveCase/archiveCase";
@@ -21,14 +21,14 @@ import createOfficerAllegation from "./handlers/officerAllegations/createOfficer
 import editOfficerAllegation from "./handlers/officerAllegations/editOfficerAllegation/editOfficerAllegation";
 import removeOfficerAllegation from "./handlers/officerAllegations/removeOfficerAllegation/removeOfficerAllegation";
 import getReferralLetterData from "./handlers/cases/referralLetters/getReferralLetterData/getReferralLetterData";
-import getLetterPreview from "./handlers/cases/referralLetters/getLetterPreview/getLetterPreview";
+import getReferralLetterPreview from "./handlers/cases/referralLetters/getReferralLetterPreview/getReferralLetterPreview";
 import editOfficerHistory from "./handlers/cases/referralLetters/editOfficerHistory/editOfficerHistory";
 import editIAProCorrections from "./handlers/cases/referralLetters/editIAProCorrections/editIAProCorrections";
 import editRecommendedActions from "./handlers/cases/referralLetters/editRecommendedActions/editRecommendedActions";
 import editReferralLetterAddresses from "./handlers/cases/referralLetters/editReferralLetter/editReferralLetterAddresses";
 import editReferralLetterContent from "./handlers/cases/referralLetters/editReferralLetter/editReferralLetterContent";
 import createCivilian from "./handlers/civilians/createCivilian";
-import getLetterType from "./handlers/cases/referralLetters/getLetterType/getLetterType";
+import getReferralLetterEditStatus from "./handlers/cases/referralLetters/getReferralLetterEditStatus/getReferralLetterEditStatus";
 import editCivilian from "./handlers/civilians/editCivilian";
 import removeCivilian from "./handlers/civilians/removeCivilian";
 import audit from "./handlers/auditLogs/audit";
@@ -39,16 +39,20 @@ import getClassifications from "./handlers/classifications/getClassifications";
 import getIntakeSources from "./handlers/intake_sources/getIntakeSources";
 import getRaceEthnicities from "./handlers/race_ethnicities/getRaceEthnicities";
 import getRecommendedActions from "./handlers/cases/referralLetters/getRecommendedActions/getRecommendedActions";
-import getFinalPdfUrl from "./handlers/cases/referralLetters/getFinalPdfUrl/getFinalPdfUrl";
-import getPdf from "./handlers/cases/referralLetters/getPdf/getPdf";
+import getFinalPdfDownloadUrl from "./handlers/cases/referralLetters/getFinalPdfDownloadUrl/getFinalPdfDownloadUrl";
+import getReferralLetterPdf from "./handlers/cases/referralLetters/getReferralLetterPdf/getReferralLetterPdf";
 import approveLetter from "./handlers/cases/referralLetters/approveLetter/approveLetter";
-import generateAttachmentDownloadUrl from "./handlers/cases/attachments/generateAttachmentDownloadUrl";
+import getAttachmentDownloadUrl from "./handlers/cases/attachments/getAttachmentDownloadUrl";
 import uploadAttachment from "./handlers/cases/attachments/uploadAttachment";
 import deleteAttachment from "./handlers/cases/attachments/deleteAttachment";
+import getArchivedCases from "./handlers/cases/getCases/getArchivedCases";
+import getOfficerHistoryOptions from "./handlers/cases/referralLetters/getOfficerHistoryOptions/getOfficerHistoryOptions";
+import getHowDidYouHearAboutUsSources from "./handlers/howDidYouHearAboutUsSources/getHowDidYouHearAboutUsSources";
 
-export const ROUTES_ALLOWED_TO_MODIFY_ARCHIVED_CASE = [
+export const ROUTES_ALLOWED_TO_HANDLE_ARCHIVED_CASE = [
   "/cases/:caseId/case-notes",
-  "/cases/:caseId/restore"
+  "/cases/:caseId/restore",
+  "/cases/:caseId/attachments"
 ];
 
 export const API_ROUTES = {
@@ -67,15 +71,24 @@ export const API_ROUTES = {
     }
   },
   "/cases": {
-    get: {
-      handler: getCases,
-      errorMessage:
-        "Something went wrong and the cases were not loaded. Please try again."
-    },
     post: {
       handler: createCase,
       errorMessage:
         "Something went wrong and the case was not created. Please try again."
+    }
+  },
+  "/cases/all/:sortBy/:sortDirection": {
+    get: {
+      handler: getWorkingCases,
+      errorMessage:
+        "Something went wrong and the cases were not loaded. Please try again."
+    }
+  },
+  "/cases/all/archived-cases/:sortBy/:sortDirection": {
+    get: {
+      handler: getArchivedCases,
+      errorMessage:
+        "Something went wrong and the archived cases were not loaded. Please try again."
     }
   },
   "/cases/:caseId": {
@@ -106,7 +119,7 @@ export const API_ROUTES = {
     get: {
       handler: getMinimumCaseDetails,
       errorMessage:
-        "Something went wrong and the case details could not be loaded. Please try again."
+        "Something went wrong and the case details were not loaded. Please try again."
     }
   },
   "/cases/:caseId/status": {
@@ -192,7 +205,7 @@ export const API_ROUTES = {
         "Something went wrong and the allegation was not removed. Please try again."
     }
   },
-  "/cases/:caseId/attachments/": {
+  "/cases/:caseId/attachments": {
     post: {
       handler: uploadAttachment,
       errorMessage:
@@ -208,9 +221,9 @@ export const API_ROUTES = {
   },
   "/cases/:caseId/attachmentUrls/:fileName": {
     get: {
-      handler: generateAttachmentDownloadUrl,
+      handler: getAttachmentDownloadUrl,
       errorMessage:
-        "Something went wrong and the attachment URL could not be found. Please try again."
+        "Something went wrong and the attachment URL was not found. Please try again."
     }
   },
   "/cases/:caseId/referral-letter": {
@@ -222,14 +235,14 @@ export const API_ROUTES = {
   },
   "/cases/:caseId/referral-letter/preview": {
     get: {
-      handler: getLetterPreview,
+      handler: getReferralLetterPreview,
       errorMessage:
         "Something went wrong and the letter preview was not loaded. Please try again."
     }
   },
-  "/cases/:caseId/referral-letter/letter-type": {
+  "/cases/:caseId/referral-letter/edit-status": {
     get: {
-      handler: getLetterType,
+      handler: getReferralLetterEditStatus,
       errorMessage:
         "Something went wrong and the referral letter details were not loaded. Please try again."
     }
@@ -252,7 +265,7 @@ export const API_ROUTES = {
     put: {
       handler: editRecommendedActions,
       errorMessage:
-        "Something went wrong and we could not update the recommended actions information"
+        "Something went wrong and the recommended actions were not updated. Please try again."
     }
   },
   "/cases/:caseId/referral-letter/addresses": {
@@ -269,18 +282,18 @@ export const API_ROUTES = {
         "Something went wrong and the letter was not updated. Please try again."
     }
   },
-  "/cases/:caseId/referral-letter/final-pdf-url": {
+  "/cases/:caseId/referral-letter/final-pdf-download-url": {
     get: {
-      handler: getFinalPdfUrl,
+      handler: getFinalPdfDownloadUrl,
       errorMessage:
-        "Something went wrong and the pdf URL was not found. Please try again."
+        "Something went wrong and the PDF URL was not found. Please try again."
     }
   },
   "/cases/:caseId/referral-letter/get-pdf": {
     get: {
-      handler: getPdf,
+      handler: getReferralLetterPdf,
       errorMessage:
-        "Something went wrong and the pdf was not loaded. Please try again."
+        "Something went wrong and the PDF was not loaded. Please try again."
     }
   },
   "/cases/:caseId/referral-letter/approve-letter": {
@@ -334,35 +347,49 @@ export const API_ROUTES = {
     get: {
       handler: getAllegations,
       errorMessage:
-        "Something went wrong and the allegation values could not be found. Please try again."
+        "Something went wrong and the allegation values were not found. Please try again."
     }
   },
   "/classifications": {
     get: {
       handler: getClassifications,
       errorMessage:
-        "Something went wrong and the classification values could not be found. Please try again."
+        "Something went wrong and the classification values were not found. Please try again."
     }
   },
   "/intake-sources": {
     get: {
       handler: getIntakeSources,
       errorMessage:
-        "Something went wrong and the intake source values could not be found. Please try again."
+        "Something went wrong and the intake source values were not found. Please try again."
+    }
+  },
+  "/how-did-you-hear-about-us-sources": {
+    get: {
+      handler: getHowDidYouHearAboutUsSources,
+      errorMessage:
+        "Something went wrong and the values for 'How did you hear about us?' were not found. Please try again."
     }
   },
   "/race-ethnicities": {
     get: {
       handler: getRaceEthnicities,
       errorMessage:
-        "Something went wrong and the race/ethnicity values could not be found. Please try again."
+        "Something went wrong and the race/ethnicity values were not found. Please try again."
     }
   },
   "/recommended-actions": {
     get: {
       handler: getRecommendedActions,
       errorMessage:
-        "Something went wrong and the recommended action values could not be found. Please try again."
+        "Something went wrong and the recommended action values were not found. Please try again."
+    }
+  },
+  "/officer-history-options": {
+    get: {
+      handler: getOfficerHistoryOptions,
+      errorMessage:
+        "Something went wrong and the officer history options could not be found. Please try again."
     }
   }
 };

@@ -3,7 +3,7 @@ const asyncMiddleware = require("../../asyncMiddleware");
 import { getCaseWithAllAssociations } from "../../getCaseHelpers";
 const models = require("../../../models");
 const _ = require("lodash");
-const auditDataAccess = require("../../auditDataAccess");
+import auditDataAccess from "../../auditDataAccess";
 
 const createOfficerAllegation = asyncMiddleware(async (request, response) => {
   const allegationAttributes = _.pick(request.body, [
@@ -14,7 +14,7 @@ const createOfficerAllegation = asyncMiddleware(async (request, response) => {
 
   const caseWithAssociations = await models.sequelize.transaction(
     async transaction => {
-      const caseOfficer = await models.case_officer.findById(
+      const caseOfficer = await models.case_officer.findByPk(
         request.params.caseOfficerId,
         { transaction }
       );

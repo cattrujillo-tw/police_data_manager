@@ -7,16 +7,18 @@ import { BrowserRouter as Router } from "react-router-dom";
 import createConfiguredStore from "../createConfiguredStore";
 import { openSnackbar } from "../actionCreators/snackBarActionCreators";
 import { mockLocalStorage } from "../../mockLocalStorage";
-import { getCasesSuccess } from "../actionCreators/casesActionCreators";
+import { getWorkingCasesSuccess } from "../actionCreators/casesActionCreators";
 import Case from "../testUtilities/case";
 import getCases from "./thunks/getCases";
+import { containsText } from "../testHelpers";
+import { DESCENDING, SORT_CASES_BY } from "../../sharedUtilities/constants";
 
 jest.mock("./thunks/getCases", () => () => ({
   type: "MOCK_GET_CASES_THUNK"
 }));
 
 describe("CaseDashboard", () => {
-  let caseDashboard, store, dispatchSpy, cases;
+  let caseDashboardWrapper, store, dispatchSpy, cases;
 
   beforeEach(() => {
     mockLocalStorage();
@@ -29,12 +31,12 @@ describe("CaseDashboard", () => {
     cases = [newCase, newCase2];
 
     store = createConfiguredStore();
-    store.dispatch(getCasesSuccess(cases));
+    store.dispatch(getWorkingCasesSuccess(cases));
     store.dispatch(openSnackbar());
 
     dispatchSpy = jest.spyOn(store, "dispatch");
 
-    caseDashboard = mount(
+    caseDashboardWrapper = mount(
       <Provider store={store}>
         <Router>
           <CaseDashboard />
@@ -43,13 +45,28 @@ describe("CaseDashboard", () => {
     );
   });
 
+  test("should display no cases message", () => {
+    store.dispatch(getWorkingCasesSuccess([]));
+    caseDashboardWrapper.update();
+
+    expect(
+      containsText(
+        caseDashboardWrapper,
+        '[data-test="no-cases-message"]',
+        "There are no cases to view"
+      )
+    );
+  });
+
   test("should display navbar with title", () => {
-    const navBar = caseDashboard.find(NavBar);
+    const navBar = caseDashboardWrapper.find(NavBar);
     expect(navBar.contains("View All Cases")).toEqual(true);
   });
 
   test("should load all cases when mounted", () => {
-    expect(dispatchSpy).toHaveBeenCalledWith(getCases());
+    expect(dispatchSpy).toHaveBeenCalledWith(
+      getCases(SORT_CASES_BY.CASE_REFERENCE, DESCENDING)
+    );
   });
 
   test("should close snackbar when mounted", () => {

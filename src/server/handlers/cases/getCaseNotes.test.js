@@ -37,7 +37,7 @@ describe("getCaseNotes", function() {
 
     await getCaseNotes(request, response, next);
 
-    const actionAudit = await models.action_audit.find({
+    const actionAudit = await models.action_audit.findOne({
       where: { caseId: existingCase.id }
     });
 
@@ -47,7 +47,10 @@ describe("getCaseNotes", function() {
         auditType: AUDIT_TYPE.DATA_ACCESS,
         action: AUDIT_ACTION.DATA_ACCESSED,
         subject: AUDIT_SUBJECT.CASE_NOTES,
-        caseId: existingCase.id
+        caseId: existingCase.id,
+        subjectDetails: {
+          "Case Note": ["All Case Note Data"]
+        }
       })
     );
   });

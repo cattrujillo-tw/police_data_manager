@@ -3,7 +3,8 @@ import models from "../../../models";
 import {
   CIVILIAN_INITIATED,
   COMPLAINANT,
-  LETTER_TYPE,
+  COMPLAINANT_LETTER,
+  EDIT_STATUS,
   RANK_INITIATED,
   REFERRAL_LETTER_VERSION
 } from "../../../../sharedUtilities/constants";
@@ -51,7 +52,7 @@ describe("constructFilename", function() {
     const filename = constructFilename(
       existingCase,
       REFERRAL_LETTER_VERSION.DRAFT,
-      LETTER_TYPE.GENERATED
+      EDIT_STATUS.GENERATED
     );
     const expectedFilename =
       "5-5-2012_CC2012-0001_Generated_Referral_Draft_Smith.pdf";
@@ -63,7 +64,7 @@ describe("constructFilename", function() {
     const filename = constructFilename(
       existingCase,
       REFERRAL_LETTER_VERSION.DRAFT,
-      LETTER_TYPE.GENERATED
+      EDIT_STATUS.GENERATED
     );
     const expectedFilename =
       "5-5-2012_CC2012-0001_Generated_Referral_Draft.pdf";
@@ -75,7 +76,7 @@ describe("constructFilename", function() {
     const filename = constructFilename(
       existingCase,
       REFERRAL_LETTER_VERSION.DRAFT,
-      LETTER_TYPE.EDITED
+      EDIT_STATUS.EDITED
     );
     const expectedFilename =
       "5-5-2012_CC2012-0001_Edited_Referral_Draft_Smith.pdf";
@@ -87,7 +88,7 @@ describe("constructFilename", function() {
     const filename = constructFilename(
       existingCase,
       REFERRAL_LETTER_VERSION.DRAFT,
-      LETTER_TYPE.EDITED
+      EDIT_STATUS.EDITED
     );
     const expectedFilename = "5-5-2012_CC2012-0001_Edited_Referral_Draft.pdf";
     expect(filename).toEqual(expectedFilename);
@@ -98,11 +99,19 @@ describe("constructFilename", function() {
     const filename = constructFilename(
       existingCase,
       REFERRAL_LETTER_VERSION.DRAFT,
-      LETTER_TYPE.EDITED
+      EDIT_STATUS.EDITED
     );
     const expectedFilename =
       "5-5-2012_PO2012-0001_Edited_Referral_Draft_Unknown_Officer.pdf";
     expect(filename).toEqual(expectedFilename);
+  });
+
+  test("returned correct filename when letterType is complainant", async () => {
+    const existingCase = await createCase(CIVILIAN_INITIATED);
+    const filename = constructFilename(existingCase, COMPLAINANT_LETTER);
+    expect(filename).toEqual(
+      "5-5-2012_CC2012-0001_Letter_to_Complainant_Smith.pdf"
+    );
   });
 });
 
@@ -111,7 +120,7 @@ const createCase = async complaintType => {
     complaintType === CIVILIAN_INITIATED
       ? [
           {
-            firstName: "First",
+            firstName: "SecondCivFirstName",
             lastName: "Second Civ Complainant",
             createdAt: "2018-02-01"
           },

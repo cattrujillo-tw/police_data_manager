@@ -6,10 +6,13 @@ import {
   isPresent,
   newLineToLineBreak,
   renderHtml,
-  showOfficerHistory,
   showOfficerHistoryHeader,
   showRecommendedActions,
-  sumAllegations
+  sumAllegations,
+  addNumbers,
+  isGreaterThan,
+  atLeastOneInputDefined,
+  isEqual
 } from "./handlebarHelpers";
 import { SIGNATURE_URLS } from "../sharedUtilities/constants";
 
@@ -164,76 +167,14 @@ describe("handlebarHelpers", function() {
     });
   });
 
-  describe("showOfficerHistory", function() {
-    test("there are no historical allegations, historical behavior notes, or officer history notes", () => {
-      const letterOfficer = {
-        numHistoricalHighAllegations: undefined,
-        numHistoricalMedAllegations: undefined,
-        numHistoricalLowAllegations: undefined,
-        historicalBehaviorNotes: "",
-        referralLetterOfficerHistoryNotes: []
-      };
-      const showHistory = showOfficerHistory(letterOfficer);
-      expect(showHistory).toBeFalsy();
-    });
-
-    test("there are only allegations", () => {
-      const letterOfficer = {
-        numHistoricalHighAllegations: 1,
-        numHistoricalMedAllegations: undefined,
-        numHistoricalLowAllegations: undefined,
-        historicalBehaviorNotes: "",
-        referralLetterOfficerHistoryNotes: []
-      };
-      const showHistory = showOfficerHistory(letterOfficer);
-      expect(showHistory).toBeTruthy();
-    });
-
-    test("there are only behavior notes", () => {
-      const letterOfficer = {
-        numHistoricalHighAllegations: undefined,
-        numHistoricalMedAllegations: undefined,
-        numHistoricalLowAllegations: undefined,
-        historicalBehaviorNotes: "a note",
-        referralLetterOfficerHistoryNotes: []
-      };
-      const showHistory = showOfficerHistory(letterOfficer);
-      expect(showHistory).toBeTruthy();
-    });
-
-    test("there are notes officer history notes", () => {
-      const letterOfficer = {
-        numHistoricalHighAllegations: undefined,
-        numHistoricalMedAllegations: undefined,
-        numHistoricalLowAllegations: undefined,
-        historicalBehaviorNotes: "",
-        referralLetterOfficerHistoryNotes: [{ a: "note" }]
-      };
-      const showHistory = showOfficerHistory(letterOfficer);
-      expect(showHistory).toBeTruthy();
-    });
-  });
-
   describe("showOfficerHistoryHeader", function() {
-    test("no officers have any officer history", () => {
+    test("no officers have history option id", () => {
       const accusedOfficers = [
         {
-          letterOfficer: {
-            numHistoricalHighAllegations: undefined,
-            numHistoricalMedAllegations: undefined,
-            numHistoricalLowAllegations: undefined,
-            historicalBehaviorNotes: "",
-            referralLetterOfficerHistoryNotes: []
-          }
+          letterOfficer: {}
         },
         {
-          letterOfficer: {
-            numHistoricalHighAllegations: undefined,
-            numHistoricalMedAllegations: undefined,
-            numHistoricalLowAllegations: undefined,
-            historicalBehaviorNotes: "",
-            referralLetterOfficerHistoryNotes: []
-          }
+          letterOfficer: {}
         }
       ];
 
@@ -241,25 +182,16 @@ describe("handlebarHelpers", function() {
       expect(showHeader).toBeFalsy();
     });
 
-    test("one officer has some history", () => {
+    test("one officer has history option id", () => {
       const accusedOfficers = [
         {
           letterOfficer: {
-            numHistoricalHighAllegations: 1,
-            numHistoricalMedAllegations: undefined,
-            numHistoricalLowAllegations: undefined,
-            historicalBehaviorNotes: "",
-            referralLetterOfficerHistoryNotes: []
+            officerHistoryOptionId: 4,
+            numHistoricalHighAllegations: 1
           }
         },
         {
-          letterOfficer: {
-            numHistoricalHighAllegations: undefined,
-            numHistoricalMedAllegations: undefined,
-            numHistoricalLowAllegations: undefined,
-            historicalBehaviorNotes: "",
-            referralLetterOfficerHistoryNotes: []
-          }
+          letterOfficer: {}
         }
       ];
 
@@ -267,15 +199,12 @@ describe("handlebarHelpers", function() {
       expect(showHeader).toBeTruthy();
     });
 
-    test("all officers have some history", () => {
+    test("all officers have history option id", () => {
       const accusedOfficers = [
         {
           letterOfficer: {
             numHistoricalHighAllegations: 1,
-            numHistoricalMedAllegations: undefined,
-            numHistoricalLowAllegations: undefined,
-            historicalBehaviorNotes: "",
-            referralLetterOfficerHistoryNotes: []
+            officerHistoryOptionId: 4
           }
         },
         {
@@ -284,7 +213,22 @@ describe("handlebarHelpers", function() {
             numHistoricalMedAllegations: 2,
             numHistoricalLowAllegations: 3,
             historicalBehaviorNotes: "notes",
-            referralLetterOfficerHistoryNotes: [{ a: "note" }]
+            referralLetterOfficerHistoryNotes: [{ a: "note" }],
+            officerHistoryOptionId: 4
+          }
+        }
+      ];
+
+      const showHeader = showOfficerHistoryHeader(accusedOfficers);
+      expect(showHeader).toBeTruthy();
+    });
+
+    test("Unknown officer shows header", () => {
+      const accusedOfficers = [
+        {
+          fullName: "Unknown Officer",
+          letterOfficer: {
+            officerHistoryOptionId: null
           }
         }
       ];
@@ -456,9 +400,9 @@ describe("generate subject line", function() {
   const caseReference = "CC2019-0027";
   const pibCaseNumber = "2019-0027-R";
   const supplementalSubjectLine =
-    "Supplemental Referral; IPM Complaint CC2019-0027; PIB Case 2019-0027-R";
+    "Supplemental Referral; OIPM Complaint CC2019-0027; PIB Case 2019-0027-R";
   const subjectLineWithoutPibCaseNumber =
-    "Complaint Referral; IPM Complaint CC2019-0027";
+    "Complaint Referral; OIPM Complaint CC2019-0027";
 
   test("returns supplemental subject line whe pib case number present", () => {
     expect(generateSubjectLine(caseReference, pibCaseNumber)).toEqual(
@@ -469,5 +413,41 @@ describe("generate subject line", function() {
     expect(generateSubjectLine(caseReference, null)).toEqual(
       subjectLineWithoutPibCaseNumber
     );
+  });
+});
+
+describe("index functions", function() {
+  test("returns index + 1", () => {
+    expect(addNumbers(1, 1)).toEqual(2);
+  });
+  test("returns true when index is greater than 1", () => {
+    expect(isGreaterThan(2, 1)).toBeTruthy();
+  });
+  test("returns false when index is 1", () => {
+    expect(isGreaterThan(1, 1)).toBeFalsy();
+  });
+});
+
+describe("check if arrays are empty", function() {
+  test("returns true when at least one input is not empty", () => {
+    expect(atLeastOneInputDefined(null, [1])).toBeTruthy();
+  });
+
+  test("returns false when everything is not defined", () => {
+    expect(atLeastOneInputDefined(null, [])).toBeFalsy();
+  });
+
+  test("returns false when one input is undefined and one is null", () => {
+    expect(atLeastOneInputDefined(undefined, null)).toBeFalsy();
+  });
+});
+
+describe("officer history helpers", function() {
+  test("returns true when inputs are equal to 1", () => {
+    expect(isEqual(1, 1)).toBeTruthy();
+  });
+
+  test("returns false when integer and string are same value", () => {
+    expect(isEqual("1", 1)).toBeFalsy();
   });
 });

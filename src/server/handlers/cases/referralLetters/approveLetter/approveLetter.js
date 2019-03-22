@@ -3,20 +3,25 @@ import models from "../../../../models";
 import {
   AUDIT_SUBJECT,
   CASE_STATUS,
+  COMPLAINANT_LETTER,
   REFERRAL_LETTER_VERSION,
   USER_PERMISSIONS
 } from "../../../../../sharedUtilities/constants";
-import generateLetterPdfBuffer from "../sharedReferralLetterUtilities/generateLetterPdfBuffer";
-import uploadLetterToS3 from "./uploadLetterToS3";
+import generateReferralLetterPdfBuffer from "../getReferralLetterPdf/generateReferralLetterPdfBuffer";
+import uploadLetterToS3 from "../sharedLetterUtilities/uploadLetterToS3";
 import Boom from "boom";
-import auditUpload from "./auditUpload";
+import auditUpload from "../sharedLetterUtilities/auditUpload";
 import constructFilename from "../constructFilename";
 import { BAD_REQUEST_ERRORS } from "../../../../../sharedUtilities/errorMessageConstants";
+import generateComplainantLetterAndUploadToS3 from "./generateComplainantLetterAndUploadToS3";
+import auditDataAccess from "../../../auditDataAccess";
+import config from "../../../../config/config";
 
 const approveLetter = asyncMiddleware(async (request, response, next) => {
   validateUserPermissions(request);
 
   const caseId = request.params.caseId;
+  const nickname = request.nickname;
   const existingCase = await getCase(caseId);
   validateCaseStatus(existingCase);
 
@@ -26,13 +31,30 @@ const approveLetter = asyncMiddleware(async (request, response, next) => {
   );
 
   await models.sequelize.transaction(async transaction => {
-    await generateLetterAndUploadToS3(caseId, filename, transaction);
-
-    await saveFilename(filename, caseId, request.nickname, transaction);
-    await auditUpload(
-      request.nickname,
+    const complainantLetter = await generateComplainantLetterAndUploadToS3(
+      existingCase,
+      nickname,
+      transaction
+    );
+    await createComplainantLetterAttachment(
+      existingCase.id,
+      complainantLetter.finalPdfFilename,
+      transaction,
+      nickname
+    );
+    await auditDataAccess(
+      nickname,
       caseId,
-      AUDIT_SUBJECT.REFERRAL_LETTER_PDF,
+      AUDIT_SUBJECT.CASE_DETAILS,
+      transaction
+    );
+    await generateReferralLetterAndUploadToS3(caseId, filename, transaction);
+
+    await saveFilename(filename, caseId, nickname, transaction);
+    await auditUpload(
+      nickname,
+      caseId,
+      AUDIT_SUBJECT.FINAL_REFERRAL_LETTER_PDF,
       transaction
     );
     await transitionCaseToForwardedToAgency(existingCase, request, transaction);
@@ -40,21 +62,49 @@ const approveLetter = asyncMiddleware(async (request, response, next) => {
   response.status(200).send();
 });
 
+const createComplainantLetterAttachment = async (
+  caseId,
+  fileName,
+  transaction,
+  nickname
+) => {
+  await models.attachment.create(
+    {
+      fileName: fileName,
+      description: COMPLAINANT_LETTER,
+      caseId: caseId
+    },
+    {
+      transaction: transaction,
+      auditUser: nickname
+    }
+  );
+};
+
 const validateCaseStatus = existingCase => {
   if (existingCase.status !== CASE_STATUS.READY_FOR_REVIEW) {
     throw Boom.badRequest(BAD_REQUEST_ERRORS.INVALID_CASE_STATUS_FOR_UPDATE);
   }
 };
 
-const generateLetterAndUploadToS3 = async (caseId, filename, transaction) => {
+const generateReferralLetterAndUploadToS3 = async (
+  caseId,
+  filename,
+  nickname,
+  transaction
+) => {
   const includeSignature = true;
-  const generatedReferralLetterPdf = await generateLetterPdfBuffer(
+  const generatedReferralLetterPdf = await generateReferralLetterPdfBuffer(
     caseId,
     includeSignature,
     transaction
   );
 
-  await uploadLetterToS3(filename, generatedReferralLetterPdf);
+  await uploadLetterToS3(
+    filename,
+    generatedReferralLetterPdf,
+    config[process.env.NODE_ENV].referralLettersBucket
+  );
 };
 
 const transitionCaseToForwardedToAgency = async (
@@ -69,7 +119,7 @@ const transitionCaseToForwardedToAgency = async (
 };
 
 const saveFilename = async (filename, caseId, auditUser, transaction) => {
-  const referralLetter = await models.referral_letter.find({
+  const referralLetter = await models.referral_letter.findOne({
     where: { caseId: caseId }
   });
   await referralLetter.update(
@@ -89,7 +139,7 @@ const validateUserPermissions = request => {
 };
 
 const getCase = async caseId => {
-  return await models.cases.findById(caseId, {
+  return await models.cases.findByPk(caseId, {
     include: [
       {
         model: models.case_officer,
@@ -97,7 +147,8 @@ const getCase = async caseId => {
       },
       {
         model: models.civilian,
-        as: "complainantCivilians"
+        as: "complainantCivilians",
+        include: [models.address]
       }
     ]
   });
