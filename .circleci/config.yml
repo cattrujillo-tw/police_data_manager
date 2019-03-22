@@ -59,13 +59,12 @@ jobs:
 
   security-check:
     docker:
-      - image: docker:stable
+      - image: hawkeyesec/scanner-cli:latest
     steps:
       - checkout
-      - setup_remote_docker
-      - run:
-          name: Run Security Checks
-          command: ./scripts/security-checks.sh
+      - run: /bin/sh ./scripts/security-checks.sh
+      - store_artifacts:
+          path: hawkeye_report.json
 
   build-and-publish-master:
     docker:
@@ -209,7 +208,7 @@ jobs:
 
   e2e-testing-staging:
     docker:
-      - image: noipm/nightwatch-chrome:latest
+      - image: noipm/e2e:latest
     steps:
       - checkout
       - run:
