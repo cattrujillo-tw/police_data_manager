@@ -391,11 +391,8 @@ workflows:
             - deploy-production
   test_workflow:
     jobs:
-      - test-build-and-publish:
+      - security-check:
           filters:
             branches:
               only:
                 - test-branch
-      - test-deploy:
-          requires:
-            - test-build-and-publish
