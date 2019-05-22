@@ -16,6 +16,7 @@ export const CASE_CREATED_SUCCESS = "CASE_CREATED_SUCCESS";
 export const GET_CASE_DETAILS_SUCCESS = "GET_CASE_DETAILS_SUCCESS";
 export const GET_MINIMUM_CASE_DETAILS_SUCCESS =
   "GET_MINIMUM_CASE_DETAILS_SUCCESS";
+export const ARCHIVE_CASE_SUCCESS = "ARCHIVE_CASE_SUCCESS";
 export const ATTACHMENT_UPLOAD_SUCCEEDED = "ATTACHMENT_UPLOAD_SUCCEEDED";
 export const ATTACHMENT_UPLOAD_FAILED = "ATTACHMENT_UPLOAD_FAILED";
 export const INCIDENT_DETAILS_UPDATE_SUCCEEDED =
@@ -76,6 +77,10 @@ export const GET_HOW_DID_YOU_HEAR_ABOUT_US_SOURCES_SUCCEEDED =
 export const GET_RACE_ETHNICITIES_SUCCEEDED = "GET_RACE_ETHNICITIES_SUCCEEDED";
 export const GET_OFFICER_HISTORY_OPTIONS_SUCCEEDED =
   "GET_OFFICER_HISTORY_OPTIONS_SUCCEEDED";
+export const GET_GENDER_IDENTITIES_SUCCEEDED =
+  "GET_GENDER_IDENTITIES_SUCCEEDED";
+export const GET_CASE_NOTE_ACTIONS_SUCCEEDED =
+  "GET_CASE_NOTE_ACTIONS_SUCCEEDED";
 
 export const GET_RECOMMENDED_ACTIONS_SUCCESS =
   "GET_RECOMMENDED_ACTIONS_SUCCESS";
@@ -120,8 +125,8 @@ export const REMOVE_ATTACHMENT_CONFIRMATION_DIALOG_CLOSED =
 
 export const EXPORT_AUDIT_LOG_CONFIRMATION_OPENED =
   "EXPORT_AUDIT_LOG_CONFIRMATION_OPENED";
-export const EXPORT_ALL_CASES_CONFIRMATION_OPENED =
-  "EXPORT_ALL_CASES_CONFIRMATION_OPENED";
+export const EXPORT_CASES_CONFIRMATION_OPENED =
+  "EXPORT_CASES_CONFIRMATION_OPENED";
 export const EXPORT_CONFIRMATION_CLOSED = "EXPORT_CONFIRMATION_CLOSED";
 
 export const ARCHIVE_CASE_DIALOG_OPENED = "ARCHIVE_CASE_DIALOG_OPENED";
@@ -170,6 +175,8 @@ export const ARCHIVE_CASE_FORM_NAME = "ArchiveCaseForm";
 export const NARRATIVE_FORM = "NarrativeForm";
 export const EDIT_LETTER_HTML_FORM = "EditLetterHtmlForm";
 export const RESTORE_ARCHIVED_CASE_FORM = "RestoreArchivedCaseForm";
+export const EXPORT_AUDIT_LOG_FORM_NAME = "ExportAuditLogForm";
+export const EXPORT_CASES_FORM_NAME = "ExportCasesForm";
 
 // ----------------------------------------
 //          Auth0 Scopes / Permissions
@@ -225,6 +232,7 @@ export const DEFAULT_INTAKE_SOURCE = "Other";
 // ----------------------------------------
 //          Audit
 // ----------------------------------------
+
 export const AUDIT_TYPE = {
   DATA_CHANGE: "Data Change",
   EXPORT: "Export",
@@ -238,7 +246,7 @@ export const AUDIT_SUBJECT = {
   CASE_DETAILS: "Case Details",
   ALL_WORKING_CASES: "All Working Cases",
   ALL_ARCHIVED_CASES: "All Archived Cases",
-  ALL_CASE_INFORMATION: "All Case Information",
+  CASE_EXPORT: "Case Export",
   OFFICER_DATA: "Officer Data",
   CASE_HISTORY: "Case History",
   CASE_NOTES: "Case Notes",
@@ -252,11 +260,11 @@ export const AUDIT_SUBJECT = {
 
 export const AUDIT_ACTION = {
   DATA_UPDATED: "Updated",
-  DATA_ACCESSED: "Accessed",
   DATA_CREATED: "Created",
   DATA_DELETED: "Deleted",
   DATA_ARCHIVED: "Archived",
   DATA_RESTORED: "Restored",
+  DATA_ACCESSED: "Accessed",
   LOGGED_IN: "Logged in",
   LOGGED_OUT: "Logged out",
   EXPORTED: "Exported",
@@ -326,6 +334,7 @@ export const REFERRAL_LETTER_VERSION = {
   FINAL: "Final",
   DRAFT: "Draft"
 };
+export const REFERRAL_LETTER = "Referral Letter";
 
 export const COMPLAINANT_LETTER = "Letter to Complainant";
 export const OFFICER_COMPLAINANT_TITLE = "Officer";
@@ -399,7 +408,7 @@ export const ALLEGATION_OPTIONS = {
   NO_NOTEWORTHY_HISTORY: "No noteworthy officer history to include in letter",
   RECRUIT: "Officer is a recruit so there is no history",
   NO_IAPRO_HISTORY: "No officer history included in IAPro",
-  NOTEWORTHY_HISTORY: "Officer has signifcant/noteworthy history"
+  NOTEWORTHY_HISTORY: "Officer has significant/noteworthy history"
 };
 
 // ----------------------------------------
@@ -472,10 +481,15 @@ export const JOB_OPERATION = {
   CASE_EXPORT: {
     name: "CASE_EXPORT",
     key: "case_export",
-    title: "Export All Case Information",
-    filename: "All_Case_Information",
-    auditSubject: AUDIT_SUBJECT.ALL_CASE_INFORMATION
+    title: "Export Cases",
+    filename: "Case_Export",
+    auditSubject: AUDIT_SUBJECT.CASE_EXPORT
   }
+};
+
+export const CASE_EXPORT_TYPE = {
+  FIRST_CONTACT_DATE: "firstContactDate",
+  INCIDENT_DATE: "incidentDate"
 };
 
 export const QUEUE_PREFIX = "noimp_q";

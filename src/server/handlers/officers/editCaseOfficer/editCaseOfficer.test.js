@@ -6,17 +6,20 @@ import httpMocks from "node-mocks-http";
 import editCaseOfficer from "./editCaseOfficer";
 import {
   ACCUSED,
-  COMPLAINANT,
-  WITNESS,
   AUDIT_ACTION,
   AUDIT_SUBJECT,
-  AUDIT_TYPE
+  AUDIT_TYPE,
+  COMPLAINANT,
+  WITNESS
 } from "../../../../sharedUtilities/constants";
 import Boom from "boom";
 import OfficerAllegation from "../../../../client/testUtilities/OfficerAllegation";
 import Allegation from "../../../../client/testUtilities/Allegation";
 import { cleanupDatabase } from "../../../testHelpers/requestTestHelpers";
 import LetterOfficer from "../../../../client/testUtilities/LetterOfficer";
+
+//mocked implementation in "/handlers/__mocks__/getQueryAuditAccessDetails"
+jest.mock("../../getQueryAuditAccessDetails");
 
 describe("editCaseOfficer", () => {
   afterEach(async () => {
@@ -428,7 +431,8 @@ describe("editCaseOfficer", () => {
           subject: AUDIT_SUBJECT.CASE_DETAILS,
           caseId: existingCase.id,
           action: AUDIT_ACTION.DATA_ACCESSED,
-          auditType: AUDIT_TYPE.DATA_ACCESS
+          auditType: AUDIT_TYPE.DATA_ACCESS,
+          auditDetails: { ["Mock Association"]: ["Mock Details"] }
         })
       );
     });

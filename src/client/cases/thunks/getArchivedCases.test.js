@@ -8,8 +8,13 @@ import { getArchivedCasesSuccess } from "../../actionCreators/casesActionCreator
 jest.mock("../../auth/getAccessToken", () => jest.fn(() => "TEST_TOKEN"));
 
 describe("getArchivedCases", () => {
+  /*
+NOTE: We should leave the order of these tests as they are. We basically need the missing token test which changes the getAccessToken mock implementation to be the last test which is run. This is because if we try to reset the mock, we lose the module level implementation needed by other tests
+
+TODO: Look into ways to fix this
+ */
   const dispatch = jest.fn();
-  const responseBody = { cases: ["a case"] };
+  const responseBody = { cases: { rows: ["a case"], count: 1 } };
   const sortBy = "sortBy";
   const sortDirection = "sortDirection";
 
@@ -21,14 +26,35 @@ describe("getArchivedCases", () => {
 
   test("should dispatch success when cases retrieved", async () => {
     nock("http://localhost")
-      .get(`/api/cases/all/archived-cases/${sortBy}/${sortDirection}`)
+      .get(
+        `/api/cases/archived-cases?sortBy=${sortBy}&sortDirection=${sortDirection}`
+      )
       .reply(200, responseBody);
 
     await getArchivedCases(sortBy, sortDirection)(dispatch);
 
     expect(dispatch).toHaveBeenCalledWith(
-      getArchivedCasesSuccess(responseBody.cases)
+      getArchivedCasesSuccess(responseBody.cases.rows, responseBody.cases.count)
     );
+  });
+
+  test("should dispatch with page when provided", async () => {
+    const scope = nock("http://localhost")
+      .get(
+        `/api/cases/archived-cases?sortBy=${sortBy}&sortDirection=${sortDirection}&page=2`
+      )
+      .reply(200, responseBody);
+
+    await getArchivedCases(sortBy, sortDirection, 2)(dispatch);
+
+    expect(dispatch).toHaveBeenCalledWith(
+      getArchivedCasesSuccess(
+        responseBody.cases.rows,
+        responseBody.cases.count,
+        2
+      )
+    );
+    expect(scope.isDone()).toEqual(true);
   });
 
   test("should redirect immediately if token missing", async () => {
@@ -40,13 +66,15 @@ describe("getArchivedCases", () => {
         Authorization: `Bearer false`
       }
     })
-      .get(`/api/cases/all/archived-cases/${sortBy}/${sortDirection}`)
+      .get(
+        `/api/cases/archived-cases?sortBy=${sortBy}&sortDirection=${sortDirection}`
+      )
       .reply(200, responseBody);
 
     await getArchivedCases(sortBy, sortDirection)(dispatch);
 
     expect(dispatch).not.toHaveBeenCalledWith(
-      getArchivedCasesSuccess(responseBody.cases)
+      getArchivedCasesSuccess(responseBody.cases.rows, responseBody.cases.count)
     );
     expect(dispatch).toHaveBeenCalledWith(push(`/login`));
   });

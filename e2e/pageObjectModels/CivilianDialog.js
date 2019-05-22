@@ -4,11 +4,15 @@ const civilianDialogCommands = {
   dialogIsOpen: function() {
     return this.waitForElementVisible("@dialogTitle", e2e.rerenderWait);
   },
-  setGenderIdentity: function(gender) {
-    return this.click("@genderDropdown")
-      .waitForElementVisible("@genderMenu", e2e.rerenderWait)
-      .click(`li[data-value=${gender}]`)
-      .waitForElementNotPresent("@genderMenu", e2e.rerenderWait);
+  setGenderIdentityId: function(gender) {
+    this.click("@genderDropdown")
+      .waitForElementPresent("@genderMenu", e2e.roundtripWait)
+      .waitForElementVisible("@menuOption", e2e.roundtripWait)
+      .api.pause(e2e.animationPause);
+    return this.click(`li[data-value="${gender}"]`).waitForElementNotPresent(
+      "@genderMenu",
+      e2e.rerenderWait
+    );
   },
   setRaceEthnicityId: function(raceEthnicity) {
     this.click("@raceEthnicityDropdown")
@@ -86,22 +90,22 @@ module.exports = {
       selector: "[data-test='editDialogTitle']"
     },
     genderDropdown: {
-      selector: "[data-test='genderDropdown'] > div > div > div"
+      selector: "[data-test='genderDropdown']"
     },
     genderMenu: {
-      selector: "[id='menu-genderIdentity']"
+      selector: "[id='genderIdentityId']"
     },
     raceEthnicityDropdown: {
       selector: "[data-test='raceDropdown'] > div > div > div"
     },
     raceEthnicityMenu: {
-      selector: '[id="menu-raceEthnicityId"]'
+      selector: '[id="raceEthnicityId"]'
     },
     titleDropdown: {
       selector: "[data-test='titleDropdown'] > div > div > div"
     },
     titleMenu: {
-      selector: "[id='menu-title']"
+      selector: "[id='title']"
     },
     addressSuggestionField: {
       selector: '[data-test="addressSuggestionField"] > input'
@@ -128,7 +132,7 @@ module.exports = {
       selector: 'button[data-test="submitEditCivilian"]'
     },
     menuOption: {
-      selector: "[role='option']"
+      selector: "[role='option']:last-child"
     }
   }
 };

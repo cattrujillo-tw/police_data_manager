@@ -16,7 +16,7 @@ import { PrimaryButton } from "../../shared/components/StyledButtons";
 import { ChangeOfficer } from "../OfficerSearch/OfficerSearchResults/officerSearchResultsRowButtons";
 import { connect } from "react-redux";
 import NoBlurTextField from "../../cases/CaseDetails/CivilianDialog/FormSelect";
-import { roleOnCaseMenu } from "../../utilities/generateMenus";
+import { roleOnCaseMenu } from "../../utilities/generateMenuOptions";
 import { officerRoleRequired } from "../../formFieldLevelValidations";
 import PrimaryCheckBox from "../../shared/components/PrimaryCheckBox";
 import { COMPLAINANT, WITNESS } from "../../../sharedUtilities/constants";
@@ -39,13 +39,12 @@ class OfficerDetails extends React.Component {
 
   updateRoleOnCase = values => {
     this.setState({
-      officerRoleOnCase: values.target.value
+      officerRoleOnCase: values
     });
   };
 
   shouldShowAnonymousCheckbox = () => {
     if (
-      this.props.isAnonymousFeatureToggle &&
       this.state.officerRoleOnCase !== null &&
       (this.state.officerRoleOnCase === COMPLAINANT ||
         this.state.officerRoleOnCase === WITNESS)
@@ -166,7 +165,6 @@ const mapStateToProps = state => {
   }
   return {
     selectedOfficer: state.officers.selectedOfficerData,
-    isAnonymousFeatureToggle: state.featureToggles.isAnonymousFeature,
     roleOnCaseProp: roleOnCaseProp
   };
 };

@@ -14,7 +14,6 @@ import { closeCreateCaseDialog } from "../../actionCreators/casesActionCreators"
 import { applyCentralTimeZoneOffset } from "../../utilities/formatDate";
 import { isEmpty } from "lodash";
 import { CREATE_CASE_FORM_NAME } from "../../../sharedUtilities/constants";
-import getCases from "../thunks/getCases";
 
 export class CreateCaseActions extends React.Component {
   closeDialog = () => {
@@ -44,6 +43,9 @@ export class CreateCaseActions extends React.Component {
       sorting: {
         sortBy: this.props.sortBy,
         sortDirection: this.props.sortDirection
+      },
+      pagination: {
+        currentPage: this.props.currentPage
       }
     });
   };
@@ -137,7 +139,8 @@ const selector = formValueSelector(CREATE_CASE_FORM_NAME);
 const mapStateToProps = state => ({
   civilian: selector(state, "civilian"),
   sortBy: state.ui.casesTable.sortBy,
-  sortDirection: state.ui.casesTable.sortDirection
+  sortDirection: state.ui.casesTable.sortDirection,
+  currentPage: state.cases.working.currentPage
 });
 
 const mapDispatchToProps = {

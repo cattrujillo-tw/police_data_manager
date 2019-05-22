@@ -2,7 +2,7 @@ import models from "../../../../models";
 import shortid from "shortid";
 import { ACCUSED, ASCENDING } from "../../../../../sharedUtilities/constants";
 import {
-  addToExistingAuditDetails,
+  generateAndAddAuditDetailsFromQuery,
   removeFromExistingAuditDetails
 } from "../../../getQueryAuditAccessDetails";
 
@@ -24,14 +24,14 @@ const getReferralLetterDataForResponse = async (
     caseId: letterData.caseId,
     includeRetaliationConcerns: letterData.includeRetaliationConcerns,
     letterOfficers: transformedLetterOfficerData,
-    referralLetterIAProCorrections: getIAProCorrections(letterData)
+    referralLetterIaproCorrections: getIAProCorrections(letterData)
   };
 };
 
 const getIAProCorrections = letterData => {
-  return letterData.referralLetterIAProCorrections.length === 0
+  return letterData.referralLetterIaproCorrections.length === 0
     ? buildEmptyIAProCorrections()
-    : letterData.referralLetterIAProCorrections;
+    : letterData.referralLetterIaproCorrections;
 };
 
 const letterOfficerAttributes = caseOfficer => {
@@ -99,7 +99,7 @@ const getLetterData = async (caseId, transaction, auditDetails) => {
       [
         {
           model: models.referral_letter_iapro_correction,
-          as: "referralLetterIAProCorrections"
+          as: "referralLetterIaproCorrections"
         },
         "created_at",
         ASCENDING
@@ -108,7 +108,7 @@ const getLetterData = async (caseId, transaction, auditDetails) => {
     include: [
       {
         model: models.referral_letter_iapro_correction,
-        as: "referralLetterIAProCorrections",
+        as: "referralLetterIaproCorrections",
         attributes: ["id", "details"]
       },
       {
@@ -158,7 +158,7 @@ const getLetterData = async (caseId, transaction, auditDetails) => {
   };
   const letterData = await models.referral_letter.findOne(queryOptions);
 
-  addToExistingAuditDetails(
+  generateAndAddAuditDetailsFromQuery(
     auditDetails,
     queryOptions,
     models.referral_letter.name

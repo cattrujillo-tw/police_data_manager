@@ -20,6 +20,7 @@ import {
   suppressWinstonLogs,
   expectResponse
 } from "./testHelpers/requestTestHelpers";
+import audit from "./handlers/auditLogs/audit";
 
 jest.mock("auth0", () => ({
   AuthenticationClient: jest.fn()
@@ -28,6 +29,12 @@ jest.mock("auth0", () => ({
 jest.mock("aws-sdk", () => ({
   S3: jest.fn()
 }));
+
+jest.mock("./handlers/auditLogs/audit", () =>
+  jest.fn((request, response, next) => {
+    response.send();
+  })
+);
 
 describe("server", () => {
   let token, user, raceEthnicity;
@@ -115,20 +122,13 @@ describe("server", () => {
   describe("POST /audit", () => {
     const mockLog = AUDIT_ACTION.LOGGED_OUT;
     test("should audit log out", async () => {
-      const responsePromise = request(app)
+      await request(app)
         .post("/api/audit")
         .set("Content-Header", "application/json")
         .set("Authorization", `Bearer ${token}`)
         .send({ log: mockLog });
 
-      await expectResponse(responsePromise, 201);
-
-      const log = await models.action_audit.findAll({
-        where: {
-          action: mockLog
-        }
-      });
-      expect(log.length).toEqual(1);
+      expect(audit).toHaveBeenCalled();
     });
   });
 
@@ -538,8 +538,12 @@ describe("server", () => {
   });
 
   describe("GET /cases/:id/case-notes", () => {
-    let createdCase;
+    let createdCase, caseNoteAction;
     beforeEach(async () => {
+      caseNoteAction = await models.case_note_action.create(
+        { name: "Some Action" },
+        { auditUser: "Some User" }
+      );
       const existingCase = new Case.Builder()
         .defaultCase()
         .withId(undefined)
@@ -552,7 +556,7 @@ describe("server", () => {
       await models.case_note.create(
         {
           caseId: createdCase.id,
-          action: "Miscellaneous",
+          caseNoteActionId: caseNoteAction.id,
           user: "tuser",
           actionTakenAt: new Date().toISOString(),
           notes: "some notes"
@@ -573,7 +577,11 @@ describe("server", () => {
         expect.arrayContaining([
           expect.objectContaining({
             caseId: createdCase.id,
-            action: "Miscellaneous",
+            caseNoteActionId: caseNoteAction.id,
+            caseNoteAction: expect.objectContaining({
+              id: caseNoteAction.id,
+              name: caseNoteAction.name
+            }),
             user: "tuser",
             notes: "some notes"
           })
@@ -584,6 +592,10 @@ describe("server", () => {
 
   describe("POST /cases/:id/recent-history", () => {
     test("should log a case note", async () => {
+      const caseNoteAction = await models.case_note_action.create(
+        { name: "some action" },
+        { auditUser: "some user" }
+      );
       const existingCase = new Case.Builder()
         .defaultCase()
         .withId(undefined)
@@ -595,7 +607,11 @@ describe("server", () => {
 
       const caseNote = {
         caseId: createdCase.dataValues.id,
-        action: "Miscellaneous",
+        caseNoteActionId: caseNoteAction.id,
+        caseNoteAction: {
+          id: caseNoteAction.id,
+          name: caseNoteAction.name
+        },
         notes: "some interesting notes....",
         actionTakenAt: new Date().toISOString()
       };
@@ -622,7 +638,11 @@ describe("server", () => {
           caseNotes: expect.arrayContaining([
             expect.objectContaining({
               caseId: caseNote.caseId,
-              action: caseNote.action,
+              caseNoteActionId: caseNoteAction.id,
+              caseNoteAction: expect.objectContaining({
+                id: caseNoteAction.id,
+                name: caseNoteAction.name
+              }),
               notes: caseNote.notes,
               actionTakenAt: caseNote.actionTakenAt,
               id: expect.anything()

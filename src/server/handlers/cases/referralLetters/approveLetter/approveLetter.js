@@ -4,6 +4,7 @@ import {
   AUDIT_SUBJECT,
   CASE_STATUS,
   COMPLAINANT_LETTER,
+  REFERRAL_LETTER,
   REFERRAL_LETTER_VERSION,
   USER_PERMISSIONS
 } from "../../../../../sharedUtilities/constants";
@@ -14,7 +15,7 @@ import auditUpload from "../sharedLetterUtilities/auditUpload";
 import constructFilename from "../constructFilename";
 import { BAD_REQUEST_ERRORS } from "../../../../../sharedUtilities/errorMessageConstants";
 import generateComplainantLetterAndUploadToS3 from "./generateComplainantLetterAndUploadToS3";
-import auditDataAccess from "../../../auditDataAccess";
+import legacyAuditDataAccess from "../../../legacyAuditDataAccess";
 import config from "../../../../config/config";
 
 const approveLetter = asyncMiddleware(async (request, response, next) => {
@@ -36,19 +37,28 @@ const approveLetter = asyncMiddleware(async (request, response, next) => {
       nickname,
       transaction
     );
-    await createComplainantLetterAttachment(
+    await createLetterAttachment(
       existingCase.id,
       complainantLetter.finalPdfFilename,
+      COMPLAINANT_LETTER,
       transaction,
       nickname
     );
-    await auditDataAccess(
+    await legacyAuditDataAccess(
       nickname,
       caseId,
       AUDIT_SUBJECT.CASE_DETAILS,
       transaction
     );
     await generateReferralLetterAndUploadToS3(caseId, filename, transaction);
+
+    await createLetterAttachment(
+      existingCase.id,
+      filename,
+      REFERRAL_LETTER,
+      transaction,
+      nickname
+    );
 
     await saveFilename(filename, caseId, nickname, transaction);
     await auditUpload(
@@ -62,16 +72,17 @@ const approveLetter = asyncMiddleware(async (request, response, next) => {
   response.status(200).send();
 });
 
-const createComplainantLetterAttachment = async (
+const createLetterAttachment = async (
   caseId,
   fileName,
+  description,
   transaction,
   nickname
 ) => {
   await models.attachment.create(
     {
       fileName: fileName,
-      description: COMPLAINANT_LETTER,
+      description: description,
       caseId: caseId
     },
     {
@@ -100,8 +111,10 @@ const generateReferralLetterAndUploadToS3 = async (
     transaction
   );
 
+  const filenameWithCaseId = `${caseId}/${filename}`;
+
   await uploadLetterToS3(
-    filename,
+    filenameWithCaseId,
     generatedReferralLetterPdf,
     config[process.env.NODE_ENV].referralLettersBucket
   );

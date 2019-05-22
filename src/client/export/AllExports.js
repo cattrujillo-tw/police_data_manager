@@ -1,15 +1,14 @@
 import React, { Component } from "react";
-import LinkButton from "../shared/components/LinkButton";
 import {
   clearCurrentExportJob,
   closeExportConfirmationDialog,
-  openExportAllCasesConfirmationDialog,
   openExportAuditLogConfirmationDialog
 } from "../actionCreators/exportActionCreators";
 import ExportConfirmationDialog from "./ExportConfirmationDialog";
 import { connect } from "react-redux";
 import JobDetails from "./JobDetails";
-import { USER_PERMISSIONS } from "../../sharedUtilities/constants";
+import ExportAuditLogForm from "./ExportAuditLogForm";
+import ExportCasesForm from "./ExportCasesForm";
 
 const margin = {
   marginLeft: "36px",
@@ -33,41 +32,13 @@ class AllExports extends Component {
     this.props.clearCurrentExportJob();
   }
 
-  renderExportAuditLogOption = () => {
-    if (
-      !this.props.permissions ||
-      !this.props.permissions.includes(USER_PERMISSIONS.EXPORT_AUDIT_LOG)
-    ) {
-      return null;
-    }
-    return (
-      <LinkButton
-        data-test="exportAuditLog"
-        disabled={this.props.buttonsDisabled}
-        onClick={() => {
-          this.props.openExportAuditLogConfirmationDialog();
-        }}
-      >
-        Export Audit Log
-      </LinkButton>
-    );
-  };
-
   render() {
     return (
       <div>
         <div style={margin}>
           <div data-test="ExportAllCasesContainer" style={margin}>
-            <LinkButton
-              data-test="openExportConfirmationDialog"
-              disabled={this.props.buttonsDisabled}
-              onClick={() => {
-                this.props.openExportAllCasesConfirmationDialog();
-              }}
-            >
-              Export All Cases
-            </LinkButton>
-            {this.renderExportAuditLogOption()}
+            <ExportCasesForm />
+            <ExportAuditLogForm />
           </div>
         </div>
         <div style={margin}>
@@ -89,7 +60,6 @@ const mapStateToProps = state => ({
 
 const mapDispatchToProps = {
   openExportAuditLogConfirmationDialog,
-  openExportAllCasesConfirmationDialog,
   closeExportConfirmationDialog,
   clearCurrentExportJob
 };

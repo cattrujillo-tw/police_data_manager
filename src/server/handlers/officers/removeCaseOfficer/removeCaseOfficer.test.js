@@ -14,6 +14,9 @@ import removeCaseOfficer from "./removeCaseOfficer";
 import Allegation from "../../../../client/testUtilities/Allegation";
 import OfficerAllegation from "../../../../client/testUtilities/OfficerAllegation";
 
+//mocked implementation in "/handlers/__mocks__/getQueryAuditAccessDetails"
+jest.mock("../../getQueryAuditAccessDetails");
+
 describe("removeCaseOfficer", () => {
   afterEach(async () => {
     await cleanupDatabase();
@@ -128,7 +131,8 @@ describe("removeCaseOfficer", () => {
           subject: AUDIT_SUBJECT.CASE_DETAILS,
           caseId: existingCase.id,
           action: AUDIT_ACTION.DATA_ACCESSED,
-          auditType: AUDIT_TYPE.DATA_ACCESS
+          auditType: AUDIT_TYPE.DATA_ACCESS,
+          auditDetails: { ["Mock Association"]: ["Mock Details"] }
         })
       );
     });

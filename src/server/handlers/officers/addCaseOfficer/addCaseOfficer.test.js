@@ -13,6 +13,9 @@ import {
 import { cleanupDatabase } from "../../../testHelpers/requestTestHelpers";
 import ReferralLetter from "../../../../client/testUtilities/ReferralLetter";
 
+//mocked implementation in "/handlers/__mocks__/getQueryAuditAccessDetails"
+jest.mock("../../getQueryAuditAccessDetails");
+
 describe("addCaseOfficer", () => {
   afterEach(async () => {
     await cleanupDatabase();
@@ -223,7 +226,8 @@ describe("addCaseOfficer", () => {
         caseId: existingCase.id,
         auditType: AUDIT_TYPE.DATA_ACCESS,
         action: AUDIT_ACTION.DATA_ACCESSED,
-        subject: AUDIT_SUBJECT.CASE_DETAILS
+        subject: AUDIT_SUBJECT.CASE_DETAILS,
+        auditDetails: { ["Mock Association"]: ["Mock Details"] }
       })
     );
   });

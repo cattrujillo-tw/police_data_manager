@@ -17,20 +17,7 @@ export const removeFromExistingAuditDetails = (
   });
 };
 
-export const addToExistingAuditDetails = (
-  existingDetails,
-  queryOptions,
-  topLevelModelName
-) => {
-  if (existingDetails === null) {
-    return;
-  }
-
-  const detailsToAdd = getQueryAuditAccessDetails(
-    queryOptions,
-    topLevelModelName
-  );
-
+export const addToExistingAuditDetails = (existingDetails, detailsToAdd) => {
   Object.keys(detailsToAdd).forEach(subject => {
     if (existingDetails[subject]) {
       existingDetails[subject] = combineAttributes(
@@ -44,11 +31,29 @@ export const addToExistingAuditDetails = (
   });
 };
 
-const combineAttributes = (existingDetails, detailsToAdd, subject) => {
+export const generateAndAddAuditDetailsFromQuery = (
+  existingDetails,
+  queryOptions,
+  topLevelModelName
+) => {
+  if (existingDetails === null) {
+    return;
+  }
+
+  const detailsToAdd = getQueryAuditAccessDetails(
+    queryOptions,
+    topLevelModelName
+  );
+
+  addToExistingAuditDetails(existingDetails, detailsToAdd);
+};
+
+const combineAttributes = (existingDetails, detailsToAdd) => {
   const combinedAttributes = _.uniq([
     ...existingDetails.attributes,
     ...detailsToAdd.attributes
   ]);
+
   if (existingDetails.model) {
     return {
       attributes: combinedAttributes,
@@ -60,62 +65,91 @@ const combineAttributes = (existingDetails, detailsToAdd, subject) => {
 };
 
 const getQueryAuditAccessDetails = (queryOptions, topLevelModelName) => {
-  let subjectDetails = {};
+  let auditDetails = {};
 
   getQueryAuditAccessDetailsHelper(
     queryOptions,
     topLevelModelName,
     topLevelModelName,
-    subjectDetails
+    auditDetails
   );
 
-  return subjectDetails;
+  return auditDetails;
+};
+
+const getAttributeName = attribute => {
+  if (_.isArray(attribute) && attribute.length === 2) {
+    return attribute[1];
+  }
+  return attribute;
 };
 
 const getQueryAuditAccessDetailsHelper = (
   queryOptions,
-  subject,
+  associationName,
   modelName,
-  subjectDetails
+  auditDetails
 ) => {
   let attributes;
 
   if (queryOptions && queryOptions.attributes) {
     attributes = queryOptions.attributes.map(attribute => {
-      if (_.isArray(attribute) && attribute.length === 2) {
-        return attribute[1];
-      }
-      return attribute;
+      return getAttributeName(attribute);
     });
   } else {
     attributes = Object.keys(models[modelName].rawAttributes);
   }
 
-  subjectDetails[subject] = { attributes: attributes };
+  const formattedAssociationName = _.camelCase(associationName);
 
-  if (!models[subject]) {
-    subjectDetails[subject].model = modelName;
-  }
+  auditDetails[formattedAssociationName] = {
+    attributes: attributes,
+    model: modelName
+  };
 
   if (queryOptions && queryOptions.include) {
-    queryOptions.include.map(queryInclude => {
-      if (queryInclude.name && models[queryInclude.name]) {
-        getQueryAuditAccessDetailsHelper(
-          null,
-          queryInclude.name,
-          queryInclude.name,
-          subjectDetails
-        );
-      } else {
-        getQueryAuditAccessDetailsHelper(
-          queryInclude,
-          queryInclude.as ? queryInclude.as : queryInclude.model.name,
-          queryInclude.model.name,
-          subjectDetails
-        );
-      }
-    });
+    recursivelyAddIncludedModelsToAuditDetails(queryOptions, auditDetails);
   }
+};
+
+const isModelObjectWithNoQueryOptions = includedModel => {
+  return !!(includedModel.name && models[includedModel.name]);
+};
+
+const hasAssociationAlias = includedModel => {
+  return !!includedModel.as;
+};
+
+const recursivelyAddIncludedModelsToAuditDetails = (
+  queryOptions,
+  auditDetails
+) => {
+  queryOptions.include.map(includedModel => {
+    let queryOptionsOfIncludedModel;
+    let associationName;
+    let modelName;
+
+    if (isModelObjectWithNoQueryOptions(includedModel)) {
+      queryOptionsOfIncludedModel = null;
+      associationName = includedModel.name;
+      modelName = includedModel.name;
+    } else if (hasAssociationAlias(includedModel)) {
+      queryOptionsOfIncludedModel = includedModel;
+      associationName = includedModel.as;
+      modelName = includedModel.model.name;
+    } else {
+      queryOptionsOfIncludedModel = includedModel;
+      associationName = includedModel.model.name;
+      modelName = includedModel.model.name;
+    }
+
+    getQueryAuditAccessDetailsHelper(
+      queryOptionsOfIncludedModel,
+      associationName,
+      modelName,
+      auditDetails
+    );
+  });
 };
 
 const allAttributesArePresent = (attributes, modelName) => {

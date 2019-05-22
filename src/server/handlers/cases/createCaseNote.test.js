@@ -11,6 +11,9 @@ import createCaseNote from "./createCaseNote";
 import * as httpMocks from "node-mocks-http";
 import moment from "moment";
 
+//mocked implementation in "/handlers/__mocks__/getQueryAuditAccessDetails"
+jest.mock("../getQueryAuditAccessDetails");
+
 describe("createCaseNote", function() {
   let createdCase;
 
@@ -96,7 +99,8 @@ describe("createCaseNote", function() {
           auditType: AUDIT_TYPE.DATA_ACCESS,
           action: AUDIT_ACTION.DATA_ACCESSED,
           subject: AUDIT_SUBJECT.CASE_DETAILS,
-          caseId: createdCase.id
+          caseId: createdCase.id,
+          auditDetails: { ["Mock Association"]: ["Mock Details"] }
         })
       ])
     );

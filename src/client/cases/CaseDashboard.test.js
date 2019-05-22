@@ -9,11 +9,11 @@ import { openSnackbar } from "../actionCreators/snackBarActionCreators";
 import { mockLocalStorage } from "../../mockLocalStorage";
 import { getWorkingCasesSuccess } from "../actionCreators/casesActionCreators";
 import Case from "../testUtilities/case";
-import getCases from "./thunks/getCases";
+import getWorkingCases from "./thunks/getWorkingCases";
 import { containsText } from "../testHelpers";
 import { DESCENDING, SORT_CASES_BY } from "../../sharedUtilities/constants";
 
-jest.mock("./thunks/getCases", () => () => ({
+jest.mock("./thunks/getWorkingCases", () => () => ({
   type: "MOCK_GET_CASES_THUNK"
 }));
 
@@ -52,7 +52,7 @@ describe("CaseDashboard", () => {
     expect(
       containsText(
         caseDashboardWrapper,
-        '[data-test="no-cases-message"]',
+        '[data-test="searchResultsMessage"]',
         "There are no cases to view"
       )
     );
@@ -65,7 +65,7 @@ describe("CaseDashboard", () => {
 
   test("should load all cases when mounted", () => {
     expect(dispatchSpy).toHaveBeenCalledWith(
-      getCases(SORT_CASES_BY.CASE_REFERENCE, DESCENDING)
+      getWorkingCases(SORT_CASES_BY.CASE_REFERENCE, DESCENDING)
     );
   });
 

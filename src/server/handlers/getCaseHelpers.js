@@ -3,17 +3,35 @@ import Boom from "boom";
 import models from "../models";
 import {
   addToExistingAuditDetails,
+  generateAndAddAuditDetailsFromQuery,
   removeFromExistingAuditDetails
 } from "./getQueryAuditAccessDetails";
 import { ASCENDING } from "../../sharedUtilities/constants";
 
 export const getCaseWithAllAssociations = async (
   caseId,
-  transaction = null,
-  auditDetails = null
+  transaction,
+  auditDetails
 ) => {
-  let caseDetails = await getCaseData(caseId, transaction, auditDetails);
-  return addFieldsToCaseDetails(caseDetails, auditDetails);
+  return await getCaseDataWithCustomFields(caseId, transaction, auditDetails);
+};
+
+const getCaseDataWithCustomFields = async (
+  caseId,
+  transaction,
+  auditDetails
+) => {
+  let caseAuditDetails = {};
+
+  let caseDetails = await getCaseData(caseId, transaction, caseAuditDetails);
+
+  const modifiedCaseDetails = addFieldsToCaseDetails(
+    caseDetails,
+    caseAuditDetails
+  );
+  addToExistingAuditDetails(auditDetails, caseAuditDetails);
+
+  return modifiedCaseDetails;
 };
 
 export const getCaseWithoutAssociations = async (
@@ -50,7 +68,8 @@ const getCaseData = async (caseId, transaction, auditDetails) => {
         as: "complainantCivilians",
         include: [
           models.address,
-          { model: models.race_ethnicity, as: "raceEthnicity" }
+          { model: models.race_ethnicity, as: "raceEthnicity" },
+          { model: models.gender_identity, as: "genderIdentity" }
         ]
       },
       {
@@ -125,7 +144,11 @@ const getCaseData = async (caseId, transaction, auditDetails) => {
 
   const caseData = await models.cases.findByPk(caseId, queryOptions);
 
-  addToExistingAuditDetails(auditDetails, queryOptions, models.cases.name);
+  generateAndAddAuditDetailsFromQuery(
+    auditDetails,
+    queryOptions,
+    models.cases.name
+  );
   return caseData;
 };
 

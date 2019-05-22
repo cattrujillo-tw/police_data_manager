@@ -1,9 +1,13 @@
+import { AUDIT_ACTION } from "../../../../sharedUtilities/constants";
+import { getCaseWithAllAssociations } from "../../getCaseHelpers";
+import legacyAuditDataAccess from "../../legacyAuditDataAccess";
+import checkFeatureToggleEnabled from "../../../checkFeatureToggleEnabled";
+import auditDataAccess from "../../auditDataAccess";
+
 const { AUDIT_SUBJECT } = require("../../../../sharedUtilities/constants");
 const asyncMiddleware = require("../../asyncMiddleware");
-import { getCaseWithAllAssociations } from "../../getCaseHelpers";
 const models = require("../../../models");
 const _ = require("lodash");
-import auditDataAccess from "../../auditDataAccess";
 
 const createOfficerAllegation = asyncMiddleware(async (request, response) => {
   const allegationAttributes = _.pick(request.body, [
@@ -11,6 +15,10 @@ const createOfficerAllegation = asyncMiddleware(async (request, response) => {
     "details",
     "severity"
   ]);
+  const newAuditFeatureToggle = checkFeatureToggleEnabled(
+    request,
+    "newAuditFeature"
+  );
 
   const caseWithAssociations = await models.sequelize.transaction(
     async transaction => {
@@ -27,17 +35,34 @@ const createOfficerAllegation = asyncMiddleware(async (request, response) => {
         { transaction }
       );
 
-      await auditDataAccess(
-        request.nickname,
-        caseOfficer.caseId,
-        AUDIT_SUBJECT.CASE_DETAILS,
-        transaction
+      let auditDetails = {};
+
+      const caseDetails = await getCaseWithAllAssociations(
+        request.params.caseId,
+        transaction,
+        auditDetails
       );
 
-      return await getCaseWithAllAssociations(
-        request.params.caseId,
-        transaction
-      );
+      if (newAuditFeatureToggle) {
+        await auditDataAccess(
+          request.nickname,
+          caseOfficer.caseId,
+          AUDIT_SUBJECT.CASE_DETAILS,
+          auditDetails,
+          transaction
+        );
+      } else {
+        await legacyAuditDataAccess(
+          request.nickname,
+          caseOfficer.caseId,
+          AUDIT_SUBJECT.CASE_DETAILS,
+          transaction,
+          AUDIT_ACTION.DATA_ACCESSED,
+          auditDetails
+        );
+      }
+
+      return caseDetails;
     }
   );
 

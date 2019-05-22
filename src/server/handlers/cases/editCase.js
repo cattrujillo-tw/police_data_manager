@@ -1,5 +1,6 @@
 import {
   ADDRESSABLE_TYPE,
+  AUDIT_ACTION,
   AUDIT_SUBJECT
 } from "../../../sharedUtilities/constants";
 import checkFeatureToggleEnabled from "../../checkFeatureToggleEnabled";
@@ -10,6 +11,7 @@ const models = require("../../models");
 const asyncMiddleware = require("../asyncMiddleware");
 import { getCaseWithAllAssociations } from "../getCaseHelpers";
 const _ = require("lodash");
+import legacyAuditDataAccess from "../legacyAuditDataAccess";
 import auditDataAccess from "../auditDataAccess";
 const Boom = require("boom");
 
@@ -46,6 +48,10 @@ const editCase = asyncMiddleware(async (request, response, next) => {
       request,
       "caseValidationFeature"
     );
+    const newAuditFeatureToggle = checkFeatureToggleEnabled(
+      request,
+      "newAuditFeature"
+    );
 
     const updatedCase = await models.sequelize.transaction(
       async transaction => {
@@ -71,17 +77,33 @@ const editCase = asyncMiddleware(async (request, response, next) => {
           validate: caseValidationToggle
         });
 
-        await auditDataAccess(
-          request.nickname,
+        let auditDetails = {};
+        const caseDetails = await getCaseWithAllAssociations(
           request.params.caseId,
-          AUDIT_SUBJECT.CASE_DETAILS,
-          transaction
+          transaction,
+          auditDetails
         );
 
-        return await getCaseWithAllAssociations(
-          request.params.caseId,
-          transaction
-        );
+        if (newAuditFeatureToggle) {
+          await auditDataAccess(
+            request.nickname,
+            request.params.caseId,
+            AUDIT_SUBJECT.CASE_DETAILS,
+            auditDetails,
+            transaction
+          );
+        } else {
+          await legacyAuditDataAccess(
+            request.nickname,
+            request.params.caseId,
+            AUDIT_SUBJECT.CASE_DETAILS,
+            transaction,
+            AUDIT_ACTION.DATA_ACCESSED,
+            auditDetails
+          );
+        }
+
+        return caseDetails;
       }
     );
     response.status(200).send(updatedCase);

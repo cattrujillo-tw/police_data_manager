@@ -12,7 +12,7 @@ import { ACCUSED, COMPLAINANT, WITNESS } from "../../sharedUtilities/constants";
 import Civilian from "../../client/testUtilities/civilian";
 
 describe("getCaseHelpers", () => {
-  let existingCase, referralLetter;
+  let existingCase, referralLetter, auditDetails;
   beforeEach(async () => {
     const existingCaseAttributes = new Case.Builder()
       .defaultCase()
@@ -32,18 +32,42 @@ describe("getCaseHelpers", () => {
         auditUser: "someone"
       }
     );
+
+    auditDetails = {};
   });
   describe("getCaseWithAllAssocations", () => {
     afterEach(async () => {
       await cleanupDatabase();
     });
 
-    test("adds pdfAvailable to audit", async () => {
-      let auditDetails = {};
+    test("doesn't remove existing referralLetter audit details", async () => {
+      let auditDetails = {
+        referralLetter: {
+          attributes: ["attribute"]
+        }
+      };
 
       let caseWithAllAssociations;
       await models.sequelize.transaction(async transaction => {
         caseWithAllAssociations = await getCaseWithAllAssociations(
+          existingCase.id,
+          transaction,
+          auditDetails
+        );
+      });
+
+      expect(auditDetails).toEqual(
+        expect.objectContaining({
+          referralLetter: {
+            attributes: ["attribute"]
+          }
+        })
+      );
+    });
+
+    test("adds pdfAvailable to audit", async () => {
+      await models.sequelize.transaction(async transaction => {
+        await getCaseWithAllAssociations(
           existingCase.id,
           transaction,
           auditDetails
@@ -55,11 +79,8 @@ describe("getCaseHelpers", () => {
     });
 
     test("adds isArchived to audit and removes deletedAt", async () => {
-      let auditDetails = {};
-
-      let caseWithAllAssociations;
       await models.sequelize.transaction(async transaction => {
-        caseWithAllAssociations = await getCaseWithAllAssociations(
+        await getCaseWithAllAssociations(
           existingCase.id,
           transaction,
           auditDetails
@@ -74,24 +95,28 @@ describe("getCaseHelpers", () => {
         { finalPdfFilename: "something.pdf" },
         { auditUser: "someone" }
       );
-      let caseWithAllAssociations;
-      await models.sequelize.transaction(async transaction => {
-        caseWithAllAssociations = await getCaseWithAllAssociations(
-          existingCase.id,
-          transaction
-        );
-      });
+      const caseWithAllAssociations = await models.sequelize.transaction(
+        async transaction => {
+          return await getCaseWithAllAssociations(
+            existingCase.id,
+            transaction,
+            auditDetails
+          );
+        }
+      );
       expect(caseWithAllAssociations.pdfAvailable).toEqual(true);
       expect(caseWithAllAssociations.referralLetter).toBeUndefined();
     });
     test("adds pdfAvailable as false if there is not a pdf file name on the referral letter", async () => {
-      let caseWithAllAssociations;
-      await models.sequelize.transaction(async transaction => {
-        caseWithAllAssociations = await getCaseWithAllAssociations(
-          existingCase.id,
-          transaction
-        );
-      });
+      const caseWithAllAssociations = await models.sequelize.transaction(
+        async transaction => {
+          return await getCaseWithAllAssociations(
+            existingCase.id,
+            transaction,
+            auditDetails
+          );
+        }
+      );
       expect(caseWithAllAssociations.pdfAvailable).toEqual(false);
       expect(caseWithAllAssociations.referralLetter).toBeUndefined();
     });
@@ -107,13 +132,16 @@ describe("getCaseHelpers", () => {
         new Date("2018-01-01")
       );
 
-      let caseWithAllAssociations;
-      await models.sequelize.transaction(async transaction => {
-        caseWithAllAssociations = await getCaseWithAllAssociations(
-          existingCase.id,
-          transaction
-        );
-      });
+      const caseWithAllAssociations = await models.sequelize.transaction(
+        async transaction => {
+          return await getCaseWithAllAssociations(
+            existingCase.id,
+            transaction,
+            auditDetails
+          );
+        }
+      );
+
       expect(
         caseWithAllAssociations.accusedOfficers[0].createdAt <
           caseWithAllAssociations.accusedOfficers[1].createdAt
@@ -135,13 +163,16 @@ describe("getCaseHelpers", () => {
       await createCivilian(existingCase, COMPLAINANT, new Date("2018-08-01"));
       await createCivilian(existingCase, COMPLAINANT, new Date("2018-01-01"));
 
-      let caseWithAllAssociations;
-      await models.sequelize.transaction(async transaction => {
-        caseWithAllAssociations = await getCaseWithAllAssociations(
-          existingCase.id,
-          transaction
-        );
-      });
+      const caseWithAllAssociations = await models.sequelize.transaction(
+        async transaction => {
+          return await getCaseWithAllAssociations(
+            existingCase.id,
+            transaction,
+            auditDetails
+          );
+        }
+      );
+
       expect(
         caseWithAllAssociations.complainantOfficers[0].createdAt <
           caseWithAllAssociations.complainantOfficers[1].createdAt
@@ -168,13 +199,16 @@ describe("getCaseHelpers", () => {
       await createCivilian(existingCase, WITNESS, new Date("2018-01-01"));
       await createCivilian(existingCase, WITNESS, new Date("2018-08-01"));
 
-      let caseWithAllAssociations;
-      await models.sequelize.transaction(async transaction => {
-        caseWithAllAssociations = await getCaseWithAllAssociations(
-          existingCase.id,
-          transaction
-        );
-      });
+      const caseWithAllAssociations = await models.sequelize.transaction(
+        async transaction => {
+          return await getCaseWithAllAssociations(
+            existingCase.id,
+            transaction,
+            auditDetails
+          );
+        }
+      );
+
       expect(
         caseWithAllAssociations.witnessOfficers[0].createdAt <
           caseWithAllAssociations.witnessOfficers[1].createdAt
@@ -190,9 +224,16 @@ describe("getCaseHelpers", () => {
         where: { id: existingCase.id },
         auditUser: "test"
       });
-      const caseWithAllAssociations = await getCaseWithAllAssociations(
-        existingCase.id
+      const caseWithAllAssociations = await models.sequelize.transaction(
+        async transaction => {
+          return await getCaseWithAllAssociations(
+            existingCase.id,
+            transaction,
+            auditDetails
+          );
+        }
       );
+
       expect(caseWithAllAssociations.isArchived).toBeTruthy();
     });
   });
@@ -203,8 +244,17 @@ describe("getCaseHelpers", () => {
         where: { id: existingCase.id },
         auditUser: "test"
       });
-      const foundCase = await getCaseWithoutAssociations(existingCase.id);
-      expect(foundCase.isArchived).toBeTruthy();
+      const caseWithAllAssociations = await models.sequelize.transaction(
+        async transaction => {
+          return await getCaseWithAllAssociations(
+            existingCase.id,
+            transaction,
+            auditDetails
+          );
+        }
+      );
+
+      expect(caseWithAllAssociations.isArchived).toBeTruthy();
     });
   });
 });

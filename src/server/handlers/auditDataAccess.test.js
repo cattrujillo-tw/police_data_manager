@@ -1,157 +1,65 @@
-import models from "../models";
-import { AUDIT_ACTION, AUDIT_SUBJECT } from "../../sharedUtilities/constants";
 import auditDataAccess from "./auditDataAccess";
 import { createTestCaseWithoutCivilian } from "../testHelpers/modelMothers";
 import { cleanupDatabase } from "../testHelpers/requestTestHelpers";
+import models from "../models";
 
 describe("auditDataAccess", () => {
-  describe("subject details", () => {
-    let caseForAudit;
-    beforeEach(async () => {
-      caseForAudit = await createTestCaseWithoutCivilian();
-    });
+  const user = "testuser";
+  let caseId;
+  const auditSubject = "auditSubject";
 
-    afterEach(async () => {
-      await cleanupDatabase();
-    });
+  beforeEach(async () => {
+    const existingCase = await createTestCaseWithoutCivilian(user);
+    caseId = existingCase.id;
+  });
 
-    test("should replace attributes if all fields are present", async () => {
-      const subjectDetails = {
-        cases: {
-          attributes: Object.keys(models.cases.rawAttributes)
-        },
-        complainantCivilians: {
-          attributes: Object.keys(models.civilian.rawAttributes),
-          model: "civilian"
-        }
-      };
+  afterEach(async () => {
+    await cleanupDatabase();
+  });
 
-      await models.sequelize.transaction(async transaction => {
-        await auditDataAccess(
-          "user",
-          caseForAudit.id,
-          AUDIT_SUBJECT.CASE_DETAILS,
-          transaction,
-          AUDIT_ACTION.DATA_ACCESSED,
-          subjectDetails
-        );
-      });
+  test("should create an audit with auditDetails", async () => {
+    const auditDetails = {
+      associationName: { attributes: ["field1", "field2", "otherField"] },
+      otherAssociationName: {
+        attributes: ["fieldA", "FieldB", "anotherField"]
+      }
+    };
 
-      const createdAudit = await models.action_audit.findOne({
-        where: { caseId: caseForAudit.id }
-      });
+    await auditDataAccess(user, caseId, auditSubject, auditDetails);
 
-      expect(createdAudit.subjectDetails).toEqual({
-        Case: ["All Case Data"],
-        "Complainant Civilians": ["All Complainant Civilians Data"]
-      });
-    });
-
-    test("should include edit status in subject details in addition to all case data", async () => {
-      const subjectDetails = {
-        cases: {
-          attributes: [
-            ...Object.keys(models.cases.rawAttributes),
-            "Edit Status"
+    const audit = await models.audit.findOne({
+      include: [
+        {
+          model: models.data_access_audit,
+          as: "dataAccessAudit",
+          include: [
+            {
+              model: models.data_access_value,
+              as: "dataAccessValues"
+            }
           ]
         }
-      };
-
-      await models.sequelize.transaction(async transaction => {
-        await auditDataAccess(
-          "user",
-          caseForAudit.id,
-          AUDIT_SUBJECT.CASE_DETAILS,
-          transaction,
-          AUDIT_ACTION.DATA_ACCESSED,
-          subjectDetails
-        );
-      });
-
-      const createdAudit = await models.action_audit.findOne({
-        where: { caseId: caseForAudit.id }
-      });
-
-      expect(createdAudit.subjectDetails).toEqual({
-        Case: ["All Case Data", "Edit Status"]
-      });
+      ]
     });
 
-    test("should reformat subjectDetails when attributes exist", async () => {
-      const subjectDetails = {
-        cases: {
-          attributes: ["id", "status", "incidentDate"]
-        },
-        complainantCivilians: {
-          attributes: ["firstName", "lastName"],
-          model: "civilian"
-        }
-      };
-
-      await models.sequelize.transaction(async transaction => {
-        await auditDataAccess(
-          "user",
-          caseForAudit.id,
-          AUDIT_SUBJECT.CASE_DETAILS,
-          transaction,
-          AUDIT_ACTION.DATA_ACCESSED,
-          subjectDetails
-        );
-      });
-
-      const createdAudit = await models.action_audit.findOne({
-        where: { caseId: caseForAudit.id }
-      });
-
-      expect(createdAudit.subjectDetails).toEqual({
-        Case: ["Id", "Incident Date", "Status"],
-        "Complainant Civilians": ["First Name", "Last Name"]
-      });
-    });
-
-    test("it should populate subjectDetails correctly", async () => {
-      const subjectDetails = {
-        fileName: ["cats.jpg"],
-        otherField: ["hello"]
-      };
-
-      await models.sequelize.transaction(async transaction => {
-        await auditDataAccess(
-          "user",
-          caseForAudit.id,
-          AUDIT_SUBJECT.CASE_DETAILS,
-          transaction,
-          AUDIT_ACTION.DATA_ACCESSED,
-          subjectDetails
-        );
-      });
-
-      const createdAudit = await models.action_audit.findOne({
-        where: { caseId: caseForAudit.id }
-      });
-
-      expect(createdAudit.subjectDetails).toEqual(subjectDetails);
-    });
-
-    test("it should populate details correctly for downloaded action with subject details given", async () => {
-      await models.sequelize.transaction(async transaction => {
-        await auditDataAccess(
-          "user",
-          caseForAudit.id,
-          AUDIT_SUBJECT.ATTACHMENT,
-          transaction,
-          AUDIT_ACTION.DOWNLOADED,
-          { fileName: ["cats.jpg"] }
-        );
-      });
-
-      const createdAudits = await models.action_audit.findAll({
-        where: { caseId: caseForAudit.id }
-      });
-      expect(createdAudits.length).toEqual(1);
-      expect(createdAudits[0].subjectDetails).toEqual({
-        fileName: ["cats.jpg"]
-      });
-    });
+    expect(audit).toEqual(
+      expect.objectContaining({
+        caseId: caseId,
+        user: user,
+        dataAccessAudit: expect.objectContaining({
+          auditSubject: auditSubject,
+          dataAccessValues: expect.arrayContaining([
+            expect.objectContaining({
+              association: "associationName",
+              fields: ["field1", "field2", "otherField"]
+            }),
+            expect.objectContaining({
+              association: "otherAssociationName",
+              fields: ["anotherField", "fieldA", "FieldB"]
+            })
+          ])
+        })
+      })
+    );
   });
 });

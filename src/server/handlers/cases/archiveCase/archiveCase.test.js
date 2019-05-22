@@ -3,6 +3,7 @@ import models from "../../../models";
 import Case from "../../../../client/testUtilities/case";
 import { cleanupDatabase } from "../../../testHelpers/requestTestHelpers";
 import { getCaseWithoutAssociations } from "../../getCaseHelpers";
+
 const httpMocks = require("node-mocks-http");
 
 describe("archiveCase handler", () => {
@@ -43,6 +44,4 @@ describe("archiveCase handler", () => {
 
     expect(archivedCase.isArchived).toBeTruthy();
   });
-
-  describe("request tests", function() {});
 });

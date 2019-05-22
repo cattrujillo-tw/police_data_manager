@@ -4,32 +4,53 @@ import {
   AUDIT_ACTION,
   AUDIT_SUBJECT
 } from "../../../../sharedUtilities/constants";
+import legacyAuditDataAccess from "../../legacyAuditDataAccess";
+import getCases, { CASES_TYPE, GET_CASES_AUDIT_DETAILS } from "./getCases";
+import checkFeatureToggleEnabled from "../../../checkFeatureToggleEnabled";
 import auditDataAccess from "../../auditDataAccess";
-import getCases, { CASES_TYPE } from "./getCases";
 
 const getWorkingCases = asyncMiddleware(async (request, response) => {
   const cases = await models.sequelize.transaction(async transaction => {
-    let auditDetails = {};
+    const newAuditFeatureToggle = checkFeatureToggleEnabled(
+      request,
+      "newAuditFeature"
+    );
 
-    const sortBy = request.params.sortBy;
-    const sortDirection = request.params.sortDirection;
+    const sortBy = request.query.sortBy;
+    const sortDirection = request.query.sortDirection;
+    const toggleCaseDashboardPagination = checkFeatureToggleEnabled(
+      request,
+      "caseDashboardPaginationFeature"
+    );
+    const page = toggleCaseDashboardPagination ? request.query.page : null;
 
     const cases = await getCases(
       CASES_TYPE.WORKING,
       sortBy,
       sortDirection,
       transaction,
-      auditDetails
+      page
     );
 
-    await auditDataAccess(
-      request.nickname,
-      undefined,
-      AUDIT_SUBJECT.ALL_WORKING_CASES,
-      transaction,
-      AUDIT_ACTION.DATA_ACCESSED,
-      auditDetails
-    );
+    if (newAuditFeatureToggle) {
+      await auditDataAccess(
+        request.nickname,
+        null,
+        AUDIT_SUBJECT.ALL_WORKING_CASES,
+        GET_CASES_AUDIT_DETAILS,
+        transaction
+      );
+    } else {
+      await legacyAuditDataAccess(
+        request.nickname,
+        undefined,
+
+        AUDIT_SUBJECT.ALL_WORKING_CASES,
+        transaction,
+        AUDIT_ACTION.DATA_ACCESSED,
+        GET_CASES_AUDIT_DETAILS
+      );
+    }
 
     return cases;
   });

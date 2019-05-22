@@ -2,12 +2,12 @@ import { cleanupDatabase } from "../testHelpers/requestTestHelpers";
 
 import models from "../models";
 import getQueryAuditAccessDetails, {
-  addToExistingAuditDetails,
+  generateAndAddAuditDetailsFromQuery,
   removeFromExistingAuditDetails
 } from "./getQueryAuditAccessDetails";
 import { ALL_AUDIT_DATA } from "../../sharedUtilities/constants";
 
-describe("", () => {
+describe("audit details", () => {
   describe("getQueryAuditDetails", () => {
     let existingCase;
 
@@ -31,11 +31,13 @@ describe("", () => {
       ).toEqual(
         expect.objectContaining({
           address: {
-            attributes: expect.arrayContaining(["intersection"])
+            attributes: expect.arrayContaining(["intersection"]),
+            model: models.address.name
           }
         })
       );
     });
+
     test("gets options", async () => {
       const topLevelModelName = models.cases.name;
       const queryOptions = {
@@ -57,7 +59,7 @@ describe("", () => {
             include: [
               {
                 model: models.referral_letter_iapro_correction,
-                as: "referralLetterIAProCorrections"
+                as: "referralLetterIaproCorrections"
               }
             ]
           },
@@ -138,7 +140,8 @@ describe("", () => {
               "year",
               "caseNumber",
               "pibCaseNumber"
-            ])
+            ]),
+            model: models.cases.name
           },
           complainantOfficers: {
             attributes: ["id"],
@@ -150,6 +153,40 @@ describe("", () => {
           }
         })
       );
+    });
+
+    test("combines referral letter as top level model and association", () => {
+      const auditDetails = {};
+
+      const referralLetterTopLevelModel = models.referral_letter.name;
+      const referralLetterQueryOptions = {};
+
+      generateAndAddAuditDetailsFromQuery(
+        auditDetails,
+        referralLetterQueryOptions,
+        referralLetterTopLevelModel
+      );
+
+      const topLevelModel = models.cases.name;
+      const caseQueryOptions = {
+        include: [{ model: models.referral_letter, as: "referralLetter" }]
+      };
+      generateAndAddAuditDetailsFromQuery(
+        auditDetails,
+        caseQueryOptions,
+        topLevelModel
+      );
+
+      expect(auditDetails).toEqual({
+        cases: {
+          attributes: Object.keys(models.cases.rawAttributes),
+          model: models.cases.name
+        },
+        referralLetter: {
+          attributes: Object.keys(models.referral_letter.rawAttributes),
+          model: models.referral_letter.name
+        }
+      });
     });
 
     test("should retain model when combining attributes", () => {
@@ -219,7 +256,7 @@ describe("", () => {
         ]
       };
 
-      addToExistingAuditDetails(
+      generateAndAddAuditDetailsFromQuery(
         auditDetailsBefore,
         queryOptions,
         models.cases.name
@@ -240,57 +277,64 @@ describe("", () => {
     });
   });
 
-  describe("addToAuditDetails", () => {
-    test("should add detailsToAdd to existingDetails if existingDetails are empty", () => {
-      const detailsToAdd = {
+  describe("generateAndAddAuditDetailsFromQuery", () => {
+    test("should generate audit details from queryOptions and add to existingDetails if existingDetails are empty", () => {
+      const queryOptions = {
         attributes: ["id", "status"]
       };
 
       let existingDetails = {};
 
-      addToExistingAuditDetails(
+      generateAndAddAuditDetailsFromQuery(
         existingDetails,
-        detailsToAdd,
+        queryOptions,
         models.cases.name
       );
 
       expect(existingDetails).toEqual({
         cases: {
-          attributes: ["id", "status"]
+          attributes: ["id", "status"],
+          model: models.cases.name
         }
       });
     });
 
-    test("should combine detailsToAdd and existingDetails if existingDetails has data already", () => {
-      const detailsToAdd = {
+    test("should generate audit details from queryOptions and add to existingDetails if existingDetails has data already", () => {
+      const queryOptions = {
         attributes: ["id", "status"]
       };
 
       let existingDetails = {
-        complainantCivilians: { attributes: ["id", "firstName"] }
+        complainantCivilians: {
+          attributes: ["id", "firstName"],
+          model: models.civilian.name
+        }
       };
 
-      addToExistingAuditDetails(
+      generateAndAddAuditDetailsFromQuery(
         existingDetails,
-        detailsToAdd,
+        queryOptions,
         models.cases.name
       );
 
       expect(existingDetails).toEqual({
-        cases: { attributes: ["id", "status"] },
-        complainantCivilians: { attributes: ["id", "firstName"] }
+        cases: { attributes: ["id", "status"], model: models.cases.name },
+        complainantCivilians: {
+          attributes: ["id", "firstName"],
+          model: models.civilian.name
+        }
       });
     });
 
-    test("should combine overlapping subjects", () => {
+    test("should generate audit details from queryOptions and add to existingDetails if there are overlapping subjects", () => {
       const existingDetails = {
         cases: { attributes: ["id", "status"] }
       };
 
-      const detailsToAdd = { attributes: ["incidentDate"] };
-      addToExistingAuditDetails(
+      const queryOptions = { attributes: ["incidentDate"] };
+      generateAndAddAuditDetailsFromQuery(
         existingDetails,
-        detailsToAdd,
+        queryOptions,
         models.cases.name
       );
 
@@ -304,13 +348,13 @@ describe("", () => {
         cases: { attributes: ["id", "status"] }
       };
 
-      const detailsToAdd = {
+      const queryOptions = {
         attributes: ["id", "incidentDate"]
       };
 
-      addToExistingAuditDetails(
+      generateAndAddAuditDetailsFromQuery(
         existingDetails,
-        detailsToAdd,
+        queryOptions,
         models.cases.name
       );
 

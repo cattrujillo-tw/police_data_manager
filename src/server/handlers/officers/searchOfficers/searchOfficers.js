@@ -1,5 +1,5 @@
 import { ASCENDING, AUDIT_ACTION } from "../../../../sharedUtilities/constants";
-import { addToExistingAuditDetails } from "../../getQueryAuditAccessDetails";
+import { generateAndAddAuditDetailsFromQuery } from "../../getQueryAuditAccessDetails";
 
 const models = require("../../../models/index");
 const {
@@ -8,7 +8,7 @@ const {
 } = require("../../../../sharedUtilities/constants");
 const asyncMiddleware = require("../../asyncMiddleware");
 const Op = require("sequelize").Op;
-import auditDataAccess from "../../auditDataAccess";
+import legacyAuditDataAccess from "../../legacyAuditDataAccess";
 
 const searchOfficers = asyncMiddleware(async (request, response) => {
   const whereClause = {};
@@ -38,9 +38,13 @@ const searchOfficers = asyncMiddleware(async (request, response) => {
     };
     const officers = await models.officer.findAndCountAll(queryOptions);
 
-    addToExistingAuditDetails(auditDetails, queryOptions, models.officer.name);
+    generateAndAddAuditDetailsFromQuery(
+      auditDetails,
+      queryOptions,
+      models.officer.name
+    );
 
-    await auditDataAccess(
+    await legacyAuditDataAccess(
       request.nickname,
       undefined,
       AUDIT_SUBJECT.OFFICER_DATA,

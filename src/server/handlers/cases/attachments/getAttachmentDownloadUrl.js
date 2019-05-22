@@ -1,7 +1,7 @@
 const asyncMiddleware = require("../../asyncMiddleware");
 const createConfiguredS3Instance = require("../../../createConfiguredS3Instance");
 const config = require("../../../config/config");
-import auditDataAccess from "../../auditDataAccess";
+import legacyAuditDataAccess from "../../legacyAuditDataAccess";
 const {
   AUDIT_SUBJECT,
   AUDIT_ACTION,
@@ -21,8 +21,18 @@ const getAttachmentDownloadUrl = asyncMiddleware(
         },
         { auditUser: request.nickname, transaction }
       );
+      const referralLetter = await models.referral_letter.findOne(
+        {
+          where: { finalPdfFilename: request.params.fileName }
+        },
+        {
+          auditUser: request.nickname,
+          transaction
+        }
+      );
+
       if (complainantLetter) {
-        await auditDataAccess(
+        await legacyAuditDataAccess(
           request.nickname,
           complainantLetter.caseId,
           AUDIT_SUBJECT.LETTER_TO_COMPLAINANT_PDF,
@@ -31,7 +41,17 @@ const getAttachmentDownloadUrl = asyncMiddleware(
         );
         return getComplainantLetterS3Url(s3, complainantLetter);
       }
-      await auditDataAccess(
+      if (referralLetter) {
+        await legacyAuditDataAccess(
+          request.nickname,
+          referralLetter.caseId,
+          AUDIT_SUBJECT.FINAL_REFERRAL_LETTER_PDF,
+          transaction,
+          AUDIT_ACTION.DOWNLOADED
+        );
+        return getReferralLetterS3Url(s3, referralLetter);
+      }
+      await legacyAuditDataAccess(
         request.nickname,
         request.params.caseId,
         AUDIT_SUBJECT.ATTACHMENT,
@@ -39,12 +59,14 @@ const getAttachmentDownloadUrl = asyncMiddleware(
         AUDIT_ACTION.DOWNLOADED,
         { fileName: [request.params.fileName] }
       );
-
-      return s3.getSignedUrl(S3_GET_OBJECT, {
-        Bucket: config[process.env.NODE_ENV].s3Bucket,
-        Key: `${request.params.caseId}/${request.params.fileName}`,
-        Expires: S3_URL_EXPIRATION
-      });
+      const filenameWithCaseId = `${request.params.caseId}/${
+        request.params.fileName
+      }`;
+      return getS3SignedUrl(
+        s3,
+        config[process.env.NODE_ENV].s3Bucket,
+        filenameWithCaseId
+      );
     });
 
     response.setHeader("Content-Type", "text/html");
@@ -53,12 +75,36 @@ const getAttachmentDownloadUrl = asyncMiddleware(
   }
 );
 
-const getComplainantLetterS3Url = (s3, complainantLetter) => {
+const getS3SignedUrl = (s3, bucket, key) => {
   return s3.getSignedUrl(S3_GET_OBJECT, {
-    Bucket: config[process.env.NODE_ENV].complainantLettersBucket,
-    Key: `${complainantLetter.caseId}/${complainantLetter.finalPdfFilename}`,
+    Bucket: bucket,
+    Key: key,
     Expires: S3_URL_EXPIRATION
   });
+};
+
+const getComplainantLetterS3Url = (s3, complainantLetter) => {
+  const filenameWithCaseId = `${complainantLetter.caseId}/${
+    complainantLetter.finalPdfFilename
+  }`;
+
+  return getS3SignedUrl(
+    s3,
+    config[process.env.NODE_ENV].complainantLettersBucket,
+    filenameWithCaseId
+  );
+};
+
+const getReferralLetterS3Url = (s3, referralLetter) => {
+  const filenameWithCaseId = `${referralLetter.caseId}/${
+    referralLetter.finalPdfFilename
+  }`;
+
+  return getS3SignedUrl(
+    s3,
+    config[process.env.NODE_ENV].referralLettersBucket,
+    filenameWithCaseId
+  );
 };
 
 module.exports = getAttachmentDownloadUrl;

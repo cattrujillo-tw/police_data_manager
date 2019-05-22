@@ -6,6 +6,10 @@
 # local development
 awsConfig.json
 
+# schemaspy data
+/schemaspy/complaint-manager/output
+/schemaspy/iapro/output
+
 # testing
 /coverage
 

@@ -7,6 +7,7 @@ import {
   ADDRESS_VALIDITY_UPDATED,
   ARCHIVE_CASE_DIALOG_CLOSED,
   ARCHIVE_CASE_DIALOG_OPENED,
+  ARCHIVE_CASE_SUCCESS,
   ATTACHMENT_UPLOAD_SUCCEEDED,
   CASE_CREATED_SUCCESS,
   CASE_NOTE_DIALOG_CLOSED,
@@ -55,18 +56,22 @@ export const requestCaseCreation = () => ({
   type: "CASE_CREATION_REQUESTED"
 });
 
-export const getWorkingCasesSuccess = cases => ({
+export const getWorkingCasesSuccess = (cases, totalCaseCount, page) => ({
   type: GET_WORKING_CASES_SUCCESS,
-  cases
+  cases,
+  totalCaseCount,
+  page
 });
 
 export const resetWorkingCasesLoaded = () => ({
   type: RESET_WORKING_CASES_LOADED
 });
 
-export const getArchivedCasesSuccess = cases => ({
+export const getArchivedCasesSuccess = (cases, totalCaseCount, page) => ({
   type: GET_ARCHIVED_CASES_SUCCESS,
-  cases
+  cases,
+  totalCaseCount,
+  page
 });
 
 export const resetArchivedCasesLoaded = () => ({
@@ -76,6 +81,10 @@ export const resetArchivedCasesLoaded = () => ({
 export const getCaseDetailsSuccess = caseDetails => ({
   type: GET_CASE_DETAILS_SUCCESS,
   caseDetails
+});
+
+export const archiveCaseSuccess = () => ({
+  type: ARCHIVE_CASE_SUCCESS
 });
 
 export const getMinimumCaseDetailsSuccess = caseDetails => ({

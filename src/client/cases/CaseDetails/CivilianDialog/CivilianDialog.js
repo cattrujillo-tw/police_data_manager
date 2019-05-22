@@ -38,10 +38,9 @@ import EmailField from "../../sharedFormComponents/EmailField";
 import { formatAddressAsString } from "../../../utilities/formatAddress";
 import moment from "moment";
 import {
-  genderIdentityMenu,
-  generateMenu,
+  generateMenuOptions,
   titleMenu
-} from "../../../utilities/generateMenus";
+} from "../../../utilities/generateMenuOptions";
 import validate from "./helpers/validateCivilianFields";
 import AddressInput from "./AddressInput";
 import {
@@ -55,11 +54,13 @@ import AddressSecondLine from "../../sharedFormComponents/AddressSecondLine";
 import _ from "lodash";
 import normalizeAddress from "../../../utilities/normalizeAddress";
 import getRaceEthnicityDropdownValues from "../../../raceEthnicities/thunks/getRaceEthnicityDropdownValues";
+import getGenderIdentityDropdownValues from "../../../genderIdentities/thunks/getGenderIdentityDropdownValues";
 import PrimaryCheckBox from "../../../shared/components/PrimaryCheckBox";
 
 class CivilianDialog extends Component {
   componentDidMount() {
     this.props.getRaceEthnicityDropdownValues();
+    this.props.getGenderIdentityDropdownValues();
   }
 
   handleCivilian = (values, dispatch) => {
@@ -169,7 +170,7 @@ class CivilianDialog extends Component {
               />
               <Field
                 required
-                name="genderIdentity"
+                name="genderIdentityId"
                 component={NoBlurTextField}
                 label="Gender Identity"
                 hinttext="Gender Identity"
@@ -177,7 +178,7 @@ class CivilianDialog extends Component {
                 style={{ width: "30%" }}
                 validate={[genderIdentityIsRequired]}
               >
-                {genderIdentityMenu}
+                {generateMenuOptions(this.props.genderIdentities)}
               </Field>
             </div>
             <Field
@@ -190,17 +191,13 @@ class CivilianDialog extends Component {
               style={{ width: "75%" }}
               validate={[raceEthnicityIsRequired]}
             >
-              {generateMenu(this.props.raceEthnicities)}
+              {generateMenuOptions(this.props.raceEthnicities)}
             </Field>
-            {!this.props.isAnonymousFeatureToggle ? null : (
-              <FormControlLabel
-                key="isAnonymous"
-                label="Anonymize complainant in referral letter"
-                control={
-                  <Field name="isAnonymous" component={PrimaryCheckBox} />
-                }
-              />
-            )}
+            <FormControlLabel
+              key="isAnonymous"
+              label="Anonymize complainant in referral letter"
+              control={<Field name="isAnonymous" component={PrimaryCheckBox} />}
+            />
             <Typography
               variant="body2"
               style={{ marginTop: "24px", marginBottom: "8px" }}
@@ -315,12 +312,13 @@ const mapStateToProps = state => {
     submitButtonText: state.ui.civilianDialog.submitButtonText,
     addressValid: state.ui.addressInput.addressValid,
     raceEthnicities: state.ui.raceEthnicities,
-    isAnonymousFeatureToggle: state.featureToggles.isAnonymousFeature
+    genderIdentities: state.ui.genderIdentities
   };
 };
 
 const mapDispatchToProps = {
-  getRaceEthnicityDropdownValues
+  getRaceEthnicityDropdownValues,
+  getGenderIdentityDropdownValues
 };
 
 export default connect(

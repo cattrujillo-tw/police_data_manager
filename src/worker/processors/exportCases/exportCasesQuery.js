@@ -1,6 +1,37 @@
+import _ from "lodash";
+import { CASE_EXPORT_TYPE } from "../../../sharedUtilities/constants";
+
 const { COMPLAINANT, WITNESS } = require("../../../sharedUtilities/constants");
 
-const exportCasesQuery = () => {
+const getDateRangeCondition = dateRange => {
+  if (dateRange) {
+    const postgresDateFormat = `YYYY-MM-DD`;
+
+    const casesField = _.snakeCase(dateRange.type);
+
+    return `AND cases.${casesField} BETWEEN to_date('${
+      dateRange.exportStartDate
+    }', '${postgresDateFormat}') and to_date('${
+      dateRange.exportEndDate
+    }', '${postgresDateFormat}')`;
+  } else {
+    return "";
+  }
+};
+
+const getOrderByClauseForCases = dateRange => {
+  let orderByClauseForCases = "";
+  if (dateRange && dateRange.type === CASE_EXPORT_TYPE.FIRST_CONTACT_DATE) {
+    orderByClauseForCases = "cases.first_contact_date ASC, ";
+  } else if (dateRange && dateRange.type === CASE_EXPORT_TYPE.INCIDENT_DATE) {
+    orderByClauseForCases = "cases.incident_date ASC, ";
+  } else {
+    orderByClauseForCases = "cases.year ASC, cases.case_number ASC, ";
+  }
+  return orderByClauseForCases;
+};
+
+const exportCasesQuery = (dateRange = null) => {
   const DATE_ONLY_FORMAT = "MM/DD/YYYY";
   const TIME_ONLY_FORMAT = "HH24:MI:SS";
   const FILE_EXTENSION_PATTERN = "([^.]+)$";
@@ -148,7 +179,7 @@ const exportCasesQuery = () => {
     "     last_name, " +
     "     suffix)" +
     '     AS "civilian_full_name", ' +
-    '   gender_identity AS "civilian_gender_identity", ' +
+    '   gender_identities.name AS "civilian_gender_identity", ' +
     '   race_ethnicities.name AS "civilian_race_ethnicity", ' +
     "   birth_date AS civilian_dob, " +
     `   CASE WHEN phone_number = '' OR phone_number IS NULL ` +
@@ -188,6 +219,8 @@ const exportCasesQuery = () => {
     "   AND addresses.deleted_at IS NULL " +
     " LEFT OUTER JOIN race_ethnicities " +
     " ON race_ethnicities.id = civilians.race_ethnicity_id" +
+    " LEFT OUTER JOIN gender_identities " +
+    " ON gender_identities.id = civilians.gender_identity_id" +
     " WHERE civilians.deleted_at IS NULL " +
     ` AND civilians.role_on_case = \'${COMPLAINANT}\'` +
     " UNION ALL " +
@@ -254,7 +287,10 @@ const exportCasesQuery = () => {
     ") as attachments " +
     " ON attachments.case_id = cases.id " +
     "where cases.deleted_at IS NULL " +
-    "ORDER BY cases.created_at ASC, complainants.created_at ASC, accusedOfficers.created_at ASC, officerAllegations.created_at ASC;";
+    getDateRangeCondition(dateRange) +
+    "ORDER BY " +
+    getOrderByClauseForCases(dateRange) +
+    "complainants.created_at ASC, accusedOfficers.created_at ASC, officerAllegations.created_at ASC;";
   return query;
 };
 

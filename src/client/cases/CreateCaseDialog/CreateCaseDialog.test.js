@@ -60,7 +60,7 @@ describe("CreateCaseDialog component", () => {
     );
     createCaseButton.simulate("click");
     store.dispatch(
-      getIntakeSourcesSuccess([[0, "Email"], [1, "NOIPM Website"]])
+      getIntakeSourcesSuccess([["NOIPM Website", 1], ["Email", 2]])
     );
   });
 
@@ -83,7 +83,7 @@ describe("CreateCaseDialog component", () => {
         case: {
           complaintType: CIVILIAN_INITIATED,
           firstContactDate: moment(Date.now()).format("YYYY-MM-DD"),
-          intakeSourceId: "Email"
+          intakeSourceId: 1
         },
         civilian: {
           firstName: "Fats",
@@ -113,7 +113,11 @@ describe("CreateCaseDialog component", () => {
         '[data-test="emailInput"]',
         caseDetails.civilian.email
       );
-      selectDropdownOption(dialog, '[data-test="intakeSourceDropdown"]', "0");
+      selectDropdownOption(
+        dialog,
+        '[data-test="intakeSourceDropdown"]',
+        "NOIPM Website"
+      );
     });
 
     test("should plan to redirect when clicking Create-And-View", () => {
@@ -129,6 +133,9 @@ describe("CreateCaseDialog component", () => {
           sorting: {
             sortBy: SORT_CASES_BY.CASE_REFERENCE,
             sortDirection: DESCENDING
+          },
+          pagination: {
+            currentPage: 1
           }
         })
       );
@@ -139,6 +146,7 @@ describe("CreateCaseDialog component", () => {
         'LinkButton[data-test="createCaseOnly"]'
       );
       submitButton.simulate("click");
+
       expect(dispatchSpy).toHaveBeenCalledWith(
         createCase({
           caseDetails: caseDetails,
@@ -146,6 +154,9 @@ describe("CreateCaseDialog component", () => {
           sorting: {
             sortBy: SORT_CASES_BY.CASE_REFERENCE,
             sortDirection: DESCENDING
+          },
+          pagination: {
+            currentPage: 1
           }
         })
       );
@@ -286,7 +297,11 @@ describe("CreateCaseDialog component", () => {
       test("should display phone number error", () => {
         changeInput(dialog, '[data-test="lastNameInput"]', "test");
         changeInput(dialog, '[data-test="firstNameInput"]', "test");
-        selectDropdownOption(dialog, '[data-test="intakeSourceDropdown"]', "0");
+        selectDropdownOption(
+          dialog,
+          '[data-test="intakeSourceDropdown"]',
+          "Email"
+        );
         const phoneNumberField = dialog.find(
           'div[data-test="phoneNumberField"]'
         );
@@ -310,7 +325,7 @@ describe("CreateCaseDialog component", () => {
         case: {
           complaintType: CIVILIAN_INITIATED,
           firstContactDate: moment(Date.now()).format("YYYY-MM-DD"),
-          intakeSourceId: "Email",
+          intakeSourceId: 2,
           incidentDate: undefined
         },
         civilian: {
@@ -324,7 +339,11 @@ describe("CreateCaseDialog component", () => {
       changeInput(dialog, 'input[data-test="lastNameInput"]', "   Kitty   ");
       changeInput(dialog, 'input[data-test="phoneNumberInput"]', "1234567890");
 
-      selectDropdownOption(dialog, '[data-test="intakeSourceDropdown"]', "0");
+      selectDropdownOption(
+        dialog,
+        '[data-test="intakeSourceDropdown"]',
+        "Email"
+      );
 
       const submitButton = dialog.find(
         'LinkButton[data-test="createCaseOnly"]'
@@ -338,6 +357,9 @@ describe("CreateCaseDialog component", () => {
           sorting: {
             sortBy: SORT_CASES_BY.CASE_REFERENCE,
             sortDirection: DESCENDING
+          },
+          pagination: {
+            currentPage: 1
           }
         })
       );
@@ -391,7 +413,11 @@ describe("CreateCaseDialog component", () => {
     });
 
     test("should dispatch createCase with redirect to add officer when create & search clicked", () => {
-      selectDropdownOption(dialog, '[data-test="intakeSourceDropdown"]', "0");
+      selectDropdownOption(
+        dialog,
+        '[data-test="intakeSourceDropdown"]',
+        "Email"
+      );
       const createAndSearch = dialog
         .find('[data-test="createAndSearch"]')
         .last();

@@ -48,6 +48,8 @@ import deleteAttachment from "./handlers/cases/attachments/deleteAttachment";
 import getArchivedCases from "./handlers/cases/getCases/getArchivedCases";
 import getOfficerHistoryOptions from "./handlers/cases/referralLetters/getOfficerHistoryOptions/getOfficerHistoryOptions";
 import getHowDidYouHearAboutUsSources from "./handlers/howDidYouHearAboutUsSources/getHowDidYouHearAboutUsSources";
+import getGenderIdentities from "./handlers/genderIdentities/getGenderIdentities";
+import getCaseNoteActions from "./handlers/caseNoteActions/getCaseNoteActions";
 
 export const ROUTES_ALLOWED_TO_HANDLE_ARCHIVED_CASE = [
   "/cases/:caseId/case-notes",
@@ -75,16 +77,14 @@ export const API_ROUTES = {
       handler: createCase,
       errorMessage:
         "Something went wrong and the case was not created. Please try again."
-    }
-  },
-  "/cases/all/:sortBy/:sortDirection": {
+    },
     get: {
       handler: getWorkingCases,
       errorMessage:
         "Something went wrong and the cases were not loaded. Please try again."
     }
   },
-  "/cases/all/archived-cases/:sortBy/:sortDirection": {
+  "/cases/archived-cases": {
     get: {
       handler: getArchivedCases,
       errorMessage:
@@ -350,6 +350,13 @@ export const API_ROUTES = {
         "Something went wrong and the allegation values were not found. Please try again."
     }
   },
+  "/case-note-actions": {
+    get: {
+      handler: getCaseNoteActions,
+      errorMessage:
+        "Something went wrong and the case note action values were not found. Please try again."
+    }
+  },
   "/classifications": {
     get: {
       handler: getClassifications,
@@ -362,6 +369,13 @@ export const API_ROUTES = {
       handler: getIntakeSources,
       errorMessage:
         "Something went wrong and the intake source values were not found. Please try again."
+    }
+  },
+  "/gender-identities": {
+    get: {
+      handler: getGenderIdentities,
+      errorMessage:
+        "Something went wrong and the gender identity values were not found. Please try again."
     }
   },
   "/how-did-you-hear-about-us-sources": {

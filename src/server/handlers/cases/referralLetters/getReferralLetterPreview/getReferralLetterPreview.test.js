@@ -30,6 +30,11 @@ import ReferralLetterOfficerHistoryNote from "../../../../../client/testUtilitie
 import Classification from "../../../../../client/testUtilities/classification";
 import constructFilename from "../constructFilename";
 import RaceEthnicity from "../../../../../client/testUtilities/raceEthnicity";
+import mockFflipObject from "../../../../testHelpers/mockFflipObject";
+import auditDataAccess from "../../../auditDataAccess";
+import _ from "lodash";
+
+jest.mock("../../../auditDataAccess");
 
 describe("getReferralLetterPreview", function() {
   let existingCase, request, response, next, referralLetter;
@@ -100,143 +105,6 @@ describe("getReferralLetterPreview", function() {
         { status: CASE_STATUS.LETTER_IN_PROGRESS },
         { auditUser: "test" }
       );
-    });
-
-    test("audits the data access if letter is generated", async () => {
-      await getReferralLetterPreview(request, response, next);
-
-      const dataAccessAudit = await models.action_audit.findOne();
-      expect(dataAccessAudit.action).toEqual(AUDIT_ACTION.DATA_ACCESSED);
-      expect(dataAccessAudit.auditType).toEqual(AUDIT_TYPE.DATA_ACCESS);
-      expect(dataAccessAudit.user).toEqual("bobjo");
-      expect(dataAccessAudit.caseId).toEqual(existingCase.id);
-      expect(dataAccessAudit.subject).toEqual(
-        AUDIT_SUBJECT.REFERRAL_LETTER_PREVIEW
-      );
-      expect(dataAccessAudit.subjectDetails).toEqual({
-        "Accused Officers": ["All Accused Officers Data"],
-        Address: ["All Address Data"],
-        Allegation: ["All Allegation Data"],
-        Allegations: ["All Allegations Data"],
-        Attachment: ["All Attachment Data"],
-        Case: [
-          "Assigned To",
-          "Case Id",
-          "Case Number",
-          "Classification Id",
-          "Complaint Type",
-          "Created At",
-          "Created By",
-          "District",
-          "First Contact Date",
-          "How Did You Hear About Us Source Id",
-          "Id",
-          "Incident Date",
-          "Incident Time",
-          "Intake Source Id",
-          "Is Archived",
-          "Narrative Details",
-          "Narrative Summary",
-          "Pdf Available",
-          "Pib Case Number",
-          "Status",
-          "Updated At",
-          "Year"
-        ],
-        Classification: ["All Classification Data"],
-        "Complainant Civilians": ["All Complainant Civilians Data"],
-        "Complainant Officers": ["All Complainant Officers Data"],
-        "How Did You Hear About Us Source": [
-          "All How Did You Hear About Us Source Data"
-        ],
-        "Incident Location": ["All Incident Location Data"],
-        "Intake Source": ["All Intake Source Data"],
-        "Letter Officer": ["All Letter Officer Data"],
-        "Race Ethnicity": ["All Race Ethnicity Data"],
-        "Recommended Action": ["All Recommended Action Data"],
-        "Referral Letter": [
-          "All Referral Letter Data",
-          "Draft Filename",
-          "Edit Status",
-          "Last Edited"
-        ],
-        "Referral Letter IA Pro Corrections": [
-          "All Referral Letter IA Pro Corrections Data"
-        ],
-        "Referral Letter Officer History Notes": [
-          "All Referral Letter Officer History Notes Data"
-        ],
-        "Referral Letter Officer Recommended Actions": [
-          "All Referral Letter Officer Recommended Actions Data"
-        ],
-        "Witness Civilians": ["All Witness Civilians Data"],
-        "Witness Officers": ["All Witness Officers Data"]
-      });
-    });
-
-    test("audits the data if the letter is edited", async () => {
-      await referralLetter.update(
-        { editedLetterHtml: "<p>something</p>" },
-        { auditUser: "nickname" }
-      );
-
-      await getReferralLetterPreview(request, response, next);
-
-      const dataAccessAudit = await models.action_audit.findOne();
-      expect(dataAccessAudit.action).toEqual(AUDIT_ACTION.DATA_ACCESSED);
-      expect(dataAccessAudit.auditType).toEqual(AUDIT_TYPE.DATA_ACCESS);
-      expect(dataAccessAudit.user).toEqual("bobjo");
-      expect(dataAccessAudit.caseId).toEqual(existingCase.id);
-      expect(dataAccessAudit.subject).toEqual(
-        AUDIT_SUBJECT.REFERRAL_LETTER_PREVIEW
-      );
-      expect(dataAccessAudit.subjectDetails).toEqual({
-        "Accused Officers": ["All Accused Officers Data"],
-        Address: ["All Address Data"],
-        Allegation: ["All Allegation Data"],
-        Allegations: ["All Allegations Data"],
-        Attachment: ["All Attachment Data"],
-        Case: [
-          "Assigned To",
-          "Case Number",
-          "Classification Id",
-          "Complaint Type",
-          "Created At",
-          "Created By",
-          "District",
-          "First Contact Date",
-          "How Did You Hear About Us Source Id",
-          "Id",
-          "Incident Date",
-          "Incident Time",
-          "Intake Source Id",
-          "Is Archived",
-          "Narrative Details",
-          "Narrative Summary",
-          "Pdf Available",
-          "Pib Case Number",
-          "Status",
-          "Updated At",
-          "Year"
-        ],
-        Classification: ["All Classification Data"],
-        "Complainant Civilians": ["All Complainant Civilians Data"],
-        "Complainant Officers": ["All Complainant Officers Data"],
-        "How Did You Hear About Us Source": [
-          "All How Did You Hear About Us Source Data"
-        ],
-        "Incident Location": ["All Incident Location Data"],
-        "Intake Source": ["All Intake Source Data"],
-        "Race Ethnicity": ["All Race Ethnicity Data"],
-        "Referral Letter": [
-          "All Referral Letter Data",
-          "Draft Filename",
-          "Edit Status",
-          "Last Edited"
-        ],
-        "Witness Civilians": ["All Witness Civilians Data"],
-        "Witness Officers": ["All Witness Officers Data"]
-      });
     });
 
     test("returns letter address info", async () => {
@@ -535,7 +403,7 @@ describe("getReferralLetterPreview", function() {
     });
 
     describe("snapshotTests", function() {
-      let letterOfficer;
+      let letterOfficer, genderIdentity;
 
       beforeEach(async () => {
         const raceEthnicityAttributes = new RaceEthnicity.Builder()
@@ -549,10 +417,16 @@ describe("getReferralLetterPreview", function() {
           }
         );
 
+        genderIdentity = await models.gender_identity.create(
+          { name: "Female" },
+          { auditUser: "test" }
+        );
+
         const civilianComplainantAttributes = new Civilian.Builder()
           .defaultCivilian()
           .withCaseId(existingCase.id)
           .withRoleOnCase(COMPLAINANT)
+          .withGenderIdentityId(genderIdentity.id)
           .withRaceEthnicityId(raceEthnicity.id)
           .withId(undefined);
         const civilianComplainant = await models.civilian.create(
@@ -722,13 +596,13 @@ describe("getReferralLetterPreview", function() {
       });
 
       test("it renders correctly with iapro corrections", async () => {
-        const referralLetterIAProCorrectionAttributes = new ReferralLetterIAProCorrection.Builder()
+        const referralLetterIaproCorrectionAttributes = new ReferralLetterIAProCorrection.Builder()
           .defaultReferralLetterIAProCorrection()
           .withId(undefined)
           .withReferralLetterId(referralLetter.id);
 
         await models.referral_letter_iapro_correction.create(
-          referralLetterIAProCorrectionAttributes,
+          referralLetterIaproCorrectionAttributes,
           {
             auditUser: "test"
           }
@@ -769,6 +643,7 @@ describe("getReferralLetterPreview", function() {
         );
         const civilianWitnessAttributes = new Civilian.Builder()
           .defaultCivilian()
+          .withGenderIdentityId(genderIdentity.id)
           .withCaseId(existingCase.id)
           .withRoleOnCase(WITNESS)
           .withId(undefined);
@@ -824,13 +699,13 @@ describe("getReferralLetterPreview", function() {
           }
         );
 
-        const referralLetterIAProCorrectionAttributes = new ReferralLetterIAProCorrection.Builder()
+        const referralLetterIaproCorrectionAttributes = new ReferralLetterIAProCorrection.Builder()
           .defaultReferralLetterIAProCorrection()
           .withId(undefined)
           .withReferralLetterId(referralLetter.id);
 
         await models.referral_letter_iapro_correction.create(
-          referralLetterIAProCorrectionAttributes,
+          referralLetterIaproCorrectionAttributes,
           {
             auditUser: "test"
           }
@@ -848,6 +723,486 @@ describe("getReferralLetterPreview", function() {
 
         await getReferralLetterPreview(request, response, next);
         expect(response._getData().letterHtml).toMatchSnapshot();
+      });
+    });
+
+    describe("newAuditFeature toggle off", () => {
+      beforeEach(() => {
+        request.fflip = mockFflipObject({
+          newAuditFeature: false
+        });
+      });
+
+      test("audits the data access if letter is generated", async () => {
+        await getReferralLetterPreview(request, response, next);
+
+        const dataAccessAudit = await models.action_audit.findOne();
+        expect(dataAccessAudit.action).toEqual(AUDIT_ACTION.DATA_ACCESSED);
+        expect(dataAccessAudit.auditType).toEqual(AUDIT_TYPE.DATA_ACCESS);
+        expect(dataAccessAudit.user).toEqual("bobjo");
+        expect(dataAccessAudit.caseId).toEqual(existingCase.id);
+        expect(dataAccessAudit.subject).toEqual(
+          AUDIT_SUBJECT.REFERRAL_LETTER_PREVIEW
+        );
+        expect(dataAccessAudit.auditDetails).toEqual({
+          "Accused Officers": ["All Accused Officers Data"],
+          Address: ["All Address Data"],
+          Allegation: ["All Allegation Data"],
+          Allegations: ["All Allegations Data"],
+          Attachment: ["All Attachment Data"],
+          Case: [
+            "Assigned To",
+            "Case Number",
+            "Classification Id",
+            "Complaint Type",
+            "Created At",
+            "Created By",
+            "District",
+            "First Contact Date",
+            "How Did You Hear About Us Source Id",
+            "Id",
+            "Incident Date",
+            "Incident Time",
+            "Intake Source Id",
+            "Is Archived",
+            "Narrative Details",
+            "Narrative Summary",
+            "Pdf Available",
+            "Pib Case Number",
+            "Status",
+            "Updated At",
+            "Year"
+          ],
+          Classification: ["All Classification Data"],
+          "Complainant Civilians": ["All Complainant Civilians Data"],
+          "Complainant Officers": ["All Complainant Officers Data"],
+          "Gender Identity": ["All Gender Identity Data"],
+          "How Did You Hear About Us Source": [
+            "All How Did You Hear About Us Source Data"
+          ],
+          "Incident Location": ["All Incident Location Data"],
+          "Intake Source": ["All Intake Source Data"],
+          "Letter Officer": ["All Letter Officer Data"],
+          "Race Ethnicity": ["All Race Ethnicity Data"],
+          "Recommended Action": ["All Recommended Action Data"],
+          "Referral Letter": [
+            "All Referral Letter Data",
+            "Draft Filename",
+            "Edit Status",
+            "Last Edited"
+          ],
+          "Referral Letter Iapro Corrections": [
+            "All Referral Letter Iapro Corrections Data"
+          ],
+          "Referral Letter Officer History Notes": [
+            "All Referral Letter Officer History Notes Data"
+          ],
+          "Referral Letter Officer Recommended Actions": [
+            "All Referral Letter Officer Recommended Actions Data"
+          ],
+          "Witness Civilians": ["All Witness Civilians Data"],
+          "Witness Officers": ["All Witness Officers Data"]
+        });
+      });
+
+      test("audits the data if the letter is edited", async () => {
+        await referralLetter.update(
+          { editedLetterHtml: "<p>something</p>" },
+          { auditUser: "nickname" }
+        );
+
+        await getReferralLetterPreview(request, response, next);
+
+        const dataAccessAudit = await models.action_audit.findOne();
+        expect(dataAccessAudit.action).toEqual(AUDIT_ACTION.DATA_ACCESSED);
+        expect(dataAccessAudit.auditType).toEqual(AUDIT_TYPE.DATA_ACCESS);
+        expect(dataAccessAudit.user).toEqual("bobjo");
+        expect(dataAccessAudit.caseId).toEqual(existingCase.id);
+        expect(dataAccessAudit.subject).toEqual(
+          AUDIT_SUBJECT.REFERRAL_LETTER_PREVIEW
+        );
+        expect(dataAccessAudit.auditDetails).toEqual({
+          "Accused Officers": ["All Accused Officers Data"],
+          Address: ["All Address Data"],
+          Allegation: ["All Allegation Data"],
+          Allegations: ["All Allegations Data"],
+          Attachment: ["All Attachment Data"],
+          Case: [
+            "Assigned To",
+            "Case Number",
+            "Classification Id",
+            "Complaint Type",
+            "Created At",
+            "Created By",
+            "District",
+            "First Contact Date",
+            "How Did You Hear About Us Source Id",
+            "Id",
+            "Incident Date",
+            "Incident Time",
+            "Intake Source Id",
+            "Is Archived",
+            "Narrative Details",
+            "Narrative Summary",
+            "Pdf Available",
+            "Pib Case Number",
+            "Status",
+            "Updated At",
+            "Year"
+          ],
+          Classification: ["All Classification Data"],
+          "Complainant Civilians": ["All Complainant Civilians Data"],
+          "Complainant Officers": ["All Complainant Officers Data"],
+          "Gender Identity": ["All Gender Identity Data"],
+          "How Did You Hear About Us Source": [
+            "All How Did You Hear About Us Source Data"
+          ],
+          "Incident Location": ["All Incident Location Data"],
+          "Intake Source": ["All Intake Source Data"],
+          "Race Ethnicity": ["All Race Ethnicity Data"],
+          "Referral Letter": [
+            "All Referral Letter Data",
+            "Draft Filename",
+            "Edit Status",
+            "Last Edited"
+          ],
+          "Witness Civilians": ["All Witness Civilians Data"],
+          "Witness Officers": ["All Witness Officers Data"]
+        });
+      });
+    });
+
+    describe("newAuditFeature toggle on", () => {
+      beforeEach(() => {
+        request.fflip = mockFflipObject({
+          newAuditFeature: true
+        });
+      });
+
+      test("ensures auditDataAccess is called with correct values", async () => {
+        await getReferralLetterPreview(request, response, next);
+        const referralLetterPreviewCaseAttributes = [
+          "assignedTo",
+          "caseNumber",
+          "classificationId",
+          "complaintType",
+          "createdAt",
+          "createdBy",
+          "district",
+          "firstContactDate",
+          "howDidYouHearAboutUsSourceId",
+          "id",
+          "incidentDate",
+          "incidentTime",
+          "intakeSourceId",
+          "isArchived",
+          "narrativeDetails",
+          "narrativeSummary",
+          "pdfAvailable",
+          "pibCaseNumber",
+          "status",
+          "updatedAt",
+          "year"
+        ];
+
+        const expectedAuditDetails = {
+          accusedOfficers: {
+            attributes: expect.arrayContaining(
+              Object.keys(models.case_officer.rawAttributes)
+            ),
+            model: models.case_officer.name
+          },
+          address: {
+            attributes: expect.arrayContaining(
+              Object.keys(models.address.rawAttributes)
+            ),
+            model: models.address.name
+          },
+          allegation: {
+            attributes: expect.arrayContaining(
+              Object.keys(models.allegation.rawAttributes)
+            ),
+            model: models.allegation.name
+          },
+          allegations: {
+            attributes: expect.arrayContaining(
+              Object.keys(models.officer_allegation.rawAttributes)
+            ),
+            model: models.officer_allegation.name
+          },
+          attachment: {
+            attributes: expect.arrayContaining(
+              Object.keys(models.attachment.rawAttributes)
+            ),
+            model: models.attachment.name
+          },
+          cases: {
+            attributes: expect.arrayContaining(
+              referralLetterPreviewCaseAttributes
+            ),
+            model: models.cases.name
+          },
+          classification: {
+            attributes: expect.arrayContaining(
+              Object.keys(models.classification.rawAttributes)
+            ),
+            model: models.classification.name
+          },
+          complainantCivilians: {
+            attributes: expect.arrayContaining(
+              Object.keys(models.civilian.rawAttributes)
+            ),
+            model: models.civilian.name
+          },
+          complainantOfficers: {
+            attributes: expect.arrayContaining(
+              Object.keys(models.case_officer.rawAttributes)
+            ),
+            model: models.case_officer.name
+          },
+          genderIdentity: {
+            attributes: expect.arrayContaining(
+              Object.keys(models.gender_identity.rawAttributes)
+            ),
+            model: models.gender_identity.name
+          },
+          incidentLocation: {
+            attributes: expect.arrayContaining(
+              Object.keys(models.address.rawAttributes)
+            ),
+            model: models.address.name
+          },
+          howDidYouHearAboutUsSource: {
+            attributes: expect.arrayContaining(
+              Object.keys(models.how_did_you_hear_about_us_source.rawAttributes)
+            ),
+            model: models.how_did_you_hear_about_us_source.name
+          },
+          intakeSource: {
+            attributes: expect.arrayContaining(
+              Object.keys(models.intake_source.rawAttributes)
+            ),
+            model: models.intake_source.name
+          },
+          letterOfficer: {
+            attributes: expect.arrayContaining(
+              Object.keys(models.letter_officer.rawAttributes)
+            ),
+            model: models.letter_officer.name
+          },
+          raceEthnicity: {
+            attributes: expect.arrayContaining(
+              Object.keys(models.race_ethnicity.rawAttributes)
+            ),
+            model: models.race_ethnicity.name
+          },
+          recommendedAction: {
+            attributes: expect.arrayContaining(
+              Object.keys(models.recommended_action.rawAttributes)
+            ),
+            model: models.recommended_action.name
+          },
+          referralLetter: {
+            attributes: expect.arrayContaining([
+              ...Object.keys(models.referral_letter.rawAttributes),
+              "draftFilename",
+              "editStatus",
+              "lastEdited"
+            ]),
+            model: models.referral_letter.name
+          },
+          referralLetterIaproCorrections: {
+            attributes: expect.arrayContaining(
+              Object.keys(models.referral_letter_iapro_correction.rawAttributes)
+            ),
+            model: models.referral_letter_iapro_correction.name
+          },
+          referralLetterOfficerHistoryNotes: {
+            attributes: expect.arrayContaining(
+              Object.keys(
+                models.referral_letter_officer_history_note.rawAttributes
+              )
+            ),
+            model: models.referral_letter_officer_history_note.name
+          },
+          referralLetterOfficerRecommendedActions: {
+            attributes: expect.arrayContaining(
+              Object.keys(
+                models.referral_letter_officer_recommended_action.rawAttributes
+              )
+            ),
+            model: models.referral_letter_officer_recommended_action.name
+          },
+          witnessCivilians: {
+            attributes: expect.arrayContaining(
+              Object.keys(models.civilian.rawAttributes)
+            ),
+            model: models.civilian.name
+          },
+          witnessOfficers: {
+            attributes: expect.arrayContaining(
+              Object.keys(models.case_officer.rawAttributes)
+            ),
+            model: models.case_officer.name
+          }
+        };
+
+        expect(auditDataAccess).toHaveBeenCalledWith(
+          request.nickname,
+          existingCase.id,
+          AUDIT_SUBJECT.REFERRAL_LETTER_PREVIEW,
+          expectedAuditDetails,
+          expect.anything()
+        );
+      });
+
+      test("audits the data if the letter is edited", async () => {
+        await referralLetter.update(
+          { editedLetterHtml: "<p>something</p>" },
+          { auditUser: "nickname" }
+        );
+
+        await getReferralLetterPreview(request, response, next);
+
+        const referralLetterPreviewCaseAttributes = [
+          "assignedTo",
+          "caseNumber",
+          "classificationId",
+          "complaintType",
+          "createdAt",
+          "createdBy",
+          "district",
+          "firstContactDate",
+          "howDidYouHearAboutUsSourceId",
+          "id",
+          "incidentDate",
+          "incidentTime",
+          "intakeSourceId",
+          "isArchived",
+          "narrativeDetails",
+          "narrativeSummary",
+          "pdfAvailable",
+          "pibCaseNumber",
+          "status",
+          "updatedAt",
+          "year"
+        ];
+
+        const expectedAuditDetails = {
+          accusedOfficers: {
+            attributes: expect.arrayContaining(
+              Object.keys(models.case_officer.rawAttributes)
+            ),
+            model: models.case_officer.name
+          },
+          address: {
+            attributes: expect.arrayContaining(
+              Object.keys(models.address.rawAttributes)
+            ),
+            model: models.address.name
+          },
+          allegation: expect.objectContaining({
+            attributes: expect.arrayContaining(
+              Object.keys(models.allegation.rawAttributes)
+            ),
+            model: models.allegation.name
+          }),
+          allegations: expect.objectContaining({
+            attributes: expect.arrayContaining(
+              Object.keys(models.officer_allegation.rawAttributes)
+            ),
+            model: models.officer_allegation.name
+          }),
+          attachment: expect.objectContaining({
+            attributes: expect.arrayContaining(
+              Object.keys(models.attachment.rawAttributes)
+            ),
+            model: models.attachment.name
+          }),
+          cases: expect.objectContaining({
+            attributes: expect.arrayContaining(
+              referralLetterPreviewCaseAttributes
+            ),
+            model: models.cases.name
+          }),
+          classification: expect.objectContaining({
+            attributes: expect.arrayContaining(
+              Object.keys(models.classification.rawAttributes)
+            ),
+            model: models.classification.name
+          }),
+          complainantCivilians: expect.objectContaining({
+            attributes: expect.arrayContaining(
+              Object.keys(models.civilian.rawAttributes)
+            ),
+            model: models.civilian.name
+          }),
+          complainantOfficers: expect.objectContaining({
+            attributes: expect.arrayContaining(
+              Object.keys(models.case_officer.rawAttributes)
+            ),
+            model: models.case_officer.name
+          }),
+          genderIdentity: expect.objectContaining({
+            attributes: expect.arrayContaining(
+              Object.keys(models.gender_identity.rawAttributes)
+            ),
+            model: models.gender_identity.name
+          }),
+          howDidYouHearAboutUsSource: expect.objectContaining({
+            attributes: expect.arrayContaining(
+              Object.keys(models.how_did_you_hear_about_us_source.rawAttributes)
+            ),
+            model: models.how_did_you_hear_about_us_source.name
+          }),
+          incidentLocation: expect.objectContaining({
+            attributes: expect.arrayContaining(
+              Object.keys(models.address.rawAttributes)
+            ),
+            model: models.address.name
+          }),
+          intakeSource: expect.objectContaining({
+            attributes: expect.arrayContaining(
+              Object.keys(models.intake_source.rawAttributes)
+            ),
+            model: models.intake_source.name
+          }),
+          raceEthnicity: expect.objectContaining({
+            attributes: expect.arrayContaining(
+              Object.keys(models.race_ethnicity.rawAttributes)
+            ),
+            model: models.race_ethnicity.name
+          }),
+          referralLetter: expect.objectContaining({
+            attributes: expect.arrayContaining([
+              ...Object.keys(models.referral_letter.rawAttributes),
+              "draftFilename",
+              "editStatus",
+              "lastEdited"
+            ]),
+            model: models.referral_letter.name
+          }),
+          witnessCivilians: expect.objectContaining({
+            attributes: expect.arrayContaining(
+              Object.keys(models.civilian.rawAttributes)
+            ),
+            model: models.civilian.name
+          }),
+          witnessOfficers: expect.objectContaining({
+            attributes: expect.arrayContaining(
+              Object.keys(models.case_officer.rawAttributes)
+            ),
+            model: models.case_officer.name
+          })
+        };
+
+        expect(auditDataAccess).toHaveBeenCalledWith(
+          request.nickname,
+          existingCase.id,
+          AUDIT_SUBJECT.REFERRAL_LETTER_PREVIEW,
+          expectedAuditDetails,
+          expect.anything()
+        );
       });
     });
   });

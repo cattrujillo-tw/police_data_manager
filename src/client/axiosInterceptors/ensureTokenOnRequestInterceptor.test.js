@@ -1,4 +1,4 @@
-import getCases from "../cases/thunks/getCases";
+import getWorkingCases from "../cases/thunks/getWorkingCases";
 import nock from "nock";
 import { getWorkingCasesSuccess } from "../actionCreators/casesActionCreators";
 import getAccessToken from "../auth/getAccessToken";
@@ -9,7 +9,7 @@ jest.mock("../auth/getAccessToken", () => jest.fn(() => "TEST_TOKEN"));
 
 describe("ensureTokenOnRequestInterceptor", () => {
   const dispatch = jest.fn();
-  const responseBody = { cases: ["some case"] };
+  const responseBody = { cases: { rows: ["some case"], count: 1 } };
   const sortBy = "sortBy";
   const sortDirection = "sortDirection";
 
@@ -21,17 +21,17 @@ describe("ensureTokenOnRequestInterceptor", () => {
 
   test("adds access token to request headers", async () => {
     nock("http://localhost")
-      .get(`/api/cases/all/${sortBy}/${sortDirection}`)
+      .get(`/api/cases?sortBy=${sortBy}&sortDirection=${sortDirection}`)
       .reply(function() {
         if (this.req.headers.authorization === `Bearer ${getAccessToken()}`)
           return [200, responseBody];
         return [401];
       });
 
-    await getCases(sortBy, sortDirection)(dispatch);
+    await getWorkingCases(sortBy, sortDirection)(dispatch);
 
     expect(dispatch).toHaveBeenCalledWith(
-      getWorkingCasesSuccess(responseBody.cases)
+      getWorkingCasesSuccess(responseBody.cases.rows, responseBody.cases.count)
     );
     expect(dispatch).not.toHaveBeenCalledWith(push("/login"));
   });
@@ -40,10 +40,10 @@ describe("ensureTokenOnRequestInterceptor", () => {
     getAccessToken.mockImplementation(() => false);
 
     nock("http://localhost")
-      .get(`/api/cases/all/${sortBy}/${sortDirection}`)
+      .get(`/api/cases?sortBy=${sortBy}&sortDirection=${sortDirection}`)
       .reply(200);
 
-    await getCases(sortBy, sortDirection)(dispatch);
+    await getWorkingCases(sortBy, sortDirection)(dispatch);
 
     expect(dispatch).not.toHaveBeenCalledWith(
       getWorkingCasesSuccess(responseBody.cases)

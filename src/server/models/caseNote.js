@@ -15,10 +15,6 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: false
       },
-      action: {
-        type: DataTypes.STRING,
-        allowNull: false
-      },
       actionTakenAt: {
         type: DataTypes.DATE,
         field: "action_taken_at",
@@ -65,6 +61,15 @@ module.exports = (sequelize, DataTypes) => {
   CaseNote.associate = models => {
     CaseNote.belongsTo(models.cases, {
       foreignKey: { name: "caseId", field: "case_id", allowNull: false }
+    });
+
+    CaseNote.belongsTo(models.case_note_action, {
+      as: "caseNoteAction",
+      foreignKey: {
+        name: "caseNoteActionId",
+        field: "case_note_action_id",
+        allowNull: true
+      }
     });
   };
 

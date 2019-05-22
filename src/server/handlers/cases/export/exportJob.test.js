@@ -1,16 +1,13 @@
 import { JOB_OPERATION } from "../../../../sharedUtilities/constants";
 
 const kue = require("kue");
-const generateExportDownloadUrl = require("./generateExportDownloadUrl");
-
-jest.mock("./generateExportDownloadUrl");
-jest.mock("kue");
+import generateExportDownloadUrl from "./generateExportDownloadUrl";
 
 const AUTHENTICATED_URL = "authenticated url";
-
-generateExportDownloadUrl.mockImplementation(
-  (file, user, auditSubject) => AUTHENTICATED_URL
+jest.mock("./generateExportDownloadUrl", () =>
+  jest.fn((file, user, auditSubject) => "authenticated url")
 );
+jest.mock("kue");
 
 const exportJob = require("./exportJob");
 
@@ -76,14 +73,19 @@ describe("Get an export job", () => {
     expect(generateExportDownloadUrl).toHaveBeenCalledWith(
       "file.name",
       request.nickname,
-      JOB_OPERATION.CASE_EXPORT.auditSubject
+      JOB_OPERATION.CASE_EXPORT.name,
+      undefined,
+      undefined
     );
   });
 
-  test("send audit audit log subject when job type is audit log", async () => {
+  test("send audit audit log subject and date range when job type is audit log", async () => {
     const job = {
       id: 123,
-      data: { name: JOB_OPERATION.AUDIT_LOG_EXPORT.name },
+      data: {
+        name: JOB_OPERATION.AUDIT_LOG_EXPORT.name,
+        dateRange: { exportStartDate: "date", exportEndDate: "date" }
+      },
       result: { Key: "file.name" },
       state: () => "complete"
     };
@@ -97,7 +99,9 @@ describe("Get an export job", () => {
     expect(generateExportDownloadUrl).toHaveBeenCalledWith(
       "file.name",
       request.nickname,
-      JOB_OPERATION.AUDIT_LOG_EXPORT.auditSubject
+      JOB_OPERATION.AUDIT_LOG_EXPORT.name,
+      job.data.dateRange,
+      undefined
     );
   });
 });

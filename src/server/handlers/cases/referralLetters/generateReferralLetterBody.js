@@ -1,13 +1,13 @@
 import models from "../../../models";
 import fs from "fs";
 import Handlebars from "handlebars";
-import { addToExistingAuditDetails } from "../../getQueryAuditAccessDetails";
+import { generateAndAddAuditDetailsFromQuery } from "../../getQueryAuditAccessDetails";
 import { ASCENDING } from "../../../../sharedUtilities/constants";
 
 const getReferralLetterCaseData = async (caseId, transaction, auditDetails) => {
   const queryOptions = {
     attributes: [
-      ["id", "caseId"],
+      "id",
       "incidentDate",
       "incidentTime",
       "narrativeDetails",
@@ -46,7 +46,7 @@ const getReferralLetterCaseData = async (caseId, transaction, auditDetails) => {
         include: [
           {
             model: models.referral_letter_iapro_correction,
-            as: "referralLetterIAProCorrections"
+            as: "referralLetterIaproCorrections"
           }
         ]
       },
@@ -60,7 +60,8 @@ const getReferralLetterCaseData = async (caseId, transaction, auditDetails) => {
         as: "complainantCivilians",
         include: [
           { model: models.address },
-          { model: models.race_ethnicity, as: "raceEthnicity" }
+          { model: models.race_ethnicity, as: "raceEthnicity" },
+          { model: models.gender_identity, as: "genderIdentity" }
         ]
       },
       {
@@ -114,7 +115,11 @@ const getReferralLetterCaseData = async (caseId, transaction, auditDetails) => {
   };
   const caseData = await models.cases.findByPk(caseId, queryOptions);
 
-  addToExistingAuditDetails(auditDetails, queryOptions, models.cases.name);
+  generateAndAddAuditDetailsFromQuery(
+    auditDetails,
+    queryOptions,
+    models.cases.name
+  );
 
   return caseData;
 };
@@ -133,6 +138,7 @@ async function generateReferralLetterBody(
     transaction,
     auditDetails
   );
+
   caseData = caseDataInstance.toJSON();
   caseData.accusedOfficers.sort((officerA, officerB) => {
     return officerA.createdAt > officerB.createdAt;

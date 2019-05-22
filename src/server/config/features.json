@@ -1,28 +1,22 @@
 [
   {
+    "id": "caseDashboardPaginationFeature",
+    "name": "caseDashboardPaginationFeature",
+    "description": "Enables pagination of the cases on the dashboard",
+    "enabled": true
+  },
+  {
     "id": "caseValidationFeature",
     "name": "caseValidationFeature",
     "description": "Toggle to validate case",
     "enabled": false
   },
   {
-    "id": "isAnonymousFeature",
-    "name": "isAnonymousFeature",
-    "description": "Toggle to show isAnonymous checkbox field in complainant and witness dialogs",
+    "id": "newAuditFeature",
+    "name": "newAuditFeature",
+    "description": "Toggle to enable new auditing - only do so in production at the same time as migrating old data",
     "criteria": {
       "isPreProd": true
     }
-  },
-  {
-    "id": "noOfficerHistoryNoteFeature",
-    "name": "noOfficerHistoryNoteFeature",
-    "description": "Toggle to show radio buttons for officer allegation history and to hide officer history when none exists",
-    "enabled": true
-  },
-  {
-    "id": "HowDidYouHearAboutUsFeature",
-    "name": "HowDidYouHearAboutUsFeature",
-    "description": "Toggle to enable how did you hear about us field on incident details",
-    "enabled": true
   }
 ]

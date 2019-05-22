@@ -16,8 +16,8 @@ If you have an earlier version of Windows you'll need to install [docker toolbox
 ```
 
 The pre-push hook will execute when you run `git push`.
-It will pull any remote changes, rebuild the app,
-and run all tests before pushing.
+It will pull any remote changes, rebuild the app, 
+run all tests, and run the security checks before pushing.
 
 ## Set up google maps api key
 
@@ -175,7 +175,7 @@ docker-compose exec db psql -U postgres -d complaint-manager
 
 ### Run security checks
 ```
-./scripts/security-checks.sh
+docker-compose run security-checks
 ```
 
 

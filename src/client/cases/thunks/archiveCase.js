@@ -1,5 +1,9 @@
 import axios from "axios";
-import { closeArchiveCaseDialog } from "../../actionCreators/casesActionCreators";
+import {
+  archiveCaseSuccess,
+  closeArchiveCaseDialog,
+  getCaseDetailsSuccess
+} from "../../actionCreators/casesActionCreators";
 import { snackbarSuccess } from "../../actionCreators/snackBarActionCreators";
 import { push } from "connected-react-router";
 import { startSubmit, stopSubmit } from "redux-form";
@@ -12,6 +16,7 @@ const archiveCase = caseId => async dispatch => {
 
     dispatch(push("/"));
     dispatch(snackbarSuccess("Case was successfully archived"));
+    dispatch(archiveCaseSuccess());
     dispatch(closeArchiveCaseDialog());
     return dispatch(stopSubmit(ARCHIVE_CASE_FORM_NAME));
   } catch (error) {

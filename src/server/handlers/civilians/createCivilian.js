@@ -1,43 +1,69 @@
 import {
   ADDRESSABLE_TYPE,
+  AUDIT_ACTION,
   AUDIT_SUBJECT
 } from "../../../sharedUtilities/constants";
 
 const asyncMiddleware = require("../asyncMiddleware");
 const models = require("../../models");
 import { getCaseWithAllAssociations } from "../getCaseHelpers";
+import legacyAuditDataAccess from "../legacyAuditDataAccess";
+import checkFeatureToggleEnabled from "../../checkFeatureToggleEnabled";
 import auditDataAccess from "../auditDataAccess";
 
-const createCivilian = asyncMiddleware(async (req, res) => {
+const createCivilian = asyncMiddleware(async (request, response, next) => {
+  const newAuditFeatureToggle = checkFeatureToggleEnabled(
+    request,
+    "newAuditFeature"
+  );
   const caseDetails = await models.sequelize.transaction(async transaction => {
-    let values = req.body;
+    let values = request.body;
 
-    if (req.body.address) {
+    if (request.body.address) {
       values.address = {
-        ...req.body.address,
+        ...request.body.address,
         addressableType: ADDRESSABLE_TYPE.CIVILIAN
       };
     }
 
     const civilianCreated = await models.civilian.create(values, {
-      auditUser: req.nickname,
-      include: [{ model: models.address, auditUser: req.nickname }],
+      auditUser: request.nickname,
+      include: [{ model: models.address, auditUser: request.nickname }],
       transaction
     });
 
     const caseId = civilianCreated.caseId;
 
-    await auditDataAccess(
-      req.nickname,
-      caseId,
-      AUDIT_SUBJECT.CASE_DETAILS,
-      transaction
-    );
+    let auditDetails = {};
 
-    return await getCaseWithAllAssociations(caseId, transaction);
+    const caseDetails = await getCaseWithAllAssociations(
+      caseId,
+      transaction,
+      auditDetails
+    );
+    if (newAuditFeatureToggle) {
+      await auditDataAccess(
+        request.nickname,
+        caseId,
+        AUDIT_SUBJECT.CASE_DETAILS,
+        auditDetails,
+        transaction
+      );
+    } else {
+      await legacyAuditDataAccess(
+        request.nickname,
+        caseId,
+        AUDIT_SUBJECT.CASE_DETAILS,
+        transaction,
+        AUDIT_ACTION.DATA_ACCESSED,
+        auditDetails
+      );
+    }
+
+    return caseDetails;
   });
 
-  res.status(201).send(caseDetails);
+  response.status(201).send(caseDetails);
 });
 
 module.exports = createCivilian;

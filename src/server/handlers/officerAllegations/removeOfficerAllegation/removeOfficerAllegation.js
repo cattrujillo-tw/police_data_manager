@@ -5,10 +5,17 @@ const asyncMiddleware = require("../../asyncMiddleware");
 import { getCaseWithAllAssociations } from "../../getCaseHelpers";
 const models = require("../../../models");
 const Boom = require("boom");
+import legacyAuditDataAccess from "../../legacyAuditDataAccess";
+import { AUDIT_ACTION } from "../../../../sharedUtilities/constants";
+import checkFeatureToggleEnabled from "../../../checkFeatureToggleEnabled";
 import auditDataAccess from "../../auditDataAccess";
 
 const removeOfficerAllegation = asyncMiddleware(
   async (request, response, next) => {
+    const newAuditFeatureToggle = checkFeatureToggleEnabled(
+      request,
+      "newAuditFeature"
+    );
     const updatedCase = await models.sequelize.transaction(
       async transaction => {
         const officerAllegation = await models.officer_allegation.findByPk(
@@ -31,17 +38,32 @@ const removeOfficerAllegation = asyncMiddleware(
           transaction
         });
 
-        await auditDataAccess(
-          request.nickname,
+        let auditDetails = {};
+        const caseDetails = await getCaseWithAllAssociations(
           caseOfficer.caseId,
-          AUDIT_SUBJECT.CASE_DETAILS,
-          transaction
+          transaction,
+          auditDetails
         );
+        if (newAuditFeatureToggle) {
+          await auditDataAccess(
+            request.nickname,
+            caseOfficer.caseId,
+            AUDIT_SUBJECT.CASE_DETAILS,
+            auditDetails,
+            transaction
+          );
+        } else {
+          await legacyAuditDataAccess(
+            request.nickname,
+            caseOfficer.caseId,
+            AUDIT_SUBJECT.CASE_DETAILS,
+            transaction,
+            AUDIT_ACTION.DATA_ACCESSED,
+            auditDetails
+          );
+        }
 
-        return await getCaseWithAllAssociations(
-          caseOfficer.caseId,
-          transaction
-        );
+        return caseDetails;
       }
     );
 

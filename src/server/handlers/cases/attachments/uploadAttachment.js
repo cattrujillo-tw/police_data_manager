@@ -5,13 +5,16 @@ import isDuplicateFileName from "./isDuplicateFileName";
 import createConfiguredS3Instance from "../../../createConfiguredS3Instance";
 import config from "../../../config/config";
 import {
+  AUDIT_ACTION,
   AUDIT_SUBJECT,
   DUPLICATE_FILE_NAME
 } from "../../../../sharedUtilities/constants";
 import { getCaseWithAllAssociations } from "../../getCaseHelpers";
 import Boom from "boom";
-import auditDataAccess from "../../auditDataAccess";
+import legacyAuditDataAccess from "../../legacyAuditDataAccess";
 import { BAD_REQUEST_ERRORS } from "../../../../sharedUtilities/errorMessageConstants";
+import checkFeatureToggleEnabled from "../../../checkFeatureToggleEnabled";
+import auditDataAccess from "../../auditDataAccess";
 
 const uploadAttachment = asyncMiddleware((request, response, next) => {
   let managedUpload;
@@ -19,6 +22,10 @@ const uploadAttachment = asyncMiddleware((request, response, next) => {
   const busboy = new Busboy({
     headers: request.headers
   });
+  const newAuditFeatureToggle = checkFeatureToggleEnabled(
+    request,
+    "newAuditFeature"
+  );
 
   let attachmentDescription;
 
@@ -57,28 +64,49 @@ const uploadAttachment = asyncMiddleware((request, response, next) => {
       const promise = managedUpload.promise();
       promise.then(
         async function(data) {
-          const updatedCase = await models.sequelize.transaction(async t => {
-            await models.attachment.create(
-              {
-                fileName: fileName,
-                description: attachmentDescription,
-                caseId: caseId
-              },
-              {
-                transaction: t,
-                auditUser: request.nickname
+          const updatedCase = await models.sequelize.transaction(
+            async transaction => {
+              await models.attachment.create(
+                {
+                  fileName: fileName,
+                  description: attachmentDescription,
+                  caseId: caseId
+                },
+                {
+                  transaction: transaction,
+                  auditUser: request.nickname
+                }
+              );
+
+              let auditDetails = {};
+              const caseDetails = await getCaseWithAllAssociations(
+                caseId,
+                transaction,
+                auditDetails
+              );
+
+              if (newAuditFeatureToggle) {
+                await auditDataAccess(
+                  request.nickname,
+                  caseId,
+                  AUDIT_SUBJECT.CASE_DETAILS,
+                  auditDetails,
+                  transaction
+                );
+              } else {
+                await legacyAuditDataAccess(
+                  request.nickname,
+                  caseId,
+                  AUDIT_SUBJECT.CASE_DETAILS,
+                  transaction,
+                  AUDIT_ACTION.DATA_ACCESSED,
+                  auditDetails
+                );
               }
-            );
 
-            await auditDataAccess(
-              request.nickname,
-              caseId,
-              AUDIT_SUBJECT.CASE_DETAILS,
-              t
-            );
-
-            return await getCaseWithAllAssociations(caseId, t);
-          });
+              return caseDetails;
+            }
+          );
           response.send(updatedCase);
         },
         function(error) {
