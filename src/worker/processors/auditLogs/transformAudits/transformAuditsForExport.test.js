@@ -333,7 +333,8 @@ describe("transformAuditsForExport", () => {
           subject: _.startCase(testModelName),
           snapshot: expectedSnapshot,
           created_at: "Timestamp",
-          changes: `Details changed from 'Old Details' to 'New Details'`
+          changes: `Details changed from 'Old Details' to 'New Details'`,
+          subject_id: 90
         }
       ]);
     });
@@ -369,7 +370,8 @@ describe("transformAuditsForExport", () => {
         expect.objectContaining({
           action: AUDIT_ACTION.DATA_CREATED,
           audit_type: AUDIT_TYPE.DATA_CHANGE,
-          snapshot: expectedSnapshot
+          snapshot: expectedSnapshot,
+          subject_id: 90
         })
       );
       expect(transformedAudit.changes).toBeUndefined();
@@ -403,7 +405,8 @@ describe("transformAuditsForExport", () => {
         expect.objectContaining({
           action: AUDIT_ACTION.DATA_DELETED,
           audit_type: AUDIT_TYPE.DATA_CHANGE,
-          snapshot: expectedSnapshot
+          snapshot: expectedSnapshot,
+          subject_id: 90
         })
       );
       expect(transformedAudit.changes).toBeUndefined();
@@ -436,7 +439,8 @@ describe("transformAuditsForExport", () => {
         expect.objectContaining({
           action: AUDIT_ACTION.DATA_RESTORED,
           audit_type: AUDIT_TYPE.DATA_CHANGE,
-          snapshot: expectedSnapshot
+          snapshot: expectedSnapshot,
+          subject_id: 90
         })
       );
       expect(transformedAudit.changes).toBeUndefined();
@@ -469,7 +473,8 @@ describe("transformAuditsForExport", () => {
         expect.objectContaining({
           action: AUDIT_ACTION.DATA_ARCHIVED,
           audit_type: AUDIT_TYPE.DATA_CHANGE,
-          snapshot: expectedSnapshot
+          snapshot: expectedSnapshot,
+          subject_id: 90
         })
       );
       expect(transformedAudit.changes).toBeUndefined();
@@ -526,7 +531,8 @@ describe("transformAuditsForExport", () => {
             id: 392
           },
           modelName: "cases",
-          modelDescription: [{ tis: "a" }, { model: "description" }]
+          modelDescription: [{ tis: "a" }, { model: "description" }],
+          modelId: 90
         }
       };
 
@@ -535,7 +541,8 @@ describe("transformAuditsForExport", () => {
       expect(transformedAudit).toEqual(
         expect.objectContaining({
           snapshot:
-            "Tis: a\nModel: description\n\n\nName: Bob Smith\nAge: 50\nCase Id: 392"
+            "Tis: a\nModel: description\n\n\nName: Bob Smith\nAge: 50\nCase Id: 392",
+          subject_id: 90
         })
       );
     });
@@ -606,6 +613,42 @@ describe("transformAuditsForExport", () => {
           snapshot: "Case Id: 392\nAddressable Id: 5\nIs Something: true"
         })
       );
+    });
+  });
+
+  describe("legacy data access audit", () => {
+    test("transforms legacy data access audit correctly", () => {
+      const audit = {
+        auditAction: AUDIT_ACTION.DATA_ACCESSED,
+        user: user,
+        createdAt: "Timestamp",
+        caseId: 12,
+        updatedAt: new Date(),
+        id: 1,
+        legacyDataAccessAudit: {
+          id: 3,
+          auditSubject: "Test Subject",
+          auditDetails: [
+            "Case Information",
+            "Civilian Complainants",
+            "Officer Complainants",
+            "Accused Officers"
+          ]
+        }
+      };
+
+      expect(transformAuditsForExport([audit])).toEqual([
+        {
+          audit_type: AUDIT_TYPE.DATA_ACCESS,
+          user: user,
+          case_id: 12,
+          snapshot:
+            "Case Information, Civilian Complainants, Officer Complainants, Accused Officers",
+          action: AUDIT_ACTION.DATA_ACCESSED,
+          subject: "Test Subject",
+          created_at: "Timestamp"
+        }
+      ]);
     });
   });
 });

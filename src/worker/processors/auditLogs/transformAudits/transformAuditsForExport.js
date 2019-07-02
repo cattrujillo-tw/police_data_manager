@@ -155,8 +155,39 @@ const generateSnapshotForDataAccessAudit = audit => {
     .join("\n\n");
 };
 
+const generateSnapshotForLegacyDataAccessAudit = audit => {
+  return audit.legacyDataAccessAudit.auditDetails.join(", ");
+};
+
 const generateSnapshotForFileAudit = audit => {
   return `File Name: ${audit.fileAudit.fileName}`;
+};
+
+const getAttributesForDataChangeAudits = audit => {
+  const attributes = {
+    subject: generateFormattedModelName(audit.dataChangeAudit.modelName),
+    snapshot: generateSnapshotForDataChangeAudit(audit),
+    subject_id: audit.dataChangeAudit.modelId
+  };
+  if (audit.auditAction === AUDIT_ACTION.DATA_UPDATED) {
+    attributes.changes = generateChangesForUpdatedDataChangeAudit(audit);
+  }
+
+  return attributes;
+};
+
+const getAttributesForDataAccess = audit => {
+  if (audit.legacyDataAccessAudit) {
+    return {
+      subject: audit.legacyDataAccessAudit.auditSubject,
+      snapshot: generateSnapshotForLegacyDataAccessAudit(audit)
+    };
+  } else {
+    return {
+      subject: audit.dataAccessAudit.auditSubject,
+      snapshot: generateSnapshotForDataAccessAudit(audit)
+    };
+  }
 };
 
 const getAttributesForAuditAction = audit => {
@@ -167,10 +198,7 @@ const getAttributesForAuditAction = audit => {
         snapshot: generateSnapshotForExportAudit(audit)
       };
     case AUDIT_ACTION.DATA_ACCESSED:
-      return {
-        subject: audit.dataAccessAudit.auditSubject,
-        snapshot: generateSnapshotForDataAccessAudit(audit)
-      };
+      return getAttributesForDataAccess(audit);
     case AUDIT_ACTION.DOWNLOADED:
     case AUDIT_ACTION.UPLOADED:
       return {
@@ -178,19 +206,11 @@ const getAttributesForAuditAction = audit => {
         snapshot: generateSnapshotForFileAudit(audit)
       };
     case AUDIT_ACTION.DATA_UPDATED:
-      return {
-        subject: generateFormattedModelName(audit.dataChangeAudit.modelName),
-        snapshot: generateSnapshotForDataChangeAudit(audit),
-        changes: generateChangesForUpdatedDataChangeAudit(audit)
-      };
     case AUDIT_ACTION.DATA_CREATED:
     case AUDIT_ACTION.DATA_DELETED:
     case AUDIT_ACTION.DATA_RESTORED:
     case AUDIT_ACTION.DATA_ARCHIVED:
-      return {
-        subject: generateFormattedModelName(audit.dataChangeAudit.modelName),
-        snapshot: generateSnapshotForDataChangeAudit(audit)
-      };
+      return getAttributesForDataChangeAudits(audit);
     default:
       return {};
   }
