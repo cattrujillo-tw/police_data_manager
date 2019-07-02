@@ -8,7 +8,7 @@ export const transformOldAccessActionAuditsToLegacyDataAccessAudits = async tran
     where: {
       action: AUDIT_ACTION.DATA_ACCESSED,
       createdAt: {
-        [models.sequelize.Op.lt]:
+        [models.Sequelize.Op.lt]:
           endOfLegacyAuditTimestamps[process.env.NODE_ENV]
       }
     }
@@ -62,7 +62,7 @@ export const transformLegacyDataAccessAuditsToOldAccessActionAudits = async tran
       where: {
         auditAction: AUDIT_ACTION.DATA_ACCESSED,
         createdAt: {
-          [models.sequelize.Op.lt]:
+          [models.Sequelize.Op.lt]:
             endOfLegacyAuditTimestamps[process.env.NODE_ENV]
         }
       }
