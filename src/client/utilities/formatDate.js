@@ -42,6 +42,8 @@ export const applyCentralTimeZoneOffset = dateString => {
 };
 
 export const computeTimeZone = (date, time) => {
+  console.log("Date Type", typeof date);
+  console.log("Date: ", date, "\nTime: ", time);
   if (!time) return time;
   let timeZone = "CT";
 
@@ -55,6 +57,7 @@ export const computeTimeZone = (date, time) => {
       timeZone = "CDT";
     }
   }
+  console.log("Timezone: ", timeZone);
   return timeZone;
 };
 
