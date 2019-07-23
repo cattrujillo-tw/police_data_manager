@@ -216,8 +216,6 @@ class AutoCompleteFormSelect extends React.Component {
     const hasError =
       custom.required && custom.meta.touched && custom.meta.invalid;
 
-    console.log(custom);
-
     return (
       <div className={styles.root}>
         <FormControl
