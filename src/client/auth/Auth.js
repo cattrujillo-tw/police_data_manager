@@ -3,14 +3,18 @@ import config from "../config/config";
 import history from "../history";
 import auditLogin from "../users/thunks/auditLogin";
 import parsePermissions from "../utilities/parsePermissions";
+import generateRandomString from "../utilities/generateRandomString";
 import jwt from "jsonwebtoken";
 
 export default class Auth {
   authConfig = config[process.env.REACT_APP_ENV].auth;
   authWeb = new auth0.WebAuth(this.authConfig);
+  randomString = generateRandomString(16);
 
   login = () => {
-    this.authWeb.authorize();
+    const nonce = window.btoa(this.randomString);
+    this.authWeb.authorize({ state: nonce });
+    localStorage.setItem("nonce", nonce);
   };
 
   handleAuthentication = (
@@ -18,7 +22,7 @@ export default class Auth {
     getFeatureTogglesCallback
   ) => {
     this.authWeb.parseHash((err, authResult) => {
-      if (authResult && authResult.accessToken && authResult.idToken) {
+      if (authResult && authResult.accessToken && authResult.idToken && authResult.state ===(localStorage.getItem("nonce"))) {
         this.setUserInfoInStore(
           authResult.accessToken,
           populateStoreWithUserInfoCallback
@@ -26,7 +30,9 @@ export default class Auth {
         this.setSession(authResult);
         auditLogin();
         getFeatureTogglesCallback();
-        history.replace("/");
+        history.replace(localStorage.getItem("redirectUri"));
+        localStorage.removeItem("nonce");
+        localStorage.removeItem("redirectUri");
       } else if (err) {
         history.replace("/");
         console.log(err);
