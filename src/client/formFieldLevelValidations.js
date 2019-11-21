@@ -51,6 +51,15 @@ export const notFutureDate = value => {
     : undefined;
 };
 
+export const reviewersShouldBeDifferent = (value, values) => {
+  console.log("My values are", values);
+  if (values.firstReviewer === values.secondReviewer) {
+    return "You’ve selected the same user for both Reviewers. Please change one.";
+  } else {
+    return undefined;
+  }
+};
+
 export const firstNameRequired = isRequired("First Name");
 export const lastNameRequired = isRequired("Last Name");
 export const firstNameNotBlank = notBlank("First Name");
