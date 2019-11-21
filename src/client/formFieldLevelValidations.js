@@ -52,7 +52,6 @@ export const notFutureDate = value => {
 };
 
 export const reviewersShouldBeDifferent = (value, values) => {
-  console.log("My values are", values);
   if (values.firstReviewer === values.secondReviewer) {
     return "You’ve selected the same user for both Reviewers. Please change one.";
   } else {

@@ -200,11 +200,12 @@ describe("CreateMatrixDialog", () => {
         false
       );
       const secondDropdown = wrapper
-        .find('[data-test="second-reviewer-dropdown-input"]')
+        .find('[data-test="second-reviewer-dropdown"]')
         .last();
-      secondDropdown.simulate("blur");
-
-      console.log(secondDropdown.debug());
+      const submitButton = wrapper.find(
+        'PrimaryButton[data-test="create-and-search"]'
+      );
+      submitButton.simulate("click");
 
       expect(secondDropdown.text()).toContain(
         "You’ve selected the same user for both Reviewers. Please change one."
