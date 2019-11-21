@@ -238,12 +238,9 @@
     {{#if (isPresent ../incidentDate)}} on {{{formatShortDate ../incidentDate}}},{{/if}}
     during the complainant’s interaction with {{rank}} {{fullName}}. If proven, the accused may have violated
     NOPD policy, rules, or procedure when:
-    <ol>
-      {{#each allegations}}
-        <li>{{this.details}}</li>
-        <i>{{allegation.rule}}: {{allegation.paragraph}}: {{allegation.directive}}</i>
-      {{/each}}
-    </ol>
+    <div style=">
+        <br>{{createAllegationsList allegations}}
+    </div>
     <p><br></p>
   {{/each}}
   <p class="ql-align-center"><strong><u>Details of Complainant’s Account</u></strong></p>

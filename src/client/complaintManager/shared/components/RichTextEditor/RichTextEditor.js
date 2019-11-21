@@ -1,6 +1,7 @@
 import React from "react";
-import ReactQuill from "react-quill";
+import ReactQuill, { Quill } from "react-quill";
 import { connect } from "react-redux";
+import { Delta } from "quill";
 
 class RichTextEditor extends React.Component {
   constructor(props) {
@@ -24,6 +25,17 @@ class RichTextEditor extends React.Component {
   }
 
   handleChange(value, formInitializedToQuillFormat) {
+    // let Embed = Quill.import("blots/embed");
+    //
+    // class CustomBR extends Embed {}
+    // CustomBR.blotName = "custombr";
+    // CustomBR.tagName = "br";
+    // CustomBR.className = "custombr";
+    // Quill.register(CustomBR, true);
+    //
+    // let CustomBr = Quill.import('attributors/style/custombr');
+    // Quill.register(CustomBr, true);
+
     if (this.props.initializeForm) {
       this.initializeFormToQuillFormat(
         this.props.initializeForm,
@@ -42,7 +54,18 @@ class RichTextEditor extends React.Component {
   }
 
   render() {
-    const modules = {
+    // let Embed = Quill.import("blots/embed");
+    //
+    // class CustomBR extends Embed {}
+    // CustomBR.blotName = "custombr";
+    // CustomBR.tagName = "br";
+    // CustomBR.className = "custombr";
+    // Quill.register(CustomBR, true);
+
+    // let CustomBr = Quill.import('attributors/style/custombr');
+    // Quill.register(CustomBr, true);
+
+    let modules = {
       toolbar: [
         ["bold", "italic", "underline"],
         [{ list: "ordered" }, { list: "bullet" }],
@@ -53,8 +76,11 @@ class RichTextEditor extends React.Component {
       }
     };
 
+    console.log("Here be some text to mark where we be\n", this.state.text);
+
     const formats = ["bold", "italic", "underline", "list", "bullet", "align"];
 
+    //TODO Change the onChange to not be an arrow function anymore
     return (
       <ReactQuill
         theme={"snow"}
@@ -64,7 +90,6 @@ class RichTextEditor extends React.Component {
         }
         modules={modules}
         formats={formats}
-        style={this.props.style}
         data-test={"editLetterQuill"}
       />
     );

@@ -171,3 +171,16 @@ Handlebars.registerHelper(
   "caseClassificationIsDeclinesToClassify",
   caseClassificationIsDeclinesToClassify
 );
+
+export const createAllegationsList = allegations => {
+  console.log("ALLEGATION S ", allegations);
+  let allegationsList = "";
+  allegationsList = Handlebars.Utils.escapeExpression(allegationsList);
+  for (let i = 0; i < allegations.length; i++) {
+    allegationsList += `<p style={margin-left: 20px}>${i + 1}. ${
+      allegations[i].details
+    }<br>    <i>${allegations[i].allegation.rule}</i></p>`;
+  }
+  return new Handlebars.SafeString(allegationsList);
+};
+Handlebars.registerHelper("createAllegationsList", createAllegationsList);
