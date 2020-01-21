@@ -103,6 +103,7 @@
     "striptags": "~3.1.1",
     "timekeeper": "~2.2.0",
     "validator": "~10.11.0",
+    "web-push": "^3.4.3",
     "winston": "~3.2.1"
   },
   "devDependencies": {
