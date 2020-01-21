@@ -14,8 +14,10 @@ services:
       - NEW_RELIC_ENABLED=false
       - NEW_RELIC_NO_CONFIG_FILE=true
       - REACT_APP_GOOGLE_API_KEY
-      - REACT_APP_API_URL=https://localhost:1234
+      - REACT_APP_API_URL=https://localhost
       - REACT_APP_PUBLIC_VAPID_KEY=BJ4rPjRvM8LwDhiiUViDvJ-rVeW32fxc2R0Dfr-xFjeugBOJe1wwZiXPm3PQc_3OiAlGj6DMMQR1zAQy6zFYTAE
+      - WEB_PUSH_CONTACT=mailto:contact@my-site.com
+      - REACT_APP_PRIVATE_VAPID_KEY=SXXmoy3H9_yuQ_bXmeffiaLsFBnKMBABWSRHwFwn2u0
     depends_on:
       - db
       - worker

@@ -6,6 +6,7 @@ import {
   handleSigterm,
   refuseNewConnectionDuringShutdown
 } from "./serverHelpers";
+import * as webpush from "web-push";
 
 const newRelic = require("newrelic");
 
@@ -115,6 +116,30 @@ app.use(
 );
 
 app.use(errorHandler);
+
+webpush.setVapidDetails(
+  process.env.WEB_PUSH_CONTACT,
+  process.env.REACT_APP_PUBLIC_VAPID_KEY,
+  process.env.REACT_APP_PRIVATE_VAPID_KEY
+);
+
+app.post("/notifications/subscribe", (req, res) => {
+  const subscription = req.body;
+
+  console.log(subscription);
+
+  const payload = JSON.stringify({
+    title: "Hello!",
+    body: "It works."
+  });
+
+  webpush
+    .sendNotification(subscription, payload)
+    .then(result => console.log(result))
+    .catch(e => console.log(e.stack));
+
+  res.status(200).json({ success: true });
+});
 
 export let server;
 
