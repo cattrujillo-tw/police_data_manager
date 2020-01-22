@@ -33,6 +33,7 @@ services:
 #      Mount this volume if you want to run a static front end on localhost:1234
 #      - ./build:/app/build
       - ./src:/app/src
+      - ./public:/app/public
 
   app-e2e:
     build:

@@ -3,8 +3,6 @@ const convertedVapidKey = urlBase64ToUint8Array(
 );
 
 function urlBase64ToUint8Array(base64String) {
-  console.log("VAPID Key", process.env.REACT_APP_PUBLIC_VAPID_KEY);
-
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
   // eslint-disable-next-line
   const base64 = (base64String + padding)
@@ -34,6 +32,13 @@ export function subscribeUser() {
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.ready
       .then(function(registration) {
+        // Listen for messages from Service Worker
+        navigator.serviceWorker.addEventListener("message", function handler(
+          event
+        ) {
+          alert(`Subscription message: ${event.data.body}`);
+        });
+
         if (!registration.pushManager) {
           console.log("Push manager unavailable.");
           return;

@@ -1,4 +1,8 @@
-self.addEventListener("push", event => {
+self.addEventListener("push", async event => {
   const data = event.data.json();
-  console.log("New notification", data);
+
+  clients.matchAll().then(function(clients) {
+    console.log("Posting message...");
+    clients[0].postMessage(data);
+  });
 });
