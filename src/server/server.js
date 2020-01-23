@@ -125,13 +125,16 @@ webpush.setVapidDetails(
 
 app.post("/notifications/subscribe", (req, res) => {
   const subscription = req.body;
+  console.log("I am in server.js");
 
-  console.log(subscription);
+  console.log("Subscription", subscription);
 
   const payload = JSON.stringify({
     title: "Hello!",
     body: "It works."
   });
+
+  console.log("Payload", payload);
 
   webpush
     .sendNotification(subscription, payload)

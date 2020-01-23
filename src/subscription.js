@@ -32,13 +32,6 @@ export function subscribeUser() {
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.ready
       .then(function(registration) {
-        // Listen for messages from Service Worker
-        navigator.serviceWorker.addEventListener("message", function handler(
-          event
-        ) {
-          alert(`Subscription message: ${event.data.body}`);
-        });
-
         if (!registration.pushManager) {
           console.log("Push manager unavailable.");
           return;
