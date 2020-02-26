@@ -72,6 +72,7 @@ export const TextFieldWithUserMention = props => {
           });
           return;
         case "change":
+          console.log("handling change");
           setCaseNoteText(value);
           setCursorPosition(input.selectionStart);
           if (value.includes("@")) {

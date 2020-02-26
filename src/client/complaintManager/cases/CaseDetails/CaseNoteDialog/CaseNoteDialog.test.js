@@ -44,6 +44,7 @@ describe("CaseNoteDialog", () => {
     memoToFile: ["Memo to file", 1],
     contactedOutsideAgency: ["Contacted outside agency", 2]
   };
+  const mentionedUsers = [{ label: "Test", value: "test@test.com" }];
 
   beforeEach(() => {
     wrapper = mount(
@@ -92,7 +93,8 @@ describe("CaseNoteDialog", () => {
     const submittedValues = {
       caseId: caseId,
       actionTakenAt: "2018-05-16T18:47:00-05:00",
-      caseNoteActionId: caseNoteActions.memoToFile[1]
+      caseNoteActionId: caseNoteActions.memoToFile[1],
+      mentionedUsers: []
     };
 
     changeInput(
@@ -120,7 +122,8 @@ describe("CaseNoteDialog", () => {
 
     const submittedValues = {
       caseId: caseId,
-      actionTakenAt: "2018-05-16T18:47:00-05:00"
+      actionTakenAt: "2018-05-16T18:47:00-05:00",
+      mentionedUsers: []
     };
 
     changeInput(
@@ -135,14 +138,19 @@ describe("CaseNoteDialog", () => {
     expect(dispatchSpy).not.toHaveBeenCalledWith(editCaseNote(submittedValues));
   });
 
-  test("should submit form with new actionTakenAt when Add Case Note is clicked", () => {
+  test("should submit form with new mentionedUsers and actionTakenAt when Add Case Note is clicked", () => {
     store.dispatch(openCaseNoteDialog("Add", {}));
     store.dispatch(
       getCaseDetailsSuccess({
         id: caseId
       })
     );
-
+    store.dispatch(
+      getFeaturesSuccess({
+        notificationFeature: true
+      })
+    );
+    wrapper.setProps({ allUsers: [{ name: "Test", email: "test@test.com" }] });
     wrapper.update();
 
     const dateWithOutTimeZone = "2018-05-16T18:47";
@@ -151,7 +159,8 @@ describe("CaseNoteDialog", () => {
       caseId: caseId,
       actionTakenAt: "2018-05-16T18:47:00-05:00",
       caseNoteActionId: caseNoteActions.memoToFile[1],
-      notes: "these are notes"
+      notes: "these are notes @Test",
+      mentionedUsers: []
     };
 
     changeInput(
@@ -165,6 +174,12 @@ describe("CaseNoteDialog", () => {
       caseNoteActions.memoToFile[0]
     );
     changeInput(wrapper, '[data-testid="notesInput"]', submittedValues.notes);
+
+    // const caseNoteDialog = wrapper.find("CaseNoteDialog");
+    // // caseNoteDialog.setState({
+    // //   mentionedUsers: mentionedUsers
+    // // });
+    // console.log("Case note", caseNoteDialog.debug());
 
     const submitButton = wrapper.find('[data-testid="submitButton"]').first();
     submitButton.simulate("click");
@@ -187,7 +202,8 @@ describe("CaseNoteDialog", () => {
 
     const submittedValues = {
       caseId: caseId,
-      actionTakenAt: "2018-05-16T18:47:00-05:00"
+      actionTakenAt: "2018-05-16T18:47:00-05:00",
+      mentionedUsers: []
     };
 
     const submitButton = wrapper.find('[data-testid="submitButton"]').first();
@@ -201,7 +217,8 @@ describe("CaseNoteDialog", () => {
     const actionTakenAt = new Date();
     const initialValues = {
       actionTakenAt: moment(actionTakenAt).format("YYYY-MM-DDTHH:mm:ss"),
-      caseNoteActionId: caseNoteActions.memoToFile[1]
+      caseNoteActionId: caseNoteActions.memoToFile[1],
+      mentionedUsers: []
     };
 
     store.dispatch(initialize("CaseNotes", initialValues));
@@ -222,7 +239,8 @@ describe("CaseNoteDialog", () => {
     const valuesToSubmit = {
       caseId: caseId,
       notes: caseNotes,
-      caseNoteActionId: caseNoteActions.memoToFile[1]
+      caseNoteActionId: caseNoteActions.memoToFile[1],
+      mentionedUsers: []
     };
 
     expect(dispatchSpy).toHaveBeenCalledWith(editCaseNote(valuesToSubmit));
