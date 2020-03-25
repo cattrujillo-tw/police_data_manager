@@ -4,6 +4,7 @@ import {
 } from "./workerHelpers";
 import http from "http";
 import getInstance from "../server/handlers/cases/export/queueFactory";
+import { setQueues, UI } from "bull-board";
 
 const newRelic = require("newrelic");
 
@@ -62,7 +63,7 @@ app.use(
       fontSrc: ["https://fonts.googleapis.com", "https://fonts.gstatic.com"],
       objectSrc: ["'none'"],
       imgSrc: ["'self'"],
-      scriptSrc: ["'self'", "https://maps.googleapis.com"],
+      scriptSrc: ["'self'", "https://maps.googleapis.com", "'unsafe-inline'"],
       styleSrc: ["'self'", "https://fonts.googleapis.com", "'unsafe-inline'"]
     }
   })
@@ -85,6 +86,7 @@ app.use(
 );
 
 app.use("/api", apiRouter);
+app.use("/ui", UI);
 
 app.get("*", function(req, res) {
   res.sendFile(path.join(buildDirectory, "index.html"));
@@ -101,6 +103,7 @@ app.use(
 app.use(errorHandler);
 
 const queue = getInstance();
+setQueues([queue]);
 
 queue.process(JOB_OPERATION.CASE_EXPORT.key, 1, (job, done) => {
   csvCaseExport(job, done);
