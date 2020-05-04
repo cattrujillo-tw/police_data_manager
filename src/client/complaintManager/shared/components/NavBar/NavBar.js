@@ -28,6 +28,19 @@ class NavBar extends Component {
     notifications: []
   };
 
+  componentDidMount() {
+    // how to make this url dynamic based upon environment ??
+    const events = new EventSource("https://localhost:1234/notifications");
+    console.log("Mounted new event @ /notifications");
+    events.onmessage = event => {
+      const parsedData = JSON.parse(event.data);
+      console.log("Got an event from server: ", parsedData);
+    };
+    events.onerror = event => {
+      console.log("Errorr", event);
+    };
+  }
+
   handleMenuOpen = event => {
     this.setState({
       menuOpen: true,
