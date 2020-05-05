@@ -1,3 +1,5 @@
+import { sendNotification } from "../../../handleNotificationSubscriptions";
+
 const models = require("../../../complaintManager/models");
 
 export const handleNotifications = async (
@@ -48,6 +50,7 @@ export const handleNotifications = async (
 };
 
 const createNotification = async (transaction, request, user, caseNoteId) => {
+  sendNotification("Hello a new notification was created");
   await models.notification.create(
     {
       caseNoteId: caseNoteId,
