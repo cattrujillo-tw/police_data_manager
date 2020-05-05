@@ -18,6 +18,7 @@ import NotificationDrawer from "../Notification/NotificationDrawer";
 import createMuiTheme from "@material-ui/core/styles/createMuiTheme";
 import NotificationsIcon from "@material-ui/icons/Notifications";
 import getNotifications from "../../thunks/getNotifications";
+import getAccessToken from "../../../../common/auth/getAccessToken";
 
 class NavBar extends Component {
   state = {
@@ -30,7 +31,10 @@ class NavBar extends Component {
 
   componentDidMount() {
     // how to make this url dynamic based upon environment ??
-    const events = new EventSource("https://localhost:1234/notifications");
+    const token = getAccessToken();
+    const events = new EventSource(
+      `https://localhost:1234/api/notifications?token=${token}`
+    );
     console.log("Mounted new event @ /notifications");
     events.onmessage = event => {
       const parsedData = JSON.parse(event.data);

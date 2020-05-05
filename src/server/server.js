@@ -39,51 +39,6 @@ const app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
-let clients = [];
-
-const streamNotifications = (req, res, next) => {
-  console.log("Request", req.body);
-
-  res.setHeader("Cache-Control", "no-cache");
-  res.setHeader("Content-Type", "text/event-stream");
-  res.setHeader("Connection", "keep-alive");
-  // only set this header in local
-  res.setHeader("Access-Control-Allow-Origin", "https://localhost");
-
-  res.flushHeaders();
-
-  // After client opens connection send all nests as string
-  const data = `data: ${JSON.stringify("Made connection with client")}\n\n`;
-  res.write(data);
-  res.write("\n\n");
-
-  console.log("sent data from stream notifications");
-
-  const clientId = Date.now();
-  const newClient = {
-    id: clientId,
-    res
-  };
-  clients.push(newClient);
-
-  console.log("Clients", clients);
-
-  // When client closes connection we update the clients list
-  // avoiding the disconnected one
-  req.on("close", () => {
-    console.log(`${clientId} Connection closed`);
-    clients = clients.filter(c => c.id !== clientId);
-  });
-  //sendEventsToAll("updating my SSE after clients added")
-};
-
-// Iterate clients list and use write res object method to send new nest
-function sendEventsToAll(newNest) {
-  clients.forEach(c => c.res.write(`data: ${JSON.stringify(newNest)}\n\n`));
-}
-
-app.get("/notifications", streamNotifications);
-
 app.use(function (req, res, next) {
   res.header("X-powered-by", "<3");
   next();
