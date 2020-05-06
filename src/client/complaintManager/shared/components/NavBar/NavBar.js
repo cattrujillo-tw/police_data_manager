@@ -32,6 +32,8 @@ class NavBar extends Component {
   componentDidMount() {
     // how to make this url dynamic based upon environment ??
     const token = getAccessToken();
+    // TODO: Use hostname config for all envs
+    // TODO: Cache this eventsource so we dont create it with every render
     const events = new EventSource(
       `https://localhost:1234/api/notifications?token=${token}`
     );

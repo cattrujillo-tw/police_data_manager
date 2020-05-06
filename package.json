@@ -59,7 +59,6 @@
     "bull": "^3.13.0",
     "bull-repl": "^0.23.0",
     "busboy": "~0.3.0",
-    "connect-timeout": "^1.9.0",
     "connected-react-router": "~6.8.0",
     "cookie-parser": "~1.4.4",
     "csv-parse": "~4.8.8",

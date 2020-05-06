@@ -21,7 +21,6 @@ const expressWinston = require("express-winston");
 const winston = require("winston");
 const cookieParser = require("cookie-parser");
 //const cors = require('cors');
-const timeout = require("connect-timeout");
 
 winston.configure({
   transports: [
@@ -39,8 +38,6 @@ const app = express();
 //app.use(cors()); sd
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
-
-app.use(timeout("500s"));
 
 app.use(function (req, res, next) {
   res.header("X-powered-by", "<3");
