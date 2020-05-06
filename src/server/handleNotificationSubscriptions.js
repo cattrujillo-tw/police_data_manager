@@ -52,5 +52,6 @@ export const streamNotifications = (req, res, next) => {
 
 // Iterate clients list and use write res object method to send new nest
 export const sendNotification = message => {
+  console.log("About to serialize and send message", message);
   clients.forEach(c => c.res.write(`data: ${JSON.stringify(message)}\n\n`));
 };

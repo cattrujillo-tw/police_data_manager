@@ -12,11 +12,11 @@ import {
 import auditDataAccess from "../audits/auditDataAccess";
 import { getUsersFromAuth0 } from "../../common/handlers/users/getUsers";
 
-const getNotifications = asyncMiddleWare(async (request, response, next) => {
+const extractNotifications = async (fromDate, userEmail) => {
   const params = {
     where: {
-      updatedAt: { [sequelize.Op.gt]: request.query.timestamp },
-      user: request.params.user
+      updatedAt: { [sequelize.Op.gt]: fromDate },
+      user: userEmail
     },
     include: [
       {
@@ -55,7 +55,7 @@ const getNotifications = asyncMiddleWare(async (request, response, next) => {
         models.notification.name
       );
       await auditDataAccess(
-        request.nickname,
+        userEmail,
         null,
         MANAGER_TYPE.COMPLAINT,
         AUDIT_SUBJECT.NOTIFICATIONS,
@@ -66,6 +66,8 @@ const getNotifications = asyncMiddleWare(async (request, response, next) => {
       return allNotifications;
     }
   );
+
+  console.log("Raw", rawNotifications);
 
   const notifications = await Promise.all(
     rawNotifications.map(async rawNotification => {
@@ -117,7 +119,7 @@ const getNotifications = asyncMiddleWare(async (request, response, next) => {
   await models.sequelize
     .transaction(async transaction => {
       await auditDataAccess(
-        request.nickname,
+        userEmail,
         null,
         MANAGER_TYPE.COMPLAINT,
         AUDIT_SUBJECT.ALL_AUTHOR_DATA_FOR_NOTIFICATIONS,
@@ -130,7 +132,16 @@ const getNotifications = asyncMiddleWare(async (request, response, next) => {
       throw err;
     });
 
-  response.send(notifications);
+  return notifications;
+};
+
+const getNotifications = asyncMiddleWare(async (request, response, next) => {
+  response.send(
+    await extractNotifications(request.query.timestamp, request.nickname)
+  );
 });
 
-module.exports = getNotifications;
+module.exports = {
+  getNotifications,
+  extractNotifications
+};

@@ -2,7 +2,6 @@ import CaseNote from "../../../client/complaintManager/testUtilities/caseNote";
 import Case from "../../../client/complaintManager/testUtilities/case";
 import Notification from "../../../client/complaintManager/testUtilities/notification";
 import { cleanupDatabase } from "../../testHelpers/requestTestHelpers";
-import getNotifications from "./getNotifications";
 import {
   AUDIT_ACTION,
   AUDIT_SUBJECT
@@ -10,6 +9,7 @@ import {
 import moment, { utc } from "moment";
 import Civilian from "../../../client/complaintManager/testUtilities/civilian";
 import { getUsersFromAuth0 } from "../../common/handlers/users/getUsers";
+import { getNotifications } from "./getNotifications";
 const models = require("../../complaintManager/models");
 const httpMocks = require("node-mocks-http");
 

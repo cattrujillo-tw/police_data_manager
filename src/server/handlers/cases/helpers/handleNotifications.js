@@ -1,4 +1,6 @@
 import { sendNotification } from "../../../handleNotificationSubscriptions";
+import moment from "moment";
+import { extractNotifications } from "../getNotifications";
 
 const models = require("../../../complaintManager/models");
 
@@ -50,7 +52,6 @@ export const handleNotifications = async (
 };
 
 const createNotification = async (transaction, request, user, caseNoteId) => {
-  sendNotification("Hello a new notification was created");
   await models.notification.create(
     {
       caseNoteId: caseNoteId,
@@ -60,6 +61,9 @@ const createNotification = async (transaction, request, user, caseNoteId) => {
       transaction,
       auditUser: request.nickname
     }
+  );
+  sendNotification(
+    await extractNotifications(moment().subtract(30, "days"), user.value)
   );
 };
 
