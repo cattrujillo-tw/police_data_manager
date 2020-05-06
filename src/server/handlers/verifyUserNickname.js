@@ -16,8 +16,6 @@ const verifyUserNickname = (request, response, next) => {
   request.nickname = userInfo[config.authentication.nicknameKey];
   request.permissions = userInfo.scope.split(" ");
 
-  console.log("set user nickname, ", request.nickname);
-
   next();
 };
 
