@@ -11,8 +11,5 @@ if [ -z $CI ]
 then
     aws --profile noipm-personal s3 cp s3://$BUCKET_NAME $DEST_DIRECTORY --recursive
 else
-    AWS_ACCESS_KEY_ID=$CI_AWS_ACCESS_KEY_ID
-    AWS_SECRET_ACCESS_KEY=$CI_AWS_SECRET_ACCESS_KEY
-
-    aws s3 cp s3://$BUCKET_NAME $DEST_DIRECTORY --recursive
+    AWS_ACCESS_KEY_ID=$CI_AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY=$CI_AWS_SECRET_ACCESS_KEY aws s3 cp s3://$BUCKET_NAME $DEST_DIRECTORY --recursive
 fi
