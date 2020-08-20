@@ -29,6 +29,9 @@ selenium-server.log
 # local data
 postgres-data/
 
+# instance files
+instance_files
+
 # misc
 .DS_Store
 .env.local
