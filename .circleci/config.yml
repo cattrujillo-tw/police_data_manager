@@ -1,5 +1,13 @@
-version: 2
+version: 2.1
+orbs:
+  aws-cli: circleci/aws-cli@1.2.1
 jobs:
+  get-instance-files:
+    executor: aws-cli/default
+    steps:
+      - checkout
+      - aws-cli/install
+      - run: ./scripts/get-instance-files.sh
   test-client:
     docker:
       - image: noipm/docker-node-ubuntu:2.0.1
@@ -370,11 +378,14 @@ workflows:
 
   build_and_deploy_playground:
     jobs:
-      - security-check:
+      - get-instance-files:
           filters:
             branches:
               only:
-                - encode-attachment-urls
+                - spike-file-injection
+      - security-check:
+          requires:
+            - get-instance-files
       - build-and-publish-playground:
           requires:
             - security-check
