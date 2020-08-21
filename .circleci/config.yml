@@ -7,9 +7,15 @@ jobs:
     steps:
       - checkout
       - aws-cli/install
-      - run: ./scripts/get-instance-files.sh /tmp/instance_files
-      - store_artifacts:
-          path: /tmp/instance_files
+      - run: ./scripts/get-instance-files.sh
+      # Persist the specified paths (workspace/echo-output) into the workspace for use in downstream job. 
+      - persist_to_workspace:
+          # Must be an absolute path, or relative path from working_directory. This is a directory on the container which is 
+          # taken to be the root directory of the workspace.
+          root: src
+          # Must be relative path from root
+          paths:
+            - instance_files
   test-client:
     docker:
       - image: noipm/docker-node-ubuntu:2.0.1
@@ -72,7 +78,10 @@ jobs:
       - image: hawkeyesec/scanner-cli:latest
     steps:
       - checkout
-      - run: ls -ltra /tmp/instance_files
+      - attach_workspace:
+          # Must be absolute path or relative path from working_directory
+          at: src
+      - run: ls -ltra ./src/instance_files
       - run: /bin/sh ./scripts/security-checks.sh
       - store_artifacts:
           path: hawkeye_report.json
