@@ -3,7 +3,7 @@
 set -exo pipefail
 
 BUCKET_NAME=noipm-private-images
-DEST_DIRECTORY=./src/instance_files
+DEST_DIRECTORY=${1-./src/instance_files}
 
 mkdir -p $DEST_DIRECTORY
 
