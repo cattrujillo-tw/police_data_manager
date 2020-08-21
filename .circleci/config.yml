@@ -117,6 +117,9 @@ jobs:
       - image: docker:stable
     steps:
       - checkout
+      - attach_workspace:
+          # Must be absolute path or relative path from working_directory
+          at: src
       - setup_remote_docker
       - run: docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
       - run: docker build -f Dockerfile.web --build-arg REACT_APP_ENV=playground --build-arg REACT_APP_GOOGLE_API_KEY=$REACT_APP_GOOGLE_API_KEY_PREPROD -t noipm/complaint-manager-playground:$CIRCLE_SHA1 .
