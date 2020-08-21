@@ -8,6 +8,8 @@ jobs:
       - checkout
       - aws-cli/install
       - run: ./scripts/get-instance-files.sh
+      - store_artifacts:
+          path: ./src/instance_files
   test-client:
     docker:
       - image: noipm/docker-node-ubuntu:2.0.1
@@ -70,6 +72,7 @@ jobs:
       - image: hawkeyesec/scanner-cli:latest
     steps:
       - checkout
+      - run: ls -ltra ./src/instance_files
       - run: /bin/sh ./scripts/security-checks.sh
       - store_artifacts:
           path: hawkeye_report.json
