@@ -380,6 +380,3 @@ workflows:
       - ensure-playground-deploy-succeeded:
           requires:
             - deploy-playground
-      - letter-generation-testing:
-          requires:
-            - ensure-playground-deploy-succeeded
