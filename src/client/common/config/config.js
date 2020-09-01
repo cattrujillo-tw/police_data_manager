@@ -63,7 +63,7 @@ export default {
       scope: "openid profile",
       nicknameKey: "https://noipm-ci.herokuapp.com/nickname"
     },
-    hostname: "https://47myvnkzma.execute-api.us-east-1.amazonaws.com/test",
+    hostname: "https://bl6teqqtbf.execute-api.us-east-1.amazonaws.com",
     backendUrl: "https://noipm-playground.herokuapp.com"
   },
   ci: {
