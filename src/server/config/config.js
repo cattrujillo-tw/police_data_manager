@@ -99,7 +99,7 @@ module.exports = {
       connectSrc: [
         "'self'",
         "https://noipm-ci.auth0.com",
-        "https://bl6teqqtbf.execute-api.us-east-1.amazonaws.com"
+        "https://47myvnkzma.execute-api.us-east-1.amazonaws.com/test"
       ]
     },
     corsOrigin: "https://noipm-playground.herokuapp.com",
