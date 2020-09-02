@@ -13,6 +13,12 @@ import {
 import { closeCancelEditLetterConfirmationDialog } from "../../../actionCreators/letterActionCreators";
 import { push } from "connected-react-router";
 import { connect } from "react-redux";
+import BrowserConsole from "../../../../BrowserConsole";
+
+const { createLogger, transports } = require("winston");
+const log = createLogger({
+  level: "info"
+});
 
 const CancelEditLetterConfirmationDialog = ({
   open,
@@ -42,7 +48,12 @@ const CancelEditLetterConfirmationDialog = ({
         <PrimaryButton
           data-testid="discardEditsButton"
           onClick={() => {
-            console.log("Discard edits redirect url", redirectUrl);
+            log.add(
+              new BrowserConsole({
+                level: "info",
+                message: "Here is the discard redirect log"
+              })
+            );
             shouldBlockRoutingRedirects(false);
             dispatch(push(redirectUrl));
             dispatch(closeCancelEditLetterConfirmationDialog());
