@@ -24,12 +24,18 @@ import CreateCaseActions from "./CreateCaseActions";
 import getIntakeSourceDropdownValues from "../../intakeSources/thunks/getIntakeSourceDropdownValues";
 import { formatAddressAsString } from "../../utilities/formatAddress";
 import { scrollToFirstErrorWithValue } from "../../../common/helpers/scrollToFirstError";
+import BrowserConsole from "../../../BrowserConsole";
 
 const styles = {
   dialogPaper: {
     minWidth: "40%"
   }
 };
+
+const { createLogger, transports } = require("winston");
+const log = createLogger({
+  level: "info"
+});
 
 class CreateCaseDialog extends React.Component {
   componentDidMount() {
@@ -45,7 +51,12 @@ class CreateCaseDialog extends React.Component {
       classes
     } = this.props;
     const civilianComplainant = complaintType === CIVILIAN_INITIATED;
-
+    log.add(
+      new BrowserConsole({
+        level: "info",
+        message: "Here in Create Case Dialog"
+      })
+    );
     return (
       <Dialog
         data-testid="createCaseDialog"
