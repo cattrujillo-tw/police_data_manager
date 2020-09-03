@@ -46,7 +46,6 @@ class CreateCaseDialog extends React.Component {
     } = this.props;
     const civilianComplainant = complaintType === CIVILIAN_INITIATED;
 
-    console.log("i'm here!!!");
     return (
       <Dialog
         data-testid="createCaseDialog"
