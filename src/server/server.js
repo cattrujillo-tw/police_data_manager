@@ -24,6 +24,7 @@ const winston = require("winston");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const compression = require("compression");
+const beaverLogger = require("beaver-logger/server/server");
 
 winston.configure({
   transports: [
@@ -137,6 +138,13 @@ app.use(
 );
 
 app.use(errorHandler);
+
+app.use(
+  beaverLogger.expressEndpoint({
+    uri: "api/log",
+    enableCors: false
+  })
+);
 
 export let server;
 

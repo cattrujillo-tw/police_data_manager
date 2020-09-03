@@ -64,6 +64,7 @@ import editClassifications from "./handlers/cases/referralLetters/editRecommende
 import createMatrix from "./matrixManager/handlers/matrices/createMatrix";
 import { getMessageStream } from "./handlers/cases/getMessageStream";
 import markNotificationAsRead from "./handlers/cases/markNotificationAsRead";
+import logMessage from "./handlers/logMessage";
 
 export const ROUTES_ALLOWED_TO_HANDLE_ARCHIVED_CASE = [
   "/cases/:caseId/case-notes",
@@ -513,6 +514,13 @@ export const API_ROUTES = {
       handler: createMatrix,
       errorMessage:
         "Something went wrong and the matrix could not be created. Please try again."
+    },
+    "/log": {
+      get: {
+        handler: logMessage,
+        errorMessage:
+          "Something went wrong and the logs could not be transferred."
+      }
     }
   }
 };

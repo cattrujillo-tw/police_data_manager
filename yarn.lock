@@ -3835,6 +3835,23 @@ bcrypt-pbkdf@^1.0.0:
   dependencies:
     tweetnacl "^0.14.3"
 
+beaver-logger@^4.0.18:
+  version "4.0.18"
+  resolved "https://registry.yarnpkg.com/beaver-logger/-/beaver-logger-4.0.18.tgz#42c2fd4bbf1c35a8c44a36be1bd7d59a0cd9118e"
+  integrity sha512-FVJabvaNvk+ZyQqxXSVsMNKD0ecAgUXcWO+2DxO0iy6nG8hyj2CM2JDXmgg1Gmytvl3N7NPDpCd6/i+3XQL81Q==
+  dependencies:
+    belter "^1.0.17"
+    zalgo-promise "^1.0.26"
+
+belter@^1.0.17:
+  version "1.0.124"
+  resolved "https://registry.yarnpkg.com/belter/-/belter-1.0.124.tgz#14f257fe9f3e01ed63794b3d533e021b6f07692e"
+  integrity sha512-JH/goty/krPUsz3YO7FL9zKRKWFdzWIV1eNW2a2hmaFq808SMgRw8+fFUXhLB0fx/Qziij9wcZrOwNeB7sEWbQ==
+  dependencies:
+    cross-domain-safe-weakmap "^1.0.20"
+    cross-domain-utils "^2.0.10"
+    zalgo-promise "^1.0.28"
+
 big-rat@^1.0.3:
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/big-rat/-/big-rat-1.0.4.tgz#768d093bb57930dd18ed575c7fca27dc5391adea"
@@ -5354,6 +5371,20 @@ cron-parser@^2.13.0:
   dependencies:
     is-nan "^1.2.1"
     moment-timezone "^0.5.25"
+
+cross-domain-safe-weakmap@^1.0.20:
+  version "1.0.27"
+  resolved "https://registry.yarnpkg.com/cross-domain-safe-weakmap/-/cross-domain-safe-weakmap-1.0.27.tgz#81a5eae012b3cfb7e7e5ca3d737a6c94c3499bab"
+  integrity sha512-f5etDzszteeGh99Dzd7o72FGwd8rLGzgEv50Vk0r8mLzPdQEzcb7Vmx3PfKWD4k66Hp8vN0BLPuBmmMs4UxseQ==
+  dependencies:
+    cross-domain-utils "^2.0.0"
+
+cross-domain-utils@^2.0.0, cross-domain-utils@^2.0.10:
+  version "2.0.33"
+  resolved "https://registry.yarnpkg.com/cross-domain-utils/-/cross-domain-utils-2.0.33.tgz#e4e136c8bbef007dffa2c01615e7628819d9ce19"
+  integrity sha512-qMcwxgwBcD0ag693vXuN9wiG2VmDZYDq2zcZEEWQPKWWOsHG847FKt2nztZNDO12qxw8E8+v21fcnv4Xbf2gsw==
+  dependencies:
+    zalgo-promise "^1.0.11"
 
 cross-spawn@6.0.5, cross-spawn@^6.0.0, cross-spawn@^6.0.5:
   version "6.0.5"
@@ -8399,6 +8430,11 @@ globby@^6.1.0:
     object-assign "^4.0.1"
     pify "^2.0.0"
     pinkie-promise "^2.0.0"
+
+glossy@^0.1.7:
+  version "0.1.7"
+  resolved "https://registry.yarnpkg.com/glossy/-/glossy-0.1.7.tgz#769b5984a96f6066ab9ea758224825ee6c210f0b"
+  integrity sha1-dptZhKlvYGarnqdYIkgl7mwhDws=
 
 glsl-inject-defines@^1.0.1:
   version "1.0.3"
@@ -18211,6 +18247,13 @@ window-size@0.1.0:
   resolved "https://registry.yarnpkg.com/window-size/-/window-size-0.1.0.tgz#5438cd2ea93b202efa3a19fe8887aee7c94f9c9d"
   integrity sha1-VDjNLqk7IC76Ohn+iIeu58lPnJ0=
 
+winston-papertrail@^1.0.5:
+  version "1.0.5"
+  resolved "https://registry.yarnpkg.com/winston-papertrail/-/winston-papertrail-1.0.5.tgz#54a23b16e5046652bf687b37dc802714bfd462c9"
+  integrity sha1-VKI7FuUEZlK/aHs33IAnFL/UYsk=
+  dependencies:
+    glossy "^0.1.7"
+
 winston-transport@^4.4.0:
   version "4.4.0"
   resolved "https://registry.yarnpkg.com/winston-transport/-/winston-transport-4.4.0.tgz#17af518daa690d5b2ecccaa7acf7b20ca7925e59"
@@ -18706,6 +18749,11 @@ yauzl@^2.10.0:
   dependencies:
     buffer-crc32 "~0.2.3"
     fd-slicer "~1.1.0"
+
+zalgo-promise@^1.0.11, zalgo-promise@^1.0.26, zalgo-promise@^1.0.28:
+  version "1.0.45"
+  resolved "https://registry.yarnpkg.com/zalgo-promise/-/zalgo-promise-1.0.45.tgz#cf28ae3616b6e8af1632d36a5fefd4e357207346"
+  integrity sha512-SN/c5HjWRXEi7mcXcjHZa3syCdtF1SnjjmhNNPi0jsVCpd/CNIfsRXsz4KfFxj/vGSbGvAJB05wcdZW5TYwHCg==
 
 zero-crossings@^1.0.0:
   version "1.0.1"
