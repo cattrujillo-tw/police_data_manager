@@ -24,7 +24,6 @@ import CreateCaseActions from "./CreateCaseActions";
 import getIntakeSourceDropdownValues from "../../intakeSources/thunks/getIntakeSourceDropdownValues";
 import { formatAddressAsString } from "../../utilities/formatAddress";
 import { scrollToFirstErrorWithValue } from "../../../common/helpers/scrollToFirstError";
-const logger = require("beaver-logger/src/logger");
 
 const styles = {
   dialogPaper: {
@@ -47,7 +46,7 @@ class CreateCaseDialog extends React.Component {
     } = this.props;
     const civilianComplainant = complaintType === CIVILIAN_INITIATED;
 
-    logger.Logger.info("Hello", { email: "random@test.com" });
+    console.log("i'm here!!!");
     return (
       <Dialog
         data-testid="createCaseDialog"

@@ -514,13 +514,6 @@ export const API_ROUTES = {
       handler: createMatrix,
       errorMessage:
         "Something went wrong and the matrix could not be created. Please try again."
-    },
-    "/log": {
-      get: {
-        handler: logMessage,
-        errorMessage:
-          "Something went wrong and the logs could not be transferred."
-      }
     }
   }
 };
