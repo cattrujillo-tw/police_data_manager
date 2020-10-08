@@ -11,6 +11,8 @@ import { complaintManagerMenuOptions } from "../shared/components/NavBar/complai
 import ComplaintTotals from "./ComplaintTotals";
 import { closeCreateDialog } from "../../common/actionCreators/createDialogActionCreators";
 import { DialogTypes } from "../../common/actionCreators/dialogTypes";
+import { MuiThemeProvider } from "@material-ui/core/styles";
+import testTheme from './testTheme';
 
 class CaseDashboard extends Component {
   componentWillUnmount() {
@@ -21,10 +23,12 @@ class CaseDashboard extends Component {
   render() {
     return (
       <div>
+        <MuiThemeProvider theme={testTheme}>
         <NavBar menuType={complaintManagerMenuOptions}>View All Cases</NavBar>
         <ComplaintTotals />
         <CreateCaseButton />
         <CasesTable currentPage={this.props.currentPage} archived={false} />
+        </MuiThemeProvider>
       </div>
     );
   }
