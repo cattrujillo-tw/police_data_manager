@@ -105,6 +105,12 @@ app.use(bodyParser.json());
 
 app.get("/health-check", healthCheck);
 
+app.get("/loaderio-f21712c8c1cc5411cc1a5fcf168aa452", function (req, res) {
+  return res.sendFile(
+    path.join(__dirname, "./loaderio-f21712c8c1cc5411cc1a5fcf168aa452.txt")
+  );
+});
+
 app.use(featureToggleRouter);
 
 app.use(
