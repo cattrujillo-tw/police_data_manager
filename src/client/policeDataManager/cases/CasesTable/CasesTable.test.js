@@ -15,12 +15,12 @@ import {
   CIVILIAN_INITIATED,
   COMPLAINANT,
   DESCENDING,
-  PERSON_TYPE,
   SORT_CASES_BY
 } from "../../../../sharedUtilities/constants";
 import SortableCase from "../../testUtilities/SortableCase";
 import getWorkingCases from "../thunks/getWorkingCases";
 import { getFeaturesSuccess } from "../../actionCreators/featureTogglesActionCreators";
+import { PERSON_TYPE } from "../../../../instance-files/constants";
 
 jest.mock("../thunks/getWorkingCases");
 
