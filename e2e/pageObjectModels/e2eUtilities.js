@@ -12,5 +12,6 @@ module.exports.waitMoveAndClick = (context, cssSelector) => {
 };
 
 module.exports.logOnClick = result => {
+  console.log("Safari Result: ", result);
   console.log(result.status == 0 ? `✔ Click successful` : `✖ Click failed`);
 };

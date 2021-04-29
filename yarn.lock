@@ -5511,6 +5511,11 @@ css.escape@^1.5.1:
   resolved "https://registry.yarnpkg.com/css.escape/-/css.escape-1.5.1.tgz#42e27d4fa04ae32f931a4b4d4191fa9cddee97cb"
   integrity sha1-QuJ9T6BK4y+TGktNQZH6nN3ul8s=
 
+css2xpath@^0.0.3:
+  version "0.0.3"
+  resolved "https://registry.yarnpkg.com/css2xpath/-/css2xpath-0.0.3.tgz#6303c9ef7026b65b3c2997d05b776f3c9e86abfd"
+  integrity sha512-ZwT+e1p+3uyNB/HmCuWHGPYOHAuwvfy3S+hns5ekY5PlimzfQrcASek3Uwi4/b/N9EkfmNuPUdvLm38HLYYs1Q==
+
 css@^2.0.0, css@^2.2.4:
   version "2.2.4"
   resolved "https://registry.yarnpkg.com/css/-/css-2.2.4.tgz#c646755c73971f2bba6a601e2cf2fd71b1298929"
@@ -16026,6 +16031,11 @@ select-hose@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/select-hose/-/select-hose-2.0.0.tgz#625d8658f865af43ec962bfc376a37359a4994ca"
   integrity sha1-Yl2GWPhlr0Psliv8N2o3NZpJlMo=
+
+selenium-server@^3.141.59:
+  version "3.141.59"
+  resolved "https://registry.yarnpkg.com/selenium-server/-/selenium-server-3.141.59.tgz#cbefdf50aae636ee4c67b819532a8233ce3fd6b0"
+  integrity sha512-pL7T1YtAqOEXiBbTx0KdZMkE2U7PYucemd7i0nDLcxcR1APXYZlJfNr5hrvL3mZgwXb7AJEZPINzC6mDU3eP5g==
 
 selfsigned@^1.10.7:
   version "1.10.8"

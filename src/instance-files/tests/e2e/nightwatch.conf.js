@@ -1,4 +1,3 @@
-const chromedriver = require("chromedriver");
 const selenium = require("selenium-server");
 
 const {
@@ -17,7 +16,7 @@ module.exports = {
   globals_path: "",
   webdriver: {
     start_process: true,
-    server_path: chromedriver.path,
+    server_path: "/usr/bin/safaridriver",
     port: 9515,
     cli_args: ["--log", "debug"]
   },
@@ -32,10 +31,7 @@ module.exports = {
         on_error: true
       },
       desiredCapabilities: {
-        browserName: "chrome",
-        chromeOptions: {
-          args: ["--headless", "--no-sandbox"]
-        }
+        browserName: "safari"
       },
       persist_globals: true,
       globals: {
@@ -52,12 +48,10 @@ module.exports = {
       globals: {
         disableAuthentication: true
       },
-      launch_url: "https://app-e2e/",
+      launch_url: "https://localhost/",
       desiredCapabilities: {
-        browserName: "chrome",
-        chromeOptions: {
-          args: ["--headless", "--no-sandbox", "--ignore-certificate-errors"]
-        },
+        browserName: "safari",
+        acceptSslCerts: true,
         acceptInsecureCerts: true
       }
     },

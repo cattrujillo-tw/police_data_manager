@@ -17,7 +17,7 @@
     "id": "realtimeNotificationsFeature",
     "name": "realtimeNotificationsFeature",
     "description": "Realtime Notifications using Server-Sent Events",
-    "enabled": true
+    "enabled": false
   },
   {
     "id": "nonUserAuthenticationFeature",
