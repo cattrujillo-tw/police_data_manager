@@ -977,6 +977,127 @@ describe("getCases", () => {
       });
     });
 
+    describe("by accused officers", () => {
+      let officer1, officer2, officer3;
+      let case1, case2;
+      let caseOfficer1, caseOfficer2, caseOfficer3, caseOfficer4;
+
+      beforeEach(async () => {
+        case1 = await models.cases.create(
+          new Case.Builder()
+            .defaultCase()
+            .withId(13)
+            .withAssignedTo("zmail"),
+          { auditUser: "test" }
+        );
+        case2 = await models.cases.create(
+          new Case.Builder()
+            .defaultCase()
+            .withId(14)
+            .withAssignedTo("bmail"),
+          { auditUser: "test" }
+        );
+
+        officer1 = await models.officer.create(
+          new Officer.Builder()
+          .defaultOfficer()
+          .withOfficerNumber(456)
+          .withId(456)
+          .build(),
+          { auditUser: "test" }
+        );
+
+        officer2 = await models.officer.create(
+          new Officer.Builder()
+          .defaultOfficer()
+          .withOfficerNumber(457)
+          .withId(457)
+          .build(),
+          { auditUser: "test" }
+        );
+
+        officer3 = await models.officer.create(
+          new Officer.Builder()
+          .defaultOfficer()
+          .withLastName("Old")
+          .withOfficerNumber(458)
+          .withId(458)
+          .build(),
+          { auditUser: "test" }
+        );
+
+        caseOfficer1 = await models.case_officer.create(
+          new CaseOfficer.Builder()
+          .defaultCaseOfficer()
+          .withId(1)
+          .withOfficerId(
+            officer1.id
+          )
+          .withCaseId(case1.id)
+          .withRoleOnCase(ACCUSED)
+          .build(),
+          { auditUser: "test" }
+        );
+
+        caseOfficer2 = await models.case_officer.create(
+          new CaseOfficer.Builder()
+          .defaultCaseOfficer()
+          .withId(2)
+          .withOfficerId(
+            officer3.id
+          )
+          .withCaseId(case1.id)
+          .withRoleOnCase(ACCUSED)
+          .build(),
+          { auditUser: "test" }
+        );
+
+        caseOfficer3 = await models.case_officer.create(
+          new CaseOfficer.Builder()
+          .defaultCaseOfficer()
+          .withId(3)
+          .withOfficerId(
+            officer1.id
+          )
+          .withCaseId(case2.id)
+          .withRoleOnCase(ACCUSED)
+          .build(),
+          { auditUser: "test" }
+        );
+
+        caseOfficer4 = await models.case_officer.create(
+          new CaseOfficer.Builder()
+          .defaultCaseOfficer()
+          .withId(4)
+          .withOfficerId(
+            officer2.id
+          )
+          .withCaseId(case2.id)
+          .withRoleOnCase(ACCUSED)
+          .build(),
+          { auditUser: "test" }
+        );
+      });
+
+
+      test("cases should return multiple accused officers", async () => {
+        const cases = await getCases(
+          CASES_TYPE.WORKING,
+        );
+        expect(cases.rows[0].primaryAccusedOfficer)
+          .toEqual(
+            expect.arrayContaining([
+              expect.objectContaining({
+                "fullName": "Grant M Young",
+              }), expect.objectContaining({
+                "fullName": "Grant M Old"
+              })
+            ])
+          );
+      });
+
+
+    });
     describe("by tags", () => {
       let case1, case2, case3;
       let tag1, tag2, tag3;
