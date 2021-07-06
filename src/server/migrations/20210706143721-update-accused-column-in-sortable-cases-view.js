@@ -112,7 +112,8 @@ const sortableCasesViewWithMultipleAccused = `CREATE VIEW sortable_cases_view AS
       assigned_to,
       deleted_at,
       json_agg(
-      accused_officers
+        accused_officers
+        ORDER BY accused_last_name NULLS LAST, accused_first_name, accused_middle_name
       ) as accused_officers,
       primary_complainant.complainant_first_name,
       primary_complainant.complainant_middle_name,
@@ -236,7 +237,8 @@ const sortableCasesViewWithMultipleAccused = `CREATE VIEW sortable_cases_view AS
       primary_complainant.complainant_last_name,
       primary_complainant.complainant_suffix,
       primary_complainant.complainant_person_type,
-      primary_complainant.complainant_is_anonymous`;
+      primary_complainant.complainant_is_anonymous
+  );`;
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
@@ -247,7 +249,7 @@ module.exports = {
         await queryInterface.sequelize
           .query(`DROP VIEW ${viewName}`, { transaction })
           .then(async () => {
-            await queryInterface.sequelize.query(ortableCasesViewWithMultipleAccused, {
+            await queryInterface.sequelize.query(sortableCasesViewWithMultipleAccused, {
               transaction
             });
           });
