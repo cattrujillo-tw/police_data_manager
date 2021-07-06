@@ -429,165 +429,193 @@ describe("getCases", () => {
       });
     });
 
-    // describe("by accused officer", () => {
-    //   let firstCaseWithKnownAccused,
-    //     secondCaseWithKnownAccused,
-    //     caseWithUnknownAccused,
-    //     caseWithNoAccused;
+    describe("by accused officer", () => {
+      let firstCaseWithKnownAccused,
+        secondCaseWithKnownAccused,
+        caseWithUnknownAccused,
+        caseWithNoAccused,
+        caseWithMultipleAccused;
 
-    //   beforeEach(async () => {
-    //     const firstOfficer = await models.officer.create(
-    //       new Officer.Builder()
-    //         .defaultOfficer()
-    //         .withId(undefined)
-    //         .withOfficerNumber(1)
-    //     );
+      beforeEach(async () => {
+        const firstOfficer = await models.officer.create(
+          new Officer.Builder()
+            .defaultOfficer()
+            .withId(undefined)
+            .withOfficerNumber(1)
+        );
 
-    //     const firstKnownOfficer = new CaseOfficer.Builder()
-    //       .defaultCaseOfficer()
-    //       .withId(undefined)
-    //       .withRoleOnCase(ACCUSED)
-    //       .withOfficerId(firstOfficer.id)
-    //       .withLastName("Bruce");
+        const firstKnownOfficer = new CaseOfficer.Builder()
+          .defaultCaseOfficer()
+          .withId(undefined)
+          .withRoleOnCase(ACCUSED)
+          .withOfficerId(firstOfficer.id)
+          .withLastName("Bruce");
 
-    //     firstCaseWithKnownAccused = await models.cases.create(
-    //       new Case.Builder()
-    //         .defaultCase()
-    //         .withId(undefined)
-    //         .withAccusedOfficers([firstKnownOfficer]),
-    //       {
-    //         include: [
-    //           {
-    //             model: models.case_officer,
-    //             as: "accusedOfficers",
-    //             auditUser: "someone"
-    //           }
-    //         ],
-    //         auditUser: "someone"
-    //       }
-    //     );
+        firstCaseWithKnownAccused = await models.cases.create(
+          new Case.Builder()
+            .defaultCase()
+            .withId(5)
+            .withAccusedOfficers([firstKnownOfficer]),
+          {
+            include: [
+              {
+                model: models.case_officer,
+                as: "accusedOfficers",
+                auditUser: "someone"
+              }
+            ],
+            auditUser: "someone"
+          }
+        );
 
-    //     const secondOfficer = await models.officer.create(
-    //       new Officer.Builder()
-    //         .defaultOfficer()
-    //         .withId(undefined)
-    //         .withOfficerNumber(2),
-    //       {
-    //         auditUser: "test"
-    //       }
-    //     );
+        const secondOfficer = await models.officer.create(
+          new Officer.Builder()
+            .defaultOfficer()
+            .withId(undefined)
+            .withOfficerNumber(2),
+          {
+            auditUser: "test"
+          }
+        );
 
-    //     const secondKnownOfficer = new CaseOfficer.Builder()
-    //       .defaultCaseOfficer()
-    //       .withId(undefined)
-    //       .withRoleOnCase(ACCUSED)
-    //       .withLastName("Allen")
-    //       .withOfficerId(secondOfficer.id);
+        const secondKnownOfficer = new CaseOfficer.Builder()
+          .defaultCaseOfficer()
+          .withId(undefined)
+          .withRoleOnCase(ACCUSED)
+          .withLastName("Allen")
+          .withOfficerId(secondOfficer.id);
 
-    //     secondCaseWithKnownAccused = await models.cases.create(
-    //       new Case.Builder()
-    //         .defaultCase()
-    //         .withId(undefined)
-    //         .withAccusedOfficers([secondKnownOfficer]),
-    //       {
-    //         include: [
-    //           {
-    //             model: models.case_officer,
-    //             as: "accusedOfficers",
-    //             auditUser: "someone"
-    //           }
-    //         ],
-    //         auditUser: "someone"
-    //       }
-    //     );
+        const thirdOfficer = await models.officer.create(
+          new Officer.Builder()
+            .defaultOfficer()
+            .withId(777)
+            .withOfficerNumber(5),
+          {
+            auditUser: "test"
+          }
+        );
 
-    //     caseWithUnknownAccused = await models.cases.create(
-    //       new Case.Builder()
-    //         .defaultCase()
-    //         .withId(undefined)
-    //         .withAccusedOfficers([
-    //           new CaseOfficer.Builder()
-    //             .withId(undefined)
-    //             .withUnknownOfficer()
-    //             .withRoleOnCase(ACCUSED)
-    //         ]),
-    //       {
-    //         include: [
-    //           {
-    //             model: models.case_officer,
-    //             as: "accusedOfficers",
-    //             auditUser: "someone"
-    //           }
-    //         ],
-    //         auditUser: "someone"
-    //       }
-    //     );
+        const thirdKnownOfficer = new CaseOfficer.Builder()
+          .defaultCaseOfficer()
+          .withId(999)
+          .withRoleOnCase(ACCUSED)
+          .withLastName("Aaron")
+          .withOfficerId(thirdOfficer.id);
 
-    //     caseWithNoAccused = await models.cases.create(
-    //       new Case.Builder().defaultCase().withId(undefined),
-    //       {
-    //         auditUser: "test"
-    //       }
-    //     );
-    //   });
+        secondCaseWithKnownAccused = await models.cases.create(
+          new Case.Builder()
+            .defaultCase()
+            .withId(6)
+            .withAccusedOfficers([secondKnownOfficer]),
+          {
+            include: [
+              {
+                model: models.case_officer,
+                as: "accusedOfficers",
+                auditUser: "someone"
+              }
+            ],
+            auditUser: "someone"
+          }
+        );
 
-    //   // test("gets correct order for ascending", async () => { // TODO fix after sorting is in place
-    //   //   const sortedCases = await getCases(
-    //   //     CASES_TYPE.WORKING,
-    //   //     SORT_CASES_BY.PRIMARY_ACCUSED_OFFICER,
-    //   //     ASCENDING
-    //   //   );
+        caseWithUnknownAccused = await models.cases.create(
+          new Case.Builder()
+            .defaultCase()
+            .withId(7)
+            .withAccusedOfficers([
+              new CaseOfficer.Builder()
+                .withId(undefined)
+                .withUnknownOfficer()
+                .withRoleOnCase(ACCUSED)
+            ]),
+          {
+            include: [
+              {
+                model: models.case_officer,
+                as: "accusedOfficers",
+                auditUser: "someone"
+              }
+            ],
+            auditUser: "someone"
+          }
+        );
 
-    //   //   expect(sortedCases.rows).toEqual([
-    //   //     expect.objectContaining({
-    //   //       id: caseWithNoAccused.id,
-    //   //       accusedPersonType: null
-    //   //     }),
-    //   //     expect.objectContaining({
-    //   //       id: caseWithUnknownAccused.id,
-    //   //       accusedPersonType: PERSON_TYPE.UNKNOWN_OFFICER,
-    //   //       accusedLastName: null
-    //   //     }),
-    //   //     expect.objectContaining({
-    //   //       id: secondCaseWithKnownAccused.id,
-    //   //       accusedLastName: "Allen"
-    //   //     }),
-    //   //     expect.objectContaining({
-    //   //       id: firstCaseWithKnownAccused.id,
-    //   //       accusedLastName: "Bruce"
-    //   //     })
-    //   //   ]);
-    //   // });
+        caseWithNoAccused = await models.cases.create(
+          new Case.Builder().defaultCase().withId(8),
+          {
+            auditUser: "test"
+          }
+        );
 
-    //   //   test("gets correct order for descending", async () => { // TODO fix after sorting is in place
-    //   //     const sortedCases = await getCases(
-    //   //       CASES_TYPE.WORKING,
-    //   //       SORT_CASES_BY.PRIMARY_ACCUSED_OFFICER,
-    //   //       DESCENDING
-    //   //     );
+        caseWithMultipleAccused = await models.cases.create(
+          new Case.Builder()
+            .defaultCase()
+            .withId(9)
+            .withAccusedOfficers([
+              secondKnownOfficer,
+              new CaseOfficer.Builder()
+                .withId(undefined)
+                .withUnknownOfficer()
+                .withRoleOnCase(ACCUSED),
+              thirdKnownOfficer
+            ]),
+          {
+            include: [
+              {
+                model: models.case_officer,
+                as: "accusedOfficers",
+                auditUser: "someone"
+              }
+            ],
+            auditUser: "someone"
+          }
+        );
+      });
 
-    //   //     expect(sortedCases.rows).toEqual([
-    //   //       expect.objectContaining({
-    //   //         id: firstCaseWithKnownAccused.id,
-    //   //         accusedLastName: "Bruce"
-    //   //       }),
+      test("gets correct order for ascending", async () => {
+        // TODO fix after sorting is in place
+        const sortedCases = await getCases(
+          CASES_TYPE.WORKING,
+          SORT_CASES_BY.ACCUSED_OFFICERS,
+          ASCENDING
+        );
 
-    //   //       expect.objectContaining({
-    //   //         id: secondCaseWithKnownAccused.id,
-    //   //         accusedLastName: "Allen"
-    //   //       }),
-    //   //       expect.objectContaining({
-    //   //         id: caseWithUnknownAccused.id,
-    //   //         accusedPersonType: PERSON_TYPE.UNKNOWN_OFFICER,
-    //   //         accusedLastName: null
-    //   //       }),
-    //   //       expect.objectContaining({
-    //   //         id: caseWithNoAccused.id,
-    //   //         accusedPersonType: null
-    //   //       })
-    //   //     ]);
-    //   //   });
-    // });
+        expect(sortedCases.rows.map(row => row.id)).toEqual([
+          caseWithMultipleAccused.id,
+          secondCaseWithKnownAccused.id,
+          firstCaseWithKnownAccused.id,
+          caseWithUnknownAccused.id,
+          caseWithNoAccused.id
+        ]);
+      });
+
+      test("gets correct order for descending", async () => {
+        const sortedCases = await getCases(
+          CASES_TYPE.WORKING,
+          SORT_CASES_BY.ACCUSED_OFFICERS,
+          DESCENDING
+        );
+
+        expect(sortedCases.rows).toEqual([
+          expect.objectContaining({
+            id: caseWithNoAccused.id
+          }),
+          expect.objectContaining({
+            id: caseWithUnknownAccused.id
+          }),
+          expect.objectContaining({
+            id: firstCaseWithKnownAccused.id
+          }),
+          expect.objectContaining({
+            id: secondCaseWithKnownAccused.id
+          }),
+          expect.objectContaining({
+            id: caseWithMultipleAccused.id
+          })
+        ]);
+      });
+    });
 
     describe("by complainant", () => {
       let firstCaseWithCivilian,
