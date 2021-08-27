@@ -20,6 +20,8 @@ import { formatShortDate } from "../../sharedUtilities/formatDate";
 import useMediaQuery from "@material-ui/core/useMediaQuery";
 import useTheme from "@material-ui/core/styles/useTheme";
 import { PD, CITY, ORGANIZATION } from "../../instance-files/constants";
+import { PlotlyWrapper } from "../common/components/Visualization/PlotlyWrapper";
+import MapVisualization from "./MapVisualization";
 
 const removeDragCover = () => {
   const callback = mutationsList => {
