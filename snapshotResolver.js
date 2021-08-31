@@ -1,23 +1,21 @@
 "use strict";
 
 const snapshots = `${process.env.INSTANCE_FILES_DIR}/snapshots`;
+const root = process.env.CIRCLECI ? "/root/project/src" : "/app/src";
 
 const testPathForConsistencyCheck =
-  "/root/project/src/client/policeDataManager/officers/OfficerSearch/OfficerSearchResults/OfficerSearchResultsRow.test.js";
+  root +
+  "/client/policeDataManager/officers/OfficerSearch/OfficerSearchResults/OfficerSearchResultsRow.test.js";
 
 const resolveSnapshotPath = (testPath, snapshotExtension) => {
   const post = testPath.substring(testPath.indexOf("src") + 3);
   const snapshotPath = snapshots + post + snapshotExtension;
-  console.log("TESTPATH!!! ", testPath);
-  console.log("SNAPSHOT!!!!---", snapshots);
-  console.log("blahhhhhhhhhhhh", snapshotPath);
-
   return snapshotPath;
 };
 
 const resolveTestPath = (snapshotFilePath, snapshotExtension) => {
   return snapshotFilePath
-    .replace(snapshots, "/root/project/src")
+    .replace(snapshots, root)
     .slice(0, -snapshotExtension.length);
 };
 

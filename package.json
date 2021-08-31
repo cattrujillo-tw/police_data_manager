@@ -29,7 +29,7 @@
     "test:worker": "yarn setup:test:db test1 && yarn setup:test:db test2 && react-app-rewired --max_old_space_size=1500 test src/worker --logHeapUsage --maxWorkers=2 --env=node",
     "test:worker:ci": "CI=true yarn test:worker",
     "test:client": "REACT_APP_ENV=test react-app-rewired test src/client --logHeapUsage --env=jsdom",
-    "test:client:ci": "REACT_APP_ENV=test CI=true react-app-rewired test src/client/policeDataManager/cases/SearchCases/SearchCasesPage.test.js --logHeapUsage --maxWorkers=2 --env=jsdom --coverage --collectCoverageFrom='src/client/**/*.{js,jsx}'",
+    "test:client:ci": "REACT_APP_ENV=test CI=true react-app-rewired test src/client --logHeapUsage --maxWorkers=2 --env=jsdom --coverage --collectCoverageFrom='src/client/**/*.{js,jsx}'",
     "test:server:worker:ci": "NODE_ENV=test yarn test:server:ci && yarn test:worker:ci",
     "test:once": "run-p -c test:server:worker:ci test:client:ci",
     "test:debug": "NODE_ENV=test yarn setup:test:db && CI=true && react-app-rewired --max_old_space_size=1024 --inspect-brk=0.0.0.0 test src/server --logHeapUsage --runInBand --env=node",
