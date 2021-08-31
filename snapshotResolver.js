@@ -17,7 +17,7 @@ const resolveSnapshotPath = (testPath, snapshotExtension) => {
 
 const resolveTestPath = (snapshotFilePath, snapshotExtension) => {
   return snapshotFilePath
-    .replace(snapshots, "/app/src")
+    .replace(snapshots, "/root/project/src")
     .slice(0, -snapshotExtension.length);
 };
 
