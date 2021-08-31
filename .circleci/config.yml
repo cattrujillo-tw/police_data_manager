@@ -80,6 +80,7 @@ jobs:
       - image: noipm/docker-node-ubuntu:<< pipeline.parameters.ubuntu-version >>
         environment:
           NODE_ENV: test
+          INSTANCE_FILES_DIR: /root/project/src/instance-files
       - image: postgres:10.9-alpine
     steps:
       - checkout
@@ -99,6 +100,7 @@ jobs:
       - image: noipm/docker-node-ubuntu:<< pipeline.parameters.ubuntu-version >>
         environment:
           NODE_ENV: test
+          INSTANCE_FILES_DIR: /root/project/src/instance-files
       - image: postgres:10.9-alpine
     steps:
       - checkout
@@ -118,6 +120,7 @@ jobs:
       - image: noipm/docker-node-ubuntu:<< pipeline.parameters.ubuntu-version >>
         environment:
           NODE_ENV: test
+          INSTANCE_FILES_DIR: /root/project/src/instance-files
       - image: postgres:10.9-alpine
     steps:
       - checkout

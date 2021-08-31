@@ -118,6 +118,7 @@ services:
       - AWS_SECRET_ACCESS_KEY
       - USE_CLOUD_SERVICES=false
       - REACT_APP_USE_CLOUD_SERVICES=false
+      - INSTANCE_FILES_DIR=/app/src/instance-files
     depends_on:
       - db
       - redis
