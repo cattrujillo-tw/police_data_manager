@@ -3,7 +3,7 @@
 const snapshots = `${process.env.INSTANCE_FILES_DIR}/snapshots`;
 
 const testPathForConsistencyCheck =
-  "/app/src/client/policeDataManager/officers/OfficerSearch/OfficerSearchResults/OfficerSearchResultsRow.test.js";
+  "/root/project/src/client/policeDataManager/officers/OfficerSearch/OfficerSearchResults/OfficerSearchResultsRow.test.js";
 
 const resolveSnapshotPath = (testPath, snapshotExtension) => {
   const post = testPath.substring(testPath.indexOf("src") + 3);
