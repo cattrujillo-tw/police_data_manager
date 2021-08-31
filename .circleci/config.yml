@@ -367,6 +367,7 @@ jobs:
       - run: docker push registry.heroku.com/noipm-staging/worker
       - run: heroku container:release web worker --app noipm-staging
       - run: heroku maintenance:off --app noipm-staging
+
   e2e-testing-playground:
     docker:
       - image: noipm/e2e:latest
@@ -660,7 +661,7 @@ workflows:
             - get-instance-files-latest
       - test-server-handlers:
           requires:
-            - get-instance-files-release
+            - get-instance-files-latest
       - test-server-worker-non-handlers:
           requires:
             - get-instance-files-latest
