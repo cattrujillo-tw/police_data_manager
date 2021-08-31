@@ -367,6 +367,23 @@ jobs:
       - run: docker push registry.heroku.com/noipm-staging/worker
       - run: heroku container:release web worker --app noipm-staging
       - run: heroku maintenance:off --app noipm-staging
+  e2e-testing-playground:
+    docker:
+      - image: noipm/e2e:latest
+    steps:
+      # - run:
+      #     name: Install Git
+      #     command: apt-get update && apt-get install --assume-yes git
+      - checkout
+      - run:
+          name: Run E2E tests
+          command: |
+            echo 'export TEST_USER=$CI_TEST_USER' >> $BASH_ENV
+            echo 'export TEST_PASS=$CI_TEST_PASS' >> $BASH_ENV
+            source $BASH_ENV
+            nightwatch --config /src/instance-files/tests/e2e/nightwatch.conf.js --env ci e2e/tests/policeDataManager --retries 2
+      - store_artifacts:
+          path: e2e/tests/policeDataManager
 
   ensure-staging-deploy-succeeded:
     docker:
