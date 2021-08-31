@@ -3,10 +3,10 @@ import React from "react";
 import SearchCasesPage from "./SearchCasesPage";
 import { BrowserRouter as Router } from "react-router-dom";
 import createConfiguredStore from "../../../createConfiguredStore";
-import { Provider } from 'react-redux';
+import { Provider } from "react-redux";
 
 describe("Search Cases Page", () => {
-  test.only("should render cases table with correct styling", () => {
+  test("should render cases table with correct styling", () => {
     const store = createConfiguredStore();
 
     const wrapper = mount(
