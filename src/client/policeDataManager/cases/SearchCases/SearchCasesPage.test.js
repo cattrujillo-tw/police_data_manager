@@ -6,7 +6,7 @@ import createConfiguredStore from "../../../createConfiguredStore";
 import { Provider } from 'react-redux';
 
 describe("Search Cases Page", () => {
-  test("should render cases table with correct styling", () => {
+  test.only("should render cases table with correct styling", () => {
     const store = createConfiguredStore();
 
     const wrapper = mount(
