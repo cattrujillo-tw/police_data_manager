@@ -68,7 +68,7 @@ jobs:
           environment:
             NEW_RELIC_ENABLED: false
             NEW_RELIC_NO_CONFIG_FILE: true
-            INSTANCE_FILES_DIR: src/instance-files
+            INSTANCE_FILES_DIR: /app/src/instance-files
   test-server-handlers-ci:
     docker:
       - image: noipm/docker-node-ubuntu:<< pipeline.parameters.ubuntu-version >>
@@ -227,7 +227,6 @@ jobs:
             --env-var client_id=$CI_AUTH0_CLIENT_ID \
             --env-var client_secret=$CI_AUTH0_CLIENT_SECRET \
             doc/postman/Police\ Data\ Management.postman_collection.json
-# > /tmp/output/newman-result.txt
       # - run:
       #     name: Test Results
       #     command: cat /tmp/output/newman-result.txt
@@ -235,7 +234,8 @@ jobs:
       #     root: '/tmp'
       #     paths:
       #       - output/newman-result.txt
-  
+
+  # > /tmp/output/newman-result.txt
   letter-generation-ci-latency-check:
     docker:
       - image: node:latest
@@ -554,7 +554,7 @@ workflows:
       - e2e-testing-ci-pdm:
           requires:
             - letter-generation-testing-ci
-  
+
   build_and_deploy_release:
     jobs:
       - security-check:
@@ -601,14 +601,14 @@ workflows:
 
   build_and_deploy_playground:
     jobs:
-     # - security-check:
+      # - security-check:
       - get-instance-files-latest:
           filters:
             branches:
               only:
                 - localclient
           #requires:
-           # - security-check
+          # - security-check
       - test-client:
           requires:
             - get-instance-files-latest
