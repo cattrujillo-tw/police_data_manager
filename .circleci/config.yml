@@ -64,7 +64,7 @@ jobs:
           command: pwd
       - run:
           name: Shows content in Directory
-          command: ls
+          command: ls /root/project/src/
       - run:
           name: Install Dependencies
           command: yarn install
@@ -74,7 +74,7 @@ jobs:
           environment:
             NEW_RELIC_ENABLED: false
             NEW_RELIC_NO_CONFIG_FILE: true
-            INSTANCE_FILES_DIR: instance-files/
+            INSTANCE_FILES_DIR: /root/project/src/instance-files/
   test-server-handlers-ci:
     docker:
       - image: noipm/docker-node-ubuntu:<< pipeline.parameters.ubuntu-version >>
