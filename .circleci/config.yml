@@ -75,26 +75,7 @@ jobs:
             NEW_RELIC_ENABLED: false
             NEW_RELIC_NO_CONFIG_FILE: true
             INSTANCE_FILES_DIR: /root/project/src/instance-files
-  test-server-handlers:
-    docker:
-      - image: noipm/docker-node-ubuntu:<< pipeline.parameters.ubuntu-version >>
-        environment:
-          NODE_ENV: test
-          INSTANCE_FILES_DIR: /root/project/src/instance-files
-      - image: postgres:10.9-alpine
-    steps:
-      - checkout
-      - attach_workspace:
-          at: src/
-      - run:
-          name: Install Dependencies
-          command: yarn install
-      - run:
-          name: Run server handler unit tests
-          command: yarn test:server-handlers:ci
-          environment:
-            NEW_RELIC_ENABLED: false
-            NEW_RELIC_NO_CONFIG_FILE: true
+
   test-server-handlers-ci:
     docker:
       - image: noipm/docker-node-ubuntu:<< pipeline.parameters.ubuntu-version >>
@@ -660,7 +641,7 @@ workflows:
       - test-client:
           requires:
             - get-instance-files-latest
-      - test-server-handlers:
+      - test-server-handlers-ci:
           requires:
             - get-instance-files-latest
       - test-server-worker-non-handlers:
@@ -670,7 +651,7 @@ workflows:
           requires:
             - test-client
             - test-server-worker-non-handlers
-            - test-server-handlers
+            - test-server-handlers-ci
       - deploy-playground:
           requires:
             - build-and-publish-playground
