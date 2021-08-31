@@ -621,6 +621,9 @@ workflows:
       - test-client:
           requires:
             - get-instance-files-latest
+      - test-server-handlers-playground:
+          requires:
+            - get-instance-files-release
       - test-server-worker-non-handlers:
           requires:
             - get-instance-files-latest
@@ -634,3 +637,6 @@ workflows:
       - ensure-playground-deploy-succeeded:
           requires:
             - deploy-playground
+      - e2e-testing-playground:
+          requires:
+            - ensure-playground-deploy-succeeded
