@@ -17,12 +17,41 @@ const DEFAULT_ZOOM = 10;
 const MapVisualization = props => (
   <PlotlyWrapper
     data={[
+      // {
+      //     type: "scattermapbox",
+      //     text: ["test"],
+      //     lon: [-90.06989909999999],
+      //     lat: [29.9538711],
+      //     marker: { color: "fuchsia", size: 10 }
+      // }
       {
-        type: "scattermapbox",
-        text: ["test"],
-        lon: [-90.06989909999999],
-        lat: [29.9538711],
-        marker: { color: "fuchsia", size: 10 }
+        type: "choroplethmapbox",
+        name: "Complaints by Police District",
+        geojson: districts,
+        locations: [
+          "District 1",
+          "District 2",
+          "District 3",
+          "District 4",
+          "District 5",
+          "District 6",
+          "District 7",
+          "District 8"
+        ],
+        z: [20, 80, 70, 30, 9, 99, 89, 50],
+        zmin: 0,
+        zmax: 100,
+        marker: {
+          opacity: 0.5
+        },
+        colorbar: {
+          y: 0,
+          yanchor: "bottom",
+          title: {
+            text: "Complaints by Police District"
+          },
+          side: "right"
+        }
       }
     ]}
     layout={{
@@ -32,54 +61,54 @@ const MapVisualization = props => (
         center: NOLA_CENTER,
         zoom: DEFAULT_ZOOM,
         layers: [
-          {
-            sourcetype: "geojson",
-            source: district1,
-            type: "fill",
-            color: "rgba(0, 255, 0, 0.5)"
-          },
-          {
-            sourcetype: "geojson",
-            source: district2,
-            type: "fill",
-            color: "rgba(255, 0, 0, 0.5)"
-          },
-          {
-            sourcetype: "geojson",
-            source: district3,
-            type: "fill",
-            color: "rgba(0, 0, 0, 0.5)"
-          },
-          {
-            sourcetype: "geojson",
-            source: district4,
-            type: "fill",
-            color: "rgba(255, 255, 255, 0.5)"
-          },
-          {
-            sourcetype: "geojson",
-            source: district5,
-            type: "fill",
-            color: "rgba(0, 0, 255, 0.5)"
-          },
-          {
-            sourcetype: "geojson",
-            source: district6,
-            type: "fill",
-            color: "rgba(255, 0, 255, 0.5)"
-          },
-          {
-            sourcetype: "geojson",
-            source: district7,
-            type: "fill",
-            color: "rgba(0, 255, 255, 0.5)"
-          },
-          {
-            sourcetype: "geojson",
-            source: district8,
-            type: "fill",
-            color: "rgba(255, 255, 0, 0.5)"
-          }
+          // {
+          //     sourcetype: "geojson",
+          //     source: district1,
+          //     type: "fill",
+          //     color: "rgba(0, 255, 0, 0.5)"
+          // },
+          // {
+          //     sourcetype: "geojson",
+          //     source: district2,
+          //     type: "fill",
+          //     color: "rgba(255, 0, 0, 0.5)"
+          // },
+          // {
+          //     sourcetype: "geojson",
+          //     source: district3,
+          //     type: "fill",
+          //     color: "rgba(0, 0, 0, 0.5)"
+          // },
+          // {
+          //     sourcetype: "geojson",
+          //     source: district4,
+          //     type: "fill",
+          //     color: "rgba(255, 255, 255, 0.5)"
+          // },
+          // {
+          //     sourcetype: "geojson",
+          //     source: district5,
+          //     type: "fill",
+          //     color: "rgba(0, 0, 255, 0.5)"
+          // },
+          // {
+          //     sourcetype: "geojson",
+          //     source: district6,
+          //     type: "fill",
+          //     color: "rgba(255, 0, 255, 0.5)"
+          // },
+          // {
+          //     sourcetype: "geojson",
+          //     source: district7,
+          //     type: "fill",
+          //     color: "rgba(0, 255, 255, 0.5)"
+          // },
+          // {
+          //     sourcetype: "geojson",
+          //     source: district8,
+          //     type: "fill",
+          //     color: "rgba(255, 255, 0, 0.5)"
+          // }
           // {
           //     sourcetype: "geojson",
           //     source: headquarters,

@@ -10,9 +10,11 @@
     "features": [
         {
             "type": "Feature",
+            "id": "District 1",
             "properties": {
                 "OBJECTID": 116,
                 "District": "1",
+                "name": "District 1",
                 "Shape_Length": 44721.664380099151,
                 "Shape_Area": 103533276.93497552
             },
@@ -686,8 +688,10 @@
         },
         {
             "type": "Feature",
+            "id": "District 2",
             "properties": {
                 "OBJECTID": 117,
+                "name": "District 2",
                 "District": "2",
                 "Shape_Length": 65212.501018009229,
                 "Shape_Area": 241359200.79407644
@@ -1638,8 +1642,10 @@
         },
         {
             "type": "Feature",
+            "id": "District 3",
             "properties": {
                 "OBJECTID": 118,
+                "name": "District 3",
                 "District": "3",
                 "Shape_Length": 106791.12475009516,
                 "Shape_Area": 553701344.72788811
@@ -2686,8 +2692,10 @@
         },
         {
             "type": "Feature",
+            "id": "District 4",
             "properties": {
                 "OBJECTID": 119,
+                "name": "District 4",
                 "District": "4",
                 "Shape_Length": 143163.69923361889,
                 "Shape_Area": 583463929.96005976
@@ -3398,8 +3406,10 @@
         },
         {
             "type": "Feature",
+            "id": "District 5",
             "properties": {
                 "OBJECTID": 120,
+                "name": "District 5",
                 "District": "5",
                 "Shape_Length": 79020.997396542021,
                 "Shape_Area": 287335788.09128565
@@ -4082,8 +4092,10 @@
         },
         {
             "type": "Feature",
+            "id": "District 6",
             "properties": {
                 "OBJECTID": 121,
+                "name": "District 6",
                 "District": "6",
                 "Shape_Length": 64628.960454069595,
                 "Shape_Area": 152801604.92689764
@@ -4962,8 +4974,10 @@
         },
         {
             "type": "Feature",
+            "id": "District 7",
             "properties": {
                 "OBJECTID": 122,
+                "name": "District 7",
                 "District": "7",
                 "Shape_Length": 418961.92926983879,
                 "Shape_Area": 4048973972.1126661
@@ -7638,8 +7652,10 @@
         },
         {
             "type": "Feature",
+            "id": "District 8",
             "properties": {
                 "OBJECTID": 123,
+                "name": "District 8",
                 "District": "8",
                 "Shape_Length": 38891.414549947054,
                 "Shape_Area": 57778105.703762718
