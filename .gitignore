@@ -55,3 +55,9 @@ data/
 .cert/
 
 newrelic_agent.log
+
+## In memory SQLite for testing
+:memory
+db
+
+.vscode
