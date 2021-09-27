@@ -2,6 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const Sequelize = require("sequelize");
 const basename = path.basename(__filename);
+console.log(process.env.NODE_ENV);
 let env = process.env.NODE_ENV || "development";
 if (env === "test") {
   env += process.env.JEST_WORKER_ID;
@@ -31,7 +32,10 @@ caseStatusHooks.init(sequelize, Sequelize.Model);
 fs.readdirSync(__dirname)
   .filter(file => {
     return (
-      file.indexOf(".") !== 0 && file !== basename && file.slice(-3) === ".js"
+      file.indexOf(".") !== 0 &&
+      file !== basename &&
+      file !== "sortableCasesView.js" &&
+      file.slice(-3) === ".js"
     );
   })
   .forEach(file => {

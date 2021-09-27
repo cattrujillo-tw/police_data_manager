@@ -27,7 +27,7 @@ module.exports = {
     migrationStorageTableName: "sequelize_meta",
     seederStorage: "sequelize",
     seederStorageTableName: "sequelize_data",
-    logging: "query",
+    logging: console.log,
     operatorsAliases: "0",
     pool: {
       max: 10,
@@ -44,7 +44,7 @@ module.exports = {
     migrationStorageTableName: "sequelize_meta",
     seederStorage: "sequelize",
     seederStorageTableName: "sequelize_data",
-    logging: "query",
+    logging: console.log,
     operatorsAliases: "0",
     pool: {
       max: 10,

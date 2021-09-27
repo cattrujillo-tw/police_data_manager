@@ -11,7 +11,7 @@
     "setup:elasticsearch": "./scripts/init-elasticsearch.sh",
     "start:dev": "yarn setup:localstack && yarn setup:db && yarn setup:elasticsearch && concurrently 'yarn start:client' 'yarn start:server:dev'",
     "setup:db": "sequelize db:create; node scripts/checkEmptySchema.js && node scripts/loadSchema.js; sequelize db:migrate && sequelize db:seed:all",
-    "setup:test:db": "node scripts/loadSchemaTest.js test1 && node scripts/loadSchemaTest.js test2",
+    "setup:test:db": "NODE_ENV=test JEST_WORKER_ID=1 node scripts/loadSchemaTest.js test1 && NODE_ENV=test JEST_WORKER_ID=2 node scripts/loadSchemaTest.js test2",
     "drop:db": "sequelize db:drop",
     "start:client": "GENERATE_SOURCEMAP=false HTTPS=true PORT=443 SSL_CRT_FILE=./.cert/client.crt SSL_KEY_FILE=./.cert/client.key react-scripts start",
     "start:server:dev": "nodemon --watch src/server --watch src/sharedUtilities src/startServer.js --exec babel-node",
