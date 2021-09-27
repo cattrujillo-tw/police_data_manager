@@ -1,4 +1,6 @@
 import models from "./index";
+const case_officer = require("./caseOfficer");
+const recommended_action = require("./recommendedAction");
 
 module.exports = (sequelize, DataTypes) => {
   const ReferralLetterOfficerRecommendedAction = sequelize.define(
@@ -9,7 +11,7 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
         field: "referral_letter_officer_id",
         references: {
-          model: models.case_officer,
+          model: case_officer,
           key: "id"
         }
       },
@@ -18,7 +20,7 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
         field: "recommended_action_id",
         references: {
-          model: models.recommended_action,
+          model: recommended_action,
           key: "id"
         }
       },
@@ -42,7 +44,7 @@ module.exports = (sequelize, DataTypes) => {
       paranoid: true
     }
   );
-  ReferralLetterOfficerRecommendedAction.associate = function(models) {
+  ReferralLetterOfficerRecommendedAction.associate = function (models) {
     ReferralLetterOfficerRecommendedAction.belongsTo(
       models.recommended_action,
       {
@@ -54,9 +56,17 @@ module.exports = (sequelize, DataTypes) => {
         }
       }
     );
+    ReferralLetterOfficerRecommendedAction.belongsTo(models.letter_officer, {
+      as: "letterOfficer",
+      foreignKey: {
+        name: "letterOfficerId",
+        field: "letter_officer_id",
+        allowNull: false
+      }
+    });
   };
 
-  ReferralLetterOfficerRecommendedAction.prototype.getCaseId = async function(
+  ReferralLetterOfficerRecommendedAction.prototype.getCaseId = async function (
     transaction
   ) {
     const letterOfficer = await sequelize
@@ -73,28 +83,26 @@ module.exports = (sequelize, DataTypes) => {
     return letterOfficer.caseOfficer.caseId;
   };
 
-  ReferralLetterOfficerRecommendedAction.prototype.getManagerType = async function(
-    transaction
-  ) {
-    return "complaint";
-  };
+  ReferralLetterOfficerRecommendedAction.prototype.getManagerType =
+    async function (transaction) {
+      return "complaint";
+    };
 
-  ReferralLetterOfficerRecommendedAction.prototype.modelDescription = async function(
-    transaction
-  ) {
-    const letterOfficer = await sequelize
-      .model("letter_officer")
-      .findByPk(this.referralLetterOfficerId, {
-        include: [
-          {
-            model: sequelize.model("case_officer"),
-            as: "caseOfficer"
-          }
-        ],
-        transaction
-      });
-    return [{ "Officer Name": letterOfficer.caseOfficer.fullName }];
-  };
+  ReferralLetterOfficerRecommendedAction.prototype.modelDescription =
+    async function (transaction) {
+      const letterOfficer = await sequelize
+        .model("letter_officer")
+        .findByPk(this.referralLetterOfficerId, {
+          include: [
+            {
+              model: sequelize.model("case_officer"),
+              as: "caseOfficer"
+            }
+          ],
+          transaction
+        });
+      return [{ "Officer Name": letterOfficer.caseOfficer.fullName }];
+    };
 
   ReferralLetterOfficerRecommendedAction.auditDataChange();
   return ReferralLetterOfficerRecommendedAction;

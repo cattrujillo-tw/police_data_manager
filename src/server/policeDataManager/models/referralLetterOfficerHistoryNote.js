@@ -1,5 +1,5 @@
 const models = "./";
-
+const letter_officers = require("./letterOfficer");
 module.exports = (sequelize, DataTypes) => {
   const ReferralLetterOfficerHistoryNotes = sequelize.define(
     "referral_letter_officer_history_note",
@@ -15,7 +15,7 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false,
         field: "referral_letter_officer_id",
         references: {
-          model: models.letter_officers,
+          model: letter_officers,
           key: "id"
         }
       },
@@ -44,7 +44,18 @@ module.exports = (sequelize, DataTypes) => {
     { tableName: "referral_letter_officer_history_notes", paranoid: true }
   );
 
-  ReferralLetterOfficerHistoryNotes.prototype.getCaseId = async function(
+  ReferralLetterOfficerHistoryNotes.associate = models => {
+    ReferralLetterOfficerHistoryNotes.belongsTo(models.letter_officer, {
+      as: "letterOfficer",
+      foreignKey: {
+        name: "letterOfficerId",
+        field: "letter_officer_id",
+        allowNull: false
+      }
+    });
+  };
+
+  ReferralLetterOfficerHistoryNotes.prototype.getCaseId = async function (
     transaction
   ) {
     const letterOfficer = await sequelize
@@ -61,28 +72,27 @@ module.exports = (sequelize, DataTypes) => {
     return letterOfficer.caseOfficer.caseId;
   };
 
-  ReferralLetterOfficerHistoryNotes.prototype.getManagerType = async function(
+  ReferralLetterOfficerHistoryNotes.prototype.getManagerType = async function (
     transaction
   ) {
     return "complaint";
   };
 
-  ReferralLetterOfficerHistoryNotes.prototype.modelDescription = async function(
-    transaction
-  ) {
-    const letterOfficer = await sequelize
-      .model("letter_officer")
-      .findByPk(this.referralLetterOfficerId, {
-        include: [
-          {
-            model: sequelize.model("case_officer"),
-            as: "caseOfficer"
-          }
-        ],
-        transaction
-      });
-    return [{ "Officer Name": letterOfficer.caseOfficer.fullName }];
-  };
+  ReferralLetterOfficerHistoryNotes.prototype.modelDescription =
+    async function (transaction) {
+      const letterOfficer = await sequelize
+        .model("letter_officer")
+        .findByPk(this.referralLetterOfficerId, {
+          include: [
+            {
+              model: sequelize.model("case_officer"),
+              as: "caseOfficer"
+            }
+          ],
+          transaction
+        });
+      return [{ "Officer Name": letterOfficer.caseOfficer.fullName }];
+    };
 
   ReferralLetterOfficerHistoryNotes.auditDataChange();
   return ReferralLetterOfficerHistoryNotes;

@@ -13,6 +13,7 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.INTEGER
     },
     officerNumber: {
+      unique: true,
       type: DataTypes.INTEGER,
       field: "officer_number"
     },

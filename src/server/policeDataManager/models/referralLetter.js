@@ -1,4 +1,5 @@
 const models = "./";
+const cases = require("./cases");
 
 module.exports = (sequelize, DataTypes) => {
   const ReferralLetter = sequelize.define(
@@ -15,7 +16,7 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
         field: "case_id",
         references: {
-          model: models.cases,
+          model: cases,
           key: "id"
         }
       },
@@ -58,10 +59,9 @@ module.exports = (sequelize, DataTypes) => {
     },
     { tableName: "referral_letters" }
   );
-  ReferralLetter.associate = function(models) {
+  ReferralLetter.associate = function (models) {
     ReferralLetter.hasMany(models.case_officer, {
       as: "caseOfficers",
-      sourceKey: "caseId",
       foreignKey: {
         name: "caseId",
         field: "caseId",
@@ -70,15 +70,15 @@ module.exports = (sequelize, DataTypes) => {
     });
   };
 
-  ReferralLetter.prototype.getCaseId = async function(transaction) {
+  ReferralLetter.prototype.getCaseId = async function (transaction) {
     return this.caseId;
   };
 
-  ReferralLetter.prototype.getManagerType = async function(transaction) {
+  ReferralLetter.prototype.getManagerType = async function (transaction) {
     return "complaint";
   };
 
-  ReferralLetter.prototype.modelDescription = async function(transaction) {
+  ReferralLetter.prototype.modelDescription = async function (transaction) {
     return [];
   };
 

@@ -12,6 +12,7 @@ const {
 } = require("../../../sharedUtilities/constants");
 const moment = require("moment");
 const models = require("./index");
+const officer = require("./officer");
 
 module.exports = (sequelize, DataTypes) => {
   const CaseOfficer = sequelize.define(
@@ -26,7 +27,7 @@ module.exports = (sequelize, DataTypes) => {
         field: "officer_id",
         type: DataTypes.INTEGER,
         references: {
-          model: models.officer,
+          model: officer,
           key: "id"
         },
         allowNull: true
