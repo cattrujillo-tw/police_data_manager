@@ -686,6 +686,7 @@ describe("dataChangeAuditHooks", () => {
       test("it does not create the audit if the case update fails", async () => {
         await models.audit.truncate({
           cascade: true,
+          truncate : true,
           include: [
             {
               as: "dataChangeAudit",

@@ -1,7 +1,7 @@
 import httpMocks from "node-mocks-http";
 import {
   AUDIT_SUBJECT,
-  MANAGER_TYPE
+  MANAGxpER_TYPE
 } from "../../../../sharedUtilities/constants";
 import auditDataAccess from "../../../handlers/audits/auditDataAccess";
 import getUsers from "./getUsers";

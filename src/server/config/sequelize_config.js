@@ -23,7 +23,7 @@ module.exports = {
     host: "localhost",
     storage: ":memory",
     dialect: "sqlite",
-    models: __dirname + "../policeDataManager/models",
+    //models: __dirname + "../policeDataManager/models",
     migrationStorageTableName: "sequelize_meta",
     seederStorage: "sequelize",
     seederStorageTableName: "sequelize_data",
@@ -34,13 +34,19 @@ module.exports = {
       min: 0,
       idle: 10000,
       acquire: 20000
-    }
+    },
+    retry: {
+      match: [/SQLITE_BUSY/],
+      name: "query",
+      max: 10
+    },
+    transactionType: "IMMEDIATE"
   },
   test2: {
     host: "localhost",
     storage: ":memory",
     dialect: "sqlite",
-    models: __dirname + "../policeDataManager/models",
+   //gra models: __dirname + "../policeDataManager/models",
     migrationStorageTableName: "sequelize_meta",
     seederStorage: "sequelize",
     seederStorageTableName: "sequelize_data",
@@ -51,7 +57,13 @@ module.exports = {
       min: 0,
       idle: 10000,
       acquire: 20000
-    }
+    },
+    retry: {
+      match: [/SQLITE_BUSY/],
+      name: "query",
+      max: 10
+    },
+    transactionType: "IMMEDIATE"
   },
   playground: {
     host: process.env.DATABASE_HOST,

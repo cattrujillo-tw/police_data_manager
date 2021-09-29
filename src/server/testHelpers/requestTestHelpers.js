@@ -84,36 +84,36 @@ export const expectResponse = async (
 
 export const cleanupDatabase = async () => {
   const truncationQuery =
-    "TRUNCATE referral_letter_officer_recommended_actions CASCADE;" +
-    "TRUNCATE referral_letter_officer_history_notes CASCADE;" +
-    "TRUNCATE letter_officers CASCADE;" +
-    "TRUNCATE referral_letters CASCADE;" +
-    "TRUNCATE recommended_actions CASCADE;" +
-    "TRUNCATE addresses CASCADE;" +
-    "TRUNCATE cases_officers CASCADE;" +
-    "TRUNCATE officers_allegations CASCADE;" +
-    "TRUNCATE officers CASCADE;" +
-    "TRUNCATE allegations CASCADE;" +
-    "TRUNCATE classifications CASCADE;" +
-    "TRUNCATE civilians CASCADE;" +
-    "TRUNCATE attachments CASCADE;" +
-    "TRUNCATE case_notes CASCADE;" +
-    "TRUNCATE action_audits CASCADE;" +
-    "TRUNCATE legacy_data_change_audits CASCADE;" +
-    "TRUNCATE intake_sources CASCADE;" +
-    "TRUNCATE how_did_you_hear_about_us_sources CASCADE;" +
-    "TRUNCATE race_ethnicities CASCADE;" +
-    "TRUNCATE officer_history_options CASCADE;" +
-    "TRUNCATE cases CASCADE;" +
-    "TRUNCATE gender_identities CASCADE;" +
-    "TRUNCATE case_note_actions CASCADE;" +
-    "TRUNCATE audits CASCADE;" +
-    "TRUNCATE case_tags CASCADE;" +
-    "TRUNCATE tags CASCADE;" +
-    "TRUNCATE civilian_titles CASCADE;" +
-    "TRUNCATE districts CASCADE;" +
-    "TRUNCATE case_classifications CASCADE;" +
-    "TRUNCATE notifications CASCADE;";
+    "DELETE from referral_letter_officer_recommended_actions;" +
+    "DELETE from referral_letter_officer_history_notes;" +
+    "DELETE from letter_officers;" +
+    "DELETE from referral_letters;" +
+    "DELETE from recommended_actions;" +
+    "DELETE from addresses;" +
+    "DELETE from cases_officers;" +
+    "DELETE from officers_allegations;" +
+    "DELETE from officers;" +
+    "DELETE from allegations;" +
+    "DELETE from classifications;" +
+    "DELETE from civilians;" +
+    "DELETE from attachments;" +
+    "DELETE from case_notes;" +
+    "DELETE from action_audits;" +
+    "DELETE from legacy_data_change_audits;" +
+    "DELETE from intake_sources;" +
+    "DELETE from how_did_you_hear_about_us_sources;" +
+    "DELETE from race_ethnicities;" +
+    "DELETE from officer_history_options;" +
+    "DELETE from cases;" +
+    "DELETE from gender_identities;" +
+    "DELETE from case_note_actions;" +
+    "DELETE from audits;" +
+    "DELETE from case_tags;" +
+    "DELETE from tags;" +
+    "DELETE from civilian_titles;" +
+    "DELETE from districts;" +
+    "DELETE from case_classifications;" +
+    "DELETE from notifications;";
 
   await models.sequelize.query(truncationQuery, {
     type: models.sequelize.QueryTypes.RAW

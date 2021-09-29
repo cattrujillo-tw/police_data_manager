@@ -289,7 +289,8 @@ module.exports = (sequelize, DataTypes) => {
         name: "caseOfficerId",
         field: "case_officer_id"
       },
-      cascade: true
+      cascade: true,
+      truncate : true,
     });
     CaseOfficer.belongsTo(models.cases, {
       foreignKey: {
