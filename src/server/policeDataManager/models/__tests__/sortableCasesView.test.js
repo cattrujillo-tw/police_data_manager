@@ -7,7 +7,10 @@ import CaseOfficer from "../../../../sharedTestHelpers/caseOfficer";
 import Officer from "../../../../sharedTestHelpers/Officer";
 import { cleanupDatabase } from "../../../testHelpers/requestTestHelpers";
 import sortableCasesView from "../sortableCasesView";
-import { PERSON_TYPE } from "../../../../instance-files/constants";
+
+const {
+  PERSON_TYPE
+} = require(`${process.env.REACT_APP_INSTANCE_FILES_DIR}/constants`);
 
 describe("sortableCasesView", () => {
   afterEach(async () => {
@@ -80,7 +83,7 @@ describe("sortableCasesView", () => {
           accusedFirstName: accusedOfficer.firstName,
           accusedMiddleName: accusedOfficer.middleName,
           accusedLastName: accusedOfficer.lastName,
-          accusedPersonType: PERSON_TYPE.KNOWN_OFFICER,
+          accusedPersonType: PERSON_TYPE.KNOWN_OFFICER.description,
           id: existingCase.id
         })
       );
@@ -205,7 +208,7 @@ describe("sortableCasesView", () => {
 
       expect(sortedCase).toEqual(
         expect.objectContaining({
-          complainantPersonType: PERSON_TYPE.CIVILIAN,
+          complainantPersonType: PERSON_TYPE.CIVILIAN.description,
           complainantFirstName: complainantCivilian.firstName,
           complainantMiddleName: complainantCivilian.middleInitial,
           complainantLastName: complainantCivilian.lastName,
@@ -268,7 +271,7 @@ describe("sortableCasesView", () => {
 
       expect(sortedCase).toEqual(
         expect.objectContaining({
-          complainantPersonType: PERSON_TYPE.KNOWN_OFFICER,
+          complainantPersonType: PERSON_TYPE.KNOWN_OFFICER.description,
           complainantFirstName: complainantCaseOfficer.firstName,
           complainantMiddleName: complainantCaseOfficer.middleName,
           complainantLastName: complainantCaseOfficer.lastName,
@@ -363,7 +366,7 @@ describe("sortableCasesView", () => {
 
       expect(sortedCase).toEqual(
         expect.objectContaining({
-          complainantPersonType: PERSON_TYPE.UNKNOWN_OFFICER,
+          complainantPersonType: PERSON_TYPE.UNKNOWN_OFFICER.description,
           complainantFirstName: null,
           complainantMiddleName: null,
           complainantLastName: null,

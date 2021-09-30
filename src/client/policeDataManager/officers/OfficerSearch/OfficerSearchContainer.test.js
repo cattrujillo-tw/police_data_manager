@@ -16,7 +16,10 @@ import Officer from "../../../../sharedTestHelpers/Officer";
 import Case from "../../../../sharedTestHelpers/case";
 import { searchSuccess } from "../../actionCreators/searchActionCreators";
 import { ACCUSED } from "../../../../sharedUtilities/constants";
-import { EMPLOYEE_TYPE } from "../../../../instance-files/constants";
+
+const {
+  PERSON_TYPE
+} = require(`${process.env.REACT_APP_INSTANCE_FILES_DIR}/constants`);
 
 jest.mock("../../cases/thunks/getCaseDetails");
 
@@ -47,7 +50,9 @@ describe("OfficerSearchContainer", () => {
 
   test("should navigate to edit when selecting to replace existing officer with unknown", () => {
     const store = createConfiguredStore();
-    store.dispatch(addCaseEmployeeType(EMPLOYEE_TYPE.OFFICER));
+    store.dispatch(
+      addCaseEmployeeType(PERSON_TYPE.KNOWN_OFFICER.employeeDescription)
+    );
 
     const path = "/";
     const officerDashboard = mount(
@@ -115,7 +120,9 @@ describe("OfficerSearchContainer", () => {
     const path = "/";
 
     store.dispatch(getCaseDetailsSuccess(caseDetails));
-    store.dispatch(addCaseEmployeeType(EMPLOYEE_TYPE.OFFICER));
+    store.dispatch(
+      addCaseEmployeeType(PERSON_TYPE.KNOWN_OFFICER.employeeDescription)
+    );
 
     const officerDashboard = mount(
       <Provider store={store}>

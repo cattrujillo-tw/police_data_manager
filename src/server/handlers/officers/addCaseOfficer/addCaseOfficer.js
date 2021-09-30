@@ -2,7 +2,10 @@ import { getCaseWithAllAssociationsAndAuditDetails } from "../../getCaseHelpers"
 import auditDataAccess from "../../audits/auditDataAccess";
 import canBeAnonymous from "../helpers/canBeAnonymous";
 import { sendNotifsIfComplainantChange } from "../../sendNotifsIfComplainantChange";
-import { EMPLOYEE_TYPE } from "../../../../instance-files/constants";
+
+const {
+  PERSON_TYPE
+} = require(`${process.env.REACT_APP_INSTANCE_FILES_DIR}/constants`);
 
 const {
   buildOfficerAttributesForNewOfficer,
@@ -21,7 +24,7 @@ const addCaseOfficer = asyncMiddleware(async (request, response, next) => {
     officerId,
     notes,
     roleOnCase,
-    caseEmployeeType = EMPLOYEE_TYPE.OFFICER,
+    caseEmployeeType = PERSON_TYPE.KNOWN_OFFICER.employeeDescription,
     phoneNumber,
     email
   } = request.body;
@@ -60,10 +63,11 @@ const addCaseOfficer = asyncMiddleware(async (request, response, next) => {
       );
     }
 
-    const caseDetailsAndAuditDetails = await getCaseWithAllAssociationsAndAuditDetails(
-      retrievedCase.id,
-      transaction
-    );
+    const caseDetailsAndAuditDetails =
+      await getCaseWithAllAssociationsAndAuditDetails(
+        retrievedCase.id,
+        transaction
+      );
     const caseDetails = caseDetailsAndAuditDetails.caseDetails;
     const auditDetails = caseDetailsAndAuditDetails.auditDetails;
 

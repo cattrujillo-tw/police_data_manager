@@ -2,28 +2,34 @@ import { getComplainantType, getDateRangeStart } from "./queryHelperFunctions";
 import { DATE_RANGE_TYPE } from "../../../../sharedUtilities/constants";
 import { BAD_REQUEST_ERRORS } from "../../../../sharedUtilities/errorMessageConstants";
 import moment from "moment";
+const {
+  PD,
+  PERSON_TYPE
+} = require(`${process.env.REACT_APP_INSTANCE_FILES_DIR}/constants`);
 
 describe("queryHelperFunctions", () => {
   describe("getComplainantType", () => {
     test("should return Civilian (CC) based on civilian/default person type case reference", () => {
-      const caseReference = "CC2019-0001";
+      const caseReference = `${PERSON_TYPE.CIVILIAN.abbreviation}2019-0001`;
       const result = getComplainantType(caseReference);
 
-      expect(result).toEqual("Civilian (CC)");
+      expect(result).toEqual(PERSON_TYPE.CIVILIAN.complainantLegendValue);
     });
 
-    test("should return Police Officer (PO) prefix based on known/unknown officer person type case reference", () => {
-      const caseReference = "PO2019-0001";
+    test("should return appropriate prefix based on known/unknown officer person type case reference", () => {
+      const caseReference = `${PERSON_TYPE.KNOWN_OFFICER.abbreviation}2019-0001`;
       const result = getComplainantType(caseReference);
 
-      expect(result).toEqual("Police Officer (PO)");
+      expect(result).toEqual(PERSON_TYPE.KNOWN_OFFICER.complainantLegendValue);
     });
 
-    test("should return CN prefix based on civilian within nopd personType case reference", () => {
-      const caseReference = "CN2019-0001";
+    test("should return appropriate prefix based on civilian within pd personType case reference", () => {
+      const caseReference = `${PERSON_TYPE.CIVILIAN_WITHIN_PD.abbreviation}2019-0001`;
       const result = getComplainantType(caseReference);
 
-      expect(result).toEqual("Civilian Within NOPD (CN)");
+      expect(result).toEqual(
+        PERSON_TYPE.CIVILIAN_WITHIN_PD.complainantLegendValue
+      );
     });
 
     test("should return AC prefix given anonymized primary complainant case reference", () => {
@@ -54,14 +60,14 @@ describe("queryHelperFunctions", () => {
 
     expect(dateRangeStart.toDate()).toEqual(expectedRangeStart);
   });
-    test("should return a YTD start for filtering queries when no range type is passed", () => {
-        const currentDate = new Date(2020, 9, 28);
-        const expectedRangeStart = new Date(2020, 0, 1);
+  test("should return a YTD start for filtering queries when no range type is passed", () => {
+    const currentDate = new Date(2020, 9, 28);
+    const expectedRangeStart = new Date(2020, 0, 1);
 
-        const dateRangeStart = getDateRangeStart(undefined, currentDate);
+    const dateRangeStart = getDateRangeStart(undefined, currentDate);
 
-        expect(dateRangeStart.toDate()).toEqual(expectedRangeStart);
-    });
+    expect(dateRangeStart.toDate()).toEqual(expectedRangeStart);
+  });
 
   test("should return a an error for invalid date range types", () => {
     expect(() => {

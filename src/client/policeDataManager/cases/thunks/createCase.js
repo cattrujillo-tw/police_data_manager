@@ -14,7 +14,10 @@ import getWorkingCases from "./getWorkingCases";
 import { addCaseEmployeeType } from "../../actionCreators/officersActionCreators";
 import { DialogTypes } from "../../../common/actionCreators/dialogTypes";
 import { closeCreateDialog } from "../../../common/actionCreators/createDialogActionCreators";
-import { EMPLOYEE_TYPE } from "../../../../instance-files/constants";
+
+const {
+  PERSON_TYPE
+} = require(`${process.env.REACT_APP_INSTANCE_FILES_DIR}/constants`);
 
 const createCase = creationDetails => async dispatch => {
   dispatch(startSubmit(CREATE_CASE_FORM_NAME));
@@ -35,8 +38,8 @@ const createCase = creationDetails => async dispatch => {
         dispatch(
           addCaseEmployeeType(
             complaintType === RANK_INITIATED
-              ? EMPLOYEE_TYPE.OFFICER
-              : EMPLOYEE_TYPE.CIVILIAN_WITHIN_PD
+              ? PERSON_TYPE.KNOWN_OFFICER.employeeDescription
+              : PERSON_TYPE.CIVILIAN_WITHIN_PD.employeeDescription
           )
         );
         dispatch(

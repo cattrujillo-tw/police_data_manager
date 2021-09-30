@@ -11,12 +11,12 @@ import {
 import { push } from "connected-react-router";
 import { snackbarError } from "../../actionCreators/snackBarActionCreators";
 import { OFFICER_TITLE } from "../../../../sharedUtilities/constants";
-import {
-  CIVILIAN_WITHIN_PD_TITLE,
-  EMPLOYEE_TYPE
-} from "../../../../instance-files/constants";
 import { policeDataManagerMenuOptions } from "../../shared/components/NavBar/policeDataManagerMenuOptions";
 
+const {
+  CIVILIAN_WITHIN_PD_TITLE,
+  PERSON_TYPE
+} = require(`${process.env.REACT_APP_INSTANCE_FILES_DIR}/constants`);
 export class OfficerDetailsContainer extends Component {
   componentDidMount() {
     const snackbarErrorText =
@@ -47,7 +47,7 @@ export class OfficerDetailsContainer extends Component {
     };
 
     const caseEmployeeTitle =
-      caseEmployeeType === EMPLOYEE_TYPE.CIVILIAN_WITHIN_PD
+      caseEmployeeType === PERSON_TYPE.CIVILIAN_WITHIN_PD.employeeDescription
         ? CIVILIAN_WITHIN_PD_TITLE
         : OFFICER_TITLE;
 

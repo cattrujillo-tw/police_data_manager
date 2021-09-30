@@ -1,17 +1,20 @@
 version: 2.1
 parameters:
-  prod-branch:
+  prod-indexing-branch:
     type: string
-    default: "release_v3.39.1"
-  stage-branch:
+    default: "master"
+  stage-indexing-branch:
     type: string
-    default: "release_v3.39.1"
+    default: "master"
+  release-branch:
+    type: string
+    default: "release_v3.41.0"
   instance-files-image-name:
     type: string
     default: "noipm/instance-files"
   instance-files-version:
     type: string
-    default: "1.0.7"
+    default: "1.0.9"
   ubuntu-version:
     type: string
     default: "2.0.2"
@@ -60,19 +63,26 @@ jobs:
       - attach_workspace:
           at: src/
       - run:
+          name: Shows current Directory
+          command: pwd
+      - run:
+          name: Shows content in Directory
+          command: ls /root/project/src/
+      - run:
           name: Install Dependencies
           command: yarn install
       - run:
           name: Run client unit tests
           command: yarn test:client:ci
           environment:
-            NEW_RELIC_ENABLED: false
-            NEW_RELIC_NO_CONFIG_FILE: true
+            REACT_APP_INSTANCE_FILES_DIR: /root/project/src/instance-files
+
   test-server-handlers-ci:
     docker:
       - image: noipm/docker-node-ubuntu:<< pipeline.parameters.ubuntu-version >>
         environment:
           NODE_ENV: test
+          REACT_APP_INSTANCE_FILES_DIR: /root/project/src/instance-files
       - image: postgres:10.9-alpine
     steps:
       - checkout
@@ -84,14 +94,12 @@ jobs:
       - run:
           name: Run server handler unit tests
           command: AWS_ACCESS_KEY_ID=$CI_AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY=$CI_AWS_SECRET_ACCESS_KEY yarn test:server-handlers:ci
-          environment:
-            NEW_RELIC_ENABLED: false
-            NEW_RELIC_NO_CONFIG_FILE: true
   test-server-handlers-staging:
     docker:
       - image: noipm/docker-node-ubuntu:<< pipeline.parameters.ubuntu-version >>
         environment:
           NODE_ENV: test
+          REACT_APP_INSTANCE_FILES_DIR: /root/project/src/instance-files
       - image: postgres:10.9-alpine
     steps:
       - checkout
@@ -103,14 +111,12 @@ jobs:
       - run:
           name: Run server handler unit tests
           command: AWS_ACCESS_KEY_ID=$STAGING_AWS_ACCESS_KEY_ID AWS_SECRET_ACCESS_KEY=$STAGING_AWS_SECRET_ACCESS_KEY yarn test:server-handlers:ci
-          environment:
-            NEW_RELIC_ENABLED: false
-            NEW_RELIC_NO_CONFIG_FILE: true
   test-server-worker-non-handlers:
     docker:
       - image: noipm/docker-node-ubuntu:<< pipeline.parameters.ubuntu-version >>
         environment:
           NODE_ENV: test
+          REACT_APP_INSTANCE_FILES_DIR: /root/project/src/instance-files
       - image: postgres:10.9-alpine
     steps:
       - checkout
@@ -122,9 +128,6 @@ jobs:
       - run:
           name: Run server and worker unit tests, excluding handlers
           command: yarn test:server-worker-non-handlers:ci
-          environment:
-            NEW_RELIC_ENABLED: false
-            NEW_RELIC_NO_CONFIG_FILE: true
 
   security-check:
     docker:
@@ -143,8 +146,8 @@ jobs:
       - setup_remote_docker:
           version: 19.03.13
       - run: docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
-      - run: docker build -f Dockerfile.web --build-arg REACT_APP_ENV=ci --build-arg REACT_APP_GOOGLE_API_KEY=$REACT_APP_GOOGLE_API_KEY_PREPROD --build-arg INSTANCE_VERSION=latest -t noipm/police-data-manager-ci:$CIRCLE_SHA1 .
-      - run: docker build -f Dockerfile.worker --build-arg INSTANCE_VERSION=latest -t noipm/police-data-manager-ci-worker:$CIRCLE_SHA1 .
+      - run: docker build -f Dockerfile.web --build-arg REACT_APP_ENV=ci --build-arg REACT_APP_GOOGLE_API_KEY=$REACT_APP_GOOGLE_API_KEY_PREPROD --build-arg INSTANCE_VERSION=latest --build-arg REACT_APP_INSTANCE_FILES_DIR=/app/src/instance-files -t noipm/police-data-manager-ci:$CIRCLE_SHA1 .
+      - run: docker build -f Dockerfile.worker --build-arg INSTANCE_VERSION=latest --build-arg REACT_APP_INSTANCE_FILES_DIR=/app/src/instance-files -t noipm/police-data-manager-ci-worker:$CIRCLE_SHA1 .
       - run: docker push noipm/police-data-manager-ci:$CIRCLE_SHA1
       - run: docker push noipm/police-data-manager-ci-worker:$CIRCLE_SHA1
 
@@ -196,6 +199,7 @@ jobs:
             -e DATABASE_HOST=$PLAYGROUND_DATABASE_HOST \
             -e AWS_ACCESS_KEY_ID=$CI_AWS_ACCESS_KEY_ID \
             -e AWS_SECRET_ACCESS_KEY=$CI_AWS_SECRET_ACCESS_KEY \
+            -e REACT_APP_INSTANCE_FILES_DIR=/app/src/instance-files \
             noipm/police-data-manager-playground:$CIRCLE_SHA1 yarn setup:db
 
       - run: docker login --username=$HEROKU_USER --password=$HEROKU_API_KEY registry.heroku.com
@@ -226,7 +230,6 @@ jobs:
             --env-var client_id=$CI_AUTH0_CLIENT_ID \
             --env-var client_secret=$CI_AUTH0_CLIENT_SECRET \
             doc/postman/Police\ Data\ Management.postman_collection.json
-# > /tmp/output/newman-result.txt
       # - run:
       #     name: Test Results
       #     command: cat /tmp/output/newman-result.txt
@@ -234,7 +237,8 @@ jobs:
       #     root: '/tmp'
       #     paths:
       #       - output/newman-result.txt
-  
+
+  # > /tmp/output/newman-result.txt
   letter-generation-ci-latency-check:
     docker:
       - image: node:latest
@@ -274,6 +278,7 @@ jobs:
             -e DATABASE_HOST=$CI_DATABASE_HOST \
             -e AWS_ACCESS_KEY_ID=$CI_AWS_ACCESS_KEY_ID \
             -e AWS_SECRET_ACCESS_KEY=$CI_AWS_SECRET_ACCESS_KEY \
+            -e REACT_APP_INSTANCE_FILES_DIR=/app/src/instance-files \
             noipm/police-data-manager-ci:$CIRCLE_SHA1 yarn setup:db
 
       - run: docker login --username=$HEROKU_USER --password=$HEROKU_API_KEY registry.heroku.com
@@ -298,11 +303,14 @@ jobs:
       #     name: Install Git
       #     command: apt-get update && apt-get install --assume-yes git
       - checkout
+      - attach_workspace:
+          at: src/
       - run:
           name: Run E2E tests
           command: |
             echo 'export TEST_USER=$CI_TEST_USER' >> $BASH_ENV
             echo 'export TEST_PASS=$CI_TEST_PASS' >> $BASH_ENV
+            echo 'export REACT_APP_INSTANCE_FILES_DIR=/root/project/src/instance-files' >> $BASH_ENV
             source $BASH_ENV
             nightwatch --config /src/instance-files/tests/e2e/nightwatch.conf.js --env ci e2e/tests/policeDataManager --retries 2
       - store_artifacts:
@@ -328,6 +336,7 @@ jobs:
             -e DATABASE_HOST=$STAGING_DATABASE_HOST \
             -e AWS_ACCESS_KEY_ID=$STAGING_AWS_ACCESS_KEY_ID \
             -e AWS_SECRET_ACCESS_KEY=$STAGING_AWS_SECRET_ACCESS_KEY \
+            -e REACT_APP_INSTANCE_FILES_DIR=/app/src/instance-files \
             noipm/police-data-manager-staging:$CIRCLE_SHA1 yarn setup:db
 
       - run: docker login --username=$HEROKU_USER --password=$HEROKU_API_KEY registry.heroku.com
@@ -337,6 +346,27 @@ jobs:
       - run: docker push registry.heroku.com/noipm-staging/worker
       - run: heroku container:release web worker --app noipm-staging
       - run: heroku maintenance:off --app noipm-staging
+
+  e2e-testing-playground:
+    docker:
+      - image: noipm/e2e:latest
+    steps:
+      # - run:
+      #     name: Install Git
+      #     command: apt-get update && apt-get install --assume-yes git
+      - checkout
+      - attach_workspace:
+          at: src/
+      - run:
+          name: Run E2E tests
+          command: |
+            echo 'export TEST_USER=$CI_TEST_USER' >> $BASH_ENV
+            echo 'export TEST_PASS=$CI_TEST_PASS' >> $BASH_ENV
+            echo 'export REACT_APP_INSTANCE_FILES_DIR=/root/project/src/instance-files' >> $BASH_ENV
+            source $BASH_ENV
+            nightwatch --config /src/instance-files/tests/e2e/nightwatch.conf.js --env ci e2e/tests/policeDataManager --retries 2
+      - store_artifacts:
+          path: e2e/tests/policeDataManager
 
   ensure-staging-deploy-succeeded:
     docker:
@@ -350,11 +380,14 @@ jobs:
       - image: noipm/e2e:latest
     steps:
       - checkout
+      - attach_workspace:
+          at: src/
       - run:
           name: Run E2E tests
           command: |
             echo 'export TEST_USER=$STAGING_TEST_USER' >> $BASH_ENV
             echo 'export TEST_PASS=$STAGING_TEST_PASS' >> $BASH_ENV
+            echo 'export REACT_APP_INSTANCE_FILES_DIR=/root/project/src/instance-files' >> $BASH_ENV
             echo 'export AUTH0_CLIENT_SECRET=$STAGING_AUTH0_CLIENT_SECRET' >> $BASH_ENV
             source $BASH_ENV
             nightwatch --config /src/instance-files/tests/e2e/nightwatch.conf.js --env staging e2e/tests/policeDataManager --retries 2
@@ -382,6 +415,7 @@ jobs:
             -e DATABASE_HOST=$PRODUCTION_DATABASE_HOST \
             -e AWS_ACCESS_KEY_ID=$PRODUCTION_AWS_ACCESS_KEY_ID \
             -e AWS_SECRET_ACCESS_KEY=$PRODUCTION_AWS_SECRET_ACCESS_KEY \
+            -e REACT_APP_INSTANCE_FILES_DIR=/app/src/instance-files \
             noipm/police-data-manager-production:$CIRCLE_SHA1 yarn setup:db
       - run: docker login --username=$HEROKU_USER --password=$HEROKU_API_KEY registry.heroku.com
       - run: docker tag noipm/police-data-manager-production:$CIRCLE_SHA1 registry.heroku.com/noipm-production/web
@@ -410,6 +444,7 @@ jobs:
             echo 'export DATABASE_PASS=$CI_DATABASE_PASS' >> $BASH_ENV \
             echo 'export DATABASE_NAME=$CI_DATABASE_NAME' >> $BASH_ENV \
             echo 'export DATABASE_HOST=$CI_DATABASE_HOST' >> $BASH_ENV \
+            echo 'export REACT_APP_INSTANCE_FILES_DIR=/root/project/src/instance-files' >> $BASH_ENV \
             source $BASH_ENV
       # - run:
       #     name: Install Git
@@ -436,6 +471,7 @@ jobs:
             echo 'export DATABASE_PASS=$STAGING_DATABASE_PASS' >> $BASH_ENV \
             echo 'export DATABASE_NAME=$STAGING_DATABASE_NAME' >> $BASH_ENV \
             echo 'export DATABASE_HOST=$STAGING_DATABASE_HOST' >> $BASH_ENV \
+            echo 'export REACT_APP_INSTANCE_FILES_DIR=/root/project/src/instance-files' >> $BASH_ENV \
             source $BASH_ENV
       - checkout
       - attach_workspace:
@@ -459,6 +495,7 @@ jobs:
             echo 'export DATABASE_PASS=$PRODUCTION_DATABASE_PASS' >> $BASH_ENV \
             echo 'export DATABASE_NAME=$PRODUCTION_DATABASE_NAME' >> $BASH_ENV \
             echo 'export DATABASE_HOST=$PRODUCTION_DATABASE_HOST' >> $BASH_ENV \
+            echo 'export REACT_APP_INSTANCE_FILES_DIR=/root/project/src/instance-files' >> $BASH_ENV \
             source $BASH_ENV
       - checkout
       - attach_workspace:
@@ -493,7 +530,7 @@ workflows:
           filters:
             branches:
               only:
-                - << pipeline.parameters.stage-branch >>
+                - << pipeline.parameters.stage-indexing-branch >>
     jobs:
       - get-instance-files-latest
       - update-search-indices-staging:
@@ -507,7 +544,7 @@ workflows:
           filters:
             branches:
               only:
-                - << pipeline.parameters.prod-branch >>
+                - << pipeline.parameters.prod-indexing-branch >>
     jobs:
       - get-instance-files-latest
       - update-search-indices-production:
@@ -553,14 +590,14 @@ workflows:
       - e2e-testing-ci-pdm:
           requires:
             - letter-generation-testing-ci
-  
+
   build_and_deploy_release:
     jobs:
       - security-check:
           filters:
             branches:
               only:
-                - << pipeline.parameters.stage-branch >>
+                - << pipeline.parameters.release-branch >>
       - get-instance-files-release:
           requires:
             - security-check
@@ -600,15 +637,18 @@ workflows:
 
   build_and_deploy_playground:
     jobs:
-      - security-check:
+      # - security-check:
+      - get-instance-files-latest:
           filters:
             branches:
               only:
-                - instance-setup-workspace
-      - get-instance-files-latest:
-          requires:
-            - security-check
+                - localclient
+          #requires:
+          # - security-check
       - test-client:
+          requires:
+            - get-instance-files-latest
+      - test-server-handlers-ci:
           requires:
             - get-instance-files-latest
       - test-server-worker-non-handlers:
@@ -618,9 +658,13 @@ workflows:
           requires:
             - test-client
             - test-server-worker-non-handlers
+            - test-server-handlers-ci
       - deploy-playground:
           requires:
             - build-and-publish-playground
       - ensure-playground-deploy-succeeded:
           requires:
             - deploy-playground
+      - e2e-testing-playground:
+          requires:
+            - ensure-playground-deploy-succeeded

@@ -1,8 +1,12 @@
 import {
   CIVILIAN_INITIATED,
+  RANK_INITIATED,
+  CIVILIAN_WITHIN_PD_INITIATED,
   TIMEZONE
 } from "../../../sharedUtilities/constants";
-import { BUREAU_ACRONYM } from "../../../instance-files/constants";
+const {
+  BUREAU_ACRONYM
+} = require(`${process.env.REACT_APP_INSTANCE_FILES_DIR}/constants`);
 import timezone from "moment-timezone";
 import _ from "lodash";
 
@@ -14,6 +18,9 @@ const promisifiedStringify = util.promisify(stringify);
 const exportCasesQuery = require("./exportCasesQuery");
 const uploadFileToS3 = require("../fileUpload/uploadFileToS3");
 const winston = require("winston");
+const {
+  PERSON_TYPE
+} = require(`${process.env.REACT_APP_INSTANCE_FILES_DIR}/constants`);
 
 const TIMESTAMP_FORMAT = "MM/DD/YYYY HH:mm:ss z";
 
@@ -62,7 +69,21 @@ const transformCaseData = casesData => {
       .tz(caseData.created_at, TIMEZONE)
       .format(TIMESTAMP_FORMAT);
 
-    const prefix = caseData.complaint_type === CIVILIAN_INITIATED ? "CC" : "PO";
+    let prefix;
+    switch (caseData.complaint_type) {
+      case CIVILIAN_INITIATED:
+        prefix = PERSON_TYPE.CIVILIAN.abbreviation;
+        break;
+      case RANK_INITIATED:
+        prefix = PERSON_TYPE.KNOWN_OFFICER.abbreviation;
+        break;
+      case CIVILIAN_WITHIN_PD_INITIATED:
+        prefix = PERSON_TYPE.CIVILIAN_WITHIN_PD.abbreviation;
+        break;
+      default:
+        prefix = PERSON_TYPE.KNOWN_OFFICER.abbreviation;
+        break;
+    }
     const paddedNumber = `${caseData.case_number}`.padStart(4, "0");
     caseData.caseReference = `${prefix}${caseData.year}-${paddedNumber}`;
   }

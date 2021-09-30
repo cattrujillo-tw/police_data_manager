@@ -15,10 +15,6 @@ import {
   ACCUSED,
   OFFICER_TITLE
 } from "../../../../../sharedUtilities/constants";
-import {
-  CIVILIAN_WITHIN_PD_TITLE,
-  EMPLOYEE_TYPE
-} from "../../../../../instance-files/constants";
 import { connect } from "react-redux";
 import {
   accusedOfficerPanelCollapsed,
@@ -29,9 +25,15 @@ import ExpansionPanelIconButton from "../../../shared/components/ExpansionPanelI
 import StyledInfoDisplay from "../../../shared/components/StyledInfoDisplay";
 import formatPhoneNumber from "../../../../../sharedUtilities/formatPhoneNumber";
 
+const {
+  CIVILIAN_WITHIN_PD_TITLE,
+  PERSON_TYPE
+} = require(`${process.env.REACT_APP_INSTANCE_FILES_DIR}/constants`);
+
 const OfficerPanel = ({ dispatch, caseOfficer, officerAge, children }) => {
   const isCivilianWithinPd =
-    caseOfficer.caseEmployeeType === EMPLOYEE_TYPE.CIVILIAN_WITHIN_PD;
+    caseOfficer.caseEmployeeType ===
+    PERSON_TYPE.CIVILIAN_WITHIN_PD.employeeDescription;
   const caseEmployeeTitle = isCivilianWithinPd
     ? CIVILIAN_WITHIN_PD_TITLE
     : OFFICER_TITLE;

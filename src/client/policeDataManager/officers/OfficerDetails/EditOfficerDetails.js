@@ -5,10 +5,11 @@ import { connect } from "react-redux";
 import invalidCaseStatusRedirect from "../../cases/thunks/invalidCaseStatusRedirect";
 import getCaseDetails from "../../cases/thunks/getCaseDetails";
 import { OFFICER_TITLE } from "../../../../sharedUtilities/constants";
-import {
+
+const {
   CIVILIAN_WITHIN_PD_TITLE,
-  EMPLOYEE_TYPE
-} from "../../../../instance-files/constants";
+  PERSON_TYPE
+} = require(`${process.env.REACT_APP_INSTANCE_FILES_DIR}/constants`);
 
 class EditOfficerDetails extends React.Component {
   caseDetailsNotYetLoaded = () => {
@@ -34,7 +35,8 @@ class EditOfficerDetails extends React.Component {
     const caseId = this.props.match.params.id;
     const caseOfficerId = this.props.match.params.caseOfficerId;
     const isCivilianWithinPd =
-      this.props.caseEmployeeType === EMPLOYEE_TYPE.CIVILIAN_WITHIN_PD;
+      this.props.caseEmployeeType ===
+      PERSON_TYPE.CIVILIAN_WITHIN_PD.employeeDescription;
     const submitButtonText = isCivilianWithinPd
       ? `Save ${CIVILIAN_WITHIN_PD_TITLE}`
       : `Save ${OFFICER_TITLE}`;

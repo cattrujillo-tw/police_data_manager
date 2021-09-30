@@ -6,12 +6,13 @@ import {
   getIncidentInfoData,
   getWitnessData
 } from "./CaseDetailDataHelpers";
-import {
-  EMPLOYEE_TYPE,
+
+const {
+  PERSON_TYPE,
   FIRST_CONTACTED_ORGANIZATION,
   CIVILIAN_WITHIN_PD_NAME,
   BUREAU_ACRONYM
-} from "../../../../../instance-files/constants";
+} = require(`${process.env.REACT_APP_INSTANCE_FILES_DIR}/constants`);
 
 const pbCaseNumberText = `${BUREAU_ACRONYM} Case Number`;
 
@@ -430,7 +431,7 @@ describe("caseDetailDataHelpers", function () {
             fullName: "complainant joe",
             windowsUsername: 12345,
             district: "some district",
-            caseEmployeeType: EMPLOYEE_TYPE.CIVILIAN_WITHIN_PD
+            caseEmployeeType: PERSON_TYPE.CIVILIAN_WITHIN_PD.employeeDescription
           }
         ]
       };
@@ -458,7 +459,7 @@ describe("caseDetailDataHelpers", function () {
             fullName: "complainant joe",
             windowsUsername: 12345,
             district: "some district",
-            caseEmployeeType: EMPLOYEE_TYPE.CIVILIAN_WITHIN_PD
+            caseEmployeeType: PERSON_TYPE.CIVILIAN_WITHIN_PD.employeeDescription
           }
         ]
       };
@@ -704,7 +705,7 @@ describe("caseDetailDataHelpers", function () {
               fullName: "witness officer joe",
               windowsUsername: 12345,
               district: "some district",
-              caseEmployeeType: EMPLOYEE_TYPE.OFFICER
+              caseEmployeeType: PERSON_TYPE.KNOWN_OFFICER.employeeDescription
             }
           ]
         };
@@ -732,7 +733,7 @@ describe("caseDetailDataHelpers", function () {
               fullName: "witness officer joe",
               windowsUsername: 12345,
               district: "some district",
-              caseEmployeeType: EMPLOYEE_TYPE.OFFICER
+              caseEmployeeType: PERSON_TYPE.KNOWN_OFFICER.employeeDescription
             }
           ]
         };
@@ -759,7 +760,8 @@ describe("caseDetailDataHelpers", function () {
               fullName: "witness joe",
               windowsUsername: 12345,
               district: "some district",
-              caseEmployeeType: EMPLOYEE_TYPE.CIVILIAN_WITHIN_PD
+              caseEmployeeType:
+                PERSON_TYPE.CIVILIAN_WITHIN_PD.employeeDescription
             }
           ]
         };
@@ -787,7 +789,8 @@ describe("caseDetailDataHelpers", function () {
               fullName: "witness joe",
               windowsUsername: 12345,
               district: "some district",
-              caseEmployeeType: EMPLOYEE_TYPE.CIVILIAN_WITHIN_PD
+              caseEmployeeType:
+                PERSON_TYPE.CIVILIAN_WITHIN_PD.employeeDescription
             }
           ]
         };
@@ -899,7 +902,7 @@ describe("caseDetailDataHelpers", function () {
           fullName: "some name",
           windowsUsername: "some id",
           district: "some district",
-          caseEmployeeType: EMPLOYEE_TYPE.OFFICER
+          caseEmployeeType: PERSON_TYPE.KNOWN_OFFICER.employeeDescription
         };
 
         const accusedOfficerData = getAccusedOfficerData(officer);
@@ -918,7 +921,7 @@ describe("caseDetailDataHelpers", function () {
       test("returns correct accused officer data when single unknown officer", () => {
         const officer = {
           isUnknownOfficer: true,
-          caseEmployeeType: EMPLOYEE_TYPE.OFFICER
+          caseEmployeeType: PERSON_TYPE.UNKNOWN_OFFICER.employeeDescription
         };
 
         const accusedOfficerData = getAccusedOfficerData(officer);
@@ -938,7 +941,7 @@ describe("caseDetailDataHelpers", function () {
           fullName: "some name",
           windowsUsername: "some id",
           district: "some district",
-          caseEmployeeType: EMPLOYEE_TYPE.CIVILIAN_WITHIN_PD
+          caseEmployeeType: PERSON_TYPE.CIVILIAN_WITHIN_PD.employeeDescription
         };
 
         const accusedOfficerData = getAccusedOfficerData(officer);

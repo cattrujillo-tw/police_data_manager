@@ -5,6 +5,10 @@ import {
 import { BAD_REQUEST_ERRORS } from "../../../../sharedUtilities/errorMessageConstants";
 import moment from "moment";
 
+const {
+  PERSON_TYPE
+} = require(`${process.env.REACT_APP_INSTANCE_FILES_DIR}/constants`);
+
 export const updateCaseStatus = async (caseToUpdate, status) => {
   const caseStatusList = [
     CASE_STATUS.ACTIVE,
@@ -27,30 +31,27 @@ export const updateCaseStatus = async (caseToUpdate, status) => {
 };
 
 export const getComplainantType = caseReference => {
-  let prefix = caseReference.substring(0, 2);
+  let prefix = caseReference.substring(0, 3);
   let complainantType;
+
+  while (prefix.charAt(prefix.length - 1).match(/\d/)) {
+    prefix = prefix.substring(0, prefix.length - 1);
+  }
 
   if (prefix === "AC") {
     complainantType = "Anonymous (AC)";
   } else {
-    switch (prefix) {
-      case "CC":
-        complainantType = "Civilian (CC)";
-        break;
-      case "PO":
-        complainantType = "Police Officer (PO)";
-        break;
-      case "CN":
-        complainantType = "Civilian Within NOPD (CN)";
-        break;
-      default:
-        complainantType = "Civilian (CC)";
-    }
+    complainantType =
+      Object.values(PERSON_TYPE).find(type => type.abbreviation === prefix)
+        ?.complainantLegendValue || PERSON_TYPE.CIVILIAN.complainantLegendValue;
   }
   return complainantType;
 };
 
-export const getDateRangeStart = (dateRangeType = DATE_RANGE_TYPE.YTD, currentDate = new Date()) => {
+export const getDateRangeStart = (
+  dateRangeType = DATE_RANGE_TYPE.YTD,
+  currentDate = new Date()
+) => {
   let dateRangeStart;
   if (dateRangeType === DATE_RANGE_TYPE.YTD) {
     dateRangeStart = moment(currentDate).startOf("year");

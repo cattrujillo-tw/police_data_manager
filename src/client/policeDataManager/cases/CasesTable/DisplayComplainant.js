@@ -1,6 +1,9 @@
 import React from "react";
 import WarningMessage from "../../shared/components/WarningMessage";
-import { PERSON_TYPE } from "../../../../instance-files/constants";
+
+const {
+  PERSON_TYPE
+} = require(`${process.env.REACT_APP_INSTANCE_FILES_DIR}/constants`);
 
 export default ({ complainant }) =>
   complainant ? (
@@ -10,9 +13,12 @@ export default ({ complainant }) =>
   );
 
 const complainantName = ({ fullName, personType, isAnonymous }) => {
-  if (personType === PERSON_TYPE.KNOWN_OFFICER && isAnonymous === true) {
+  if (
+    personType === PERSON_TYPE.KNOWN_OFFICER.description &&
+    isAnonymous === true
+  ) {
     return `(AC) Officer ${fullName}`;
-  } else if (personType === PERSON_TYPE.KNOWN_OFFICER) {
+  } else if (personType === PERSON_TYPE.KNOWN_OFFICER.description) {
     return `Officer ${fullName}`;
   } else if (isAnonymous === true) {
     return `(AC) ${fullName}`;

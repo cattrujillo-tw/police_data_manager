@@ -27,7 +27,10 @@ import SortableCase from "../../testUtilities/SortableCase";
 import getWorkingCases from "../thunks/getWorkingCases";
 import getArchivedCases from "../thunks/getArchivedCases";
 import getSearchCases from "../thunks/getSearchCases";
-import { PERSON_TYPE } from "../../../../instance-files/constants";
+
+const {
+  PERSON_TYPE
+} = require(`${process.env.REACT_APP_INSTANCE_FILES_DIR}/constants`);
 
 jest.mock("../thunks/getWorkingCases");
 jest.mock("../thunks/getArchivedCases");
@@ -76,13 +79,13 @@ describe("cases table", () => {
     accusedOfficer = {
       firstName: "Jeff",
       lastName: "Wallace",
-      personType: PERSON_TYPE.KNOWN_OFFICER
+      personType: PERSON_TYPE.KNOWN_OFFICER.description
     };
 
     let accusedOfficer2 = {
       firstName: "William",
       lastName: "Wallace",
-      personType: PERSON_TYPE.KNOWN_OFFICER
+      personType: PERSON_TYPE.KNOWN_OFFICER.description
     };
 
     tagOne = new Tag.Builder().defaultTag().build();

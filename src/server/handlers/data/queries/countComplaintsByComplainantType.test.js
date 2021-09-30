@@ -14,7 +14,10 @@ import {
 import { updateCaseStatus } from "./queryHelperFunctions";
 import Civilian from "../../../../sharedTestHelpers/civilian";
 import CaseOfficer from "../../../../sharedTestHelpers/caseOfficer";
-import { EMPLOYEE_TYPE } from "../../../../instance-files/constants";
+
+const {
+  PERSON_TYPE
+} = require(`${process.env.REACT_APP_INSTANCE_FILES_DIR}/constants`);
 
 describe("executeQuery", () => {
   let complainantOfficerPO;
@@ -27,9 +30,9 @@ describe("executeQuery", () => {
   const token = buildTokenWithPermissions("", "tuser");
 
   const expectedData = {
-    CC: 1,
-    PO: 1,
-    CN: 0,
+    [PERSON_TYPE.CIVILIAN.abbreviation]: 1,
+    [PERSON_TYPE.KNOWN_OFFICER.abbreviation]: 1,
+    [PERSON_TYPE.CIVILIAN_WITHIN_PD.abbreviation]: 0,
     AC: 1
   };
 
@@ -52,7 +55,7 @@ describe("executeQuery", () => {
       .withId(3);
 
     complainantOfficerPO = (
-      await createCaseOfficer(EMPLOYEE_TYPE.OFFICER)
+      await createCaseOfficer(PERSON_TYPE.KNOWN_OFFICER.employeeDescription)
     ).withId(4);
 
     caseAttributes = createCaseAttributesBasedOnComplainants(

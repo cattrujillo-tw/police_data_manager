@@ -3,10 +3,6 @@ import {
   OFFICER_DETAILS_FORM_NAME,
   OFFICER_TITLE
 } from "../../../../sharedUtilities/constants";
-import {
-  CIVILIAN_WITHIN_PD_TITLE,
-  EMPLOYEE_TYPE
-} from "../../../../instance-files/constants";
 import { push } from "connected-react-router";
 import createCivilian from "../thunks/createCivilian";
 import { initialize } from "redux-form";
@@ -15,6 +11,11 @@ import { Menu, MenuItem } from "@material-ui/core";
 import React from "react";
 import LinkButton from "../../shared/components/LinkButton";
 import { addCaseEmployeeType } from "../../actionCreators/officersActionCreators";
+
+const {
+  CIVILIAN_WITHIN_PD_TITLE,
+  PERSON_TYPE
+} = require(`${process.env.REACT_APP_INSTANCE_FILES_DIR}/constants`);
 
 const ComplainantWitnessMenu = props => {
   return (
@@ -61,7 +62,9 @@ const ComplainantWitnessMenu = props => {
                 roleOnCase: props.civilianType
               })
             );
-            props.dispatch(addCaseEmployeeType(EMPLOYEE_TYPE.OFFICER));
+            props.dispatch(
+              addCaseEmployeeType(PERSON_TYPE.KNOWN_OFFICER.employeeDescription)
+            );
             props.dispatch(
               push(`/cases/${props.caseDetails.id}/officers/search`)
             );
@@ -78,7 +81,9 @@ const ComplainantWitnessMenu = props => {
               })
             );
             props.dispatch(
-              addCaseEmployeeType(EMPLOYEE_TYPE.CIVILIAN_WITHIN_PD)
+              addCaseEmployeeType(
+                PERSON_TYPE.CIVILIAN_WITHIN_PD.employeeDescription
+              )
             );
             props.dispatch(
               push(`/cases/${props.caseDetails.id}/officers/search`)

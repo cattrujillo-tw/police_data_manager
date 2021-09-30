@@ -15,7 +15,10 @@ import { cleanupDatabase } from "../../../testHelpers/requestTestHelpers";
 import ReferralLetter from "../../../testHelpers/ReferralLetter";
 import auditDataAccess from "../../audits/auditDataAccess";
 import { expectedCaseAuditDetails } from "../../../testHelpers/expectedAuditDetails";
-import { EMPLOYEE_TYPE } from "../../../../instance-files/constants";
+
+const {
+  PERSON_TYPE
+} = require(`${process.env.REACT_APP_INSTANCE_FILES_DIR}/constants`);
 
 jest.mock("../../audits/auditDataAccess");
 
@@ -52,7 +55,7 @@ describe("addCaseOfficer", () => {
       },
       body: {
         officerId: null,
-        caseEmployeeType: EMPLOYEE_TYPE.OFFICER,
+        caseEmployeeType: PERSON_TYPE.OFFICER,
         roleOnCase: ACCUSED,
         notes: "these are notes"
       },
@@ -312,7 +315,7 @@ describe("addCaseOfficer", () => {
       body: {
         officerId: officer.id,
         roleOnCase: ACCUSED,
-        caseEmployeeType: EMPLOYEE_TYPE.OFFICER,
+        caseEmployeeType: PERSON_TYPE.KNOWN_OFFICER.employeeDescription,
         notes: "these are notes"
       },
       nickname: "TEST_USER_NICKNAME"
@@ -389,7 +392,7 @@ describe("addCaseOfficer", () => {
       body: {
         officerId: officer.id,
         roleOnCase: ACCUSED,
-        caseEmployeeType: EMPLOYEE_TYPE.CIVILIAN_WITHIN_PD,
+        caseEmployeeType: PERSON_TYPE.CIVILIAN_WITHIN_PD.employeeDescription,
         notes: "these are notes"
       },
       nickname: "TEST_USER_NICKNAME"
@@ -397,10 +400,12 @@ describe("addCaseOfficer", () => {
 
     await addCaseOfficer(request, response, next);
 
-    const caseOfficerEmployeeType = response._getData().accusedOfficers[0]
-      .caseEmployeeType;
+    const caseOfficerEmployeeType =
+      response._getData().accusedOfficers[0].caseEmployeeType;
 
-    expect(caseOfficerEmployeeType).toEqual(EMPLOYEE_TYPE.CIVILIAN_WITHIN_PD);
+    expect(caseOfficerEmployeeType).toEqual(
+      PERSON_TYPE.CIVILIAN_WITHIN_PD.employeeDescription
+    );
   });
 
   test("Should return an officer with phone number and email when given phone number and email", async () => {
@@ -425,7 +430,7 @@ describe("addCaseOfficer", () => {
       body: {
         officerId: createdOfficer.id,
         roleOnCase: COMPLAINANT,
-        caseEmployeeType: EMPLOYEE_TYPE.CIVILIAN_WITHIN_PD,
+        caseEmployeeType: PERSON_TYPE.CIVILIAN_WITHIN_PD.employeeDescription,
         notes: "these are notes",
         phoneNumber: "8005882300",
         email: "notAnOfficer@gmail.com"

@@ -1,5 +1,11 @@
-import { PD, ORGANIZATION, ORGANIZATION_TITLE, CITY, BUREAU_ACRONYM } from "../instance-files/constants";
-
+const {
+  PD,
+  ORGANIZATION,
+  ORGANIZATION_TITLE,
+  CITY,
+  BUREAU_ACRONYM,
+  PERSON_TYPE
+} = require(`${process.env.REACT_APP_INSTANCE_FILES_DIR}/constants`);
 export const LOCAL_DEV_PORT = 443;
 export const PORT = 1234;
 // ----------------------------------------
@@ -382,6 +388,7 @@ export const COMPLAINANT = "Complainant";
 // ----------------------------------------
 export const CIVILIAN_INITIATED = "Civilian Initiated";
 export const RANK_INITIATED = "Rank Initiated";
+export const CIVILIAN_WITHIN_PD_INITIATED = `Civilian Within ${PD} Initiated`;
 
 // ----------------------------------------
 //          Edit Status Options
@@ -475,10 +482,8 @@ export const DATA_SECTIONS = {
     dataTestId: "complainantTypeGraph",
     queryType: QUERY_TYPES.COUNT_COMPLAINTS_BY_COMPLAINANT_TYPE,
     queryOptions: { dateRangeType: DATE_RANGE_TYPE.PAST_12_MONTHS },
-    collapsedText:
-      `The ${ORGANIZATION} tracked the complainant type to determine if we are reaching the full population with our services. This shows the complaint types for each complaint, over the past twelve months.`,
-    fullMessage:
-      `The ${ORGANIZATION} tracked the complainant type to determine if we are reaching the full population with our services. This shows the complaint types for each complaint, over the past twelve months. The different complainant types include:\n\n\u2022 Anonymous Complainant (AC) – this means that the individual who filed the complaint either did not disclose his / her name or the complainant did disclose his / her name to ${ORGANIZATION} but has asked for his / her name to be removed in the complaint referral to ${BUREAU_ACRONYM}.  In both situations, ${ORGANIZATION} counts this complainant as “anonymous.”  This category does not differentiate between individuals who are members of the public or individuals that are employed by the ${PD}.\n\n\u2022 Civilian Complainant (CC) – this category applies to any member of the public who files a complaint.  This individual may or may not reside in ${CITY}.  In these referrals, the individual’s name does appear on the complaint referral to ${BUREAU_ACRONYM}.\n\n\u2022 Police Officer Complainant (PO) – Police Officer complainants applies to any sworn officer who files a complaint of misconduct to our office.  ${ORGANIZATION} reviews these referrals to identify and highlight any possibility of retaliation within the police department.  In these referrals, the officer’s name does appear on the complaint referral to ${BUREAU_ACRONYM}.\n\n\u2022 Civilian within ${PD} Complainant (CN) – this category applies to any civilian who is employed by the ${PD}. In these complaint referrals, ${ORGANIZATION} is concerned about the possibility of retaliation that may occur to a civilian by officers within the police department. In these referrals, the employee’s name does appear on the complaint referral to ${BUREAU_ACRONYM}.`
+    collapsedText: `The ${ORGANIZATION} tracked the complainant type to determine if we are reaching the full population with our services. This shows the complaint types for each complaint, over the past twelve months.`,
+    fullMessage: `The ${ORGANIZATION} tracked the complainant type to determine if we are reaching the full population with our services. This shows the complaint types for each complaint, over the past twelve months. The different complainant types include:\n\n\u2022 Anonymous Complainant (AC) – this means that the individual who filed the complaint either did not disclose his / her name or the complainant did disclose his / her name to ${ORGANIZATION} but has asked for his / her name to be removed in the complaint referral to ${BUREAU_ACRONYM}.  In both situations, ${ORGANIZATION} counts this complainant as “anonymous.”  This category does not differentiate between individuals who are members of the public or individuals that are employed by the ${PD}.\n\n\u2022 Civilian Complainant (${PERSON_TYPE.CIVILIAN.fullAbbreviation}) – this category applies to any member of the public who files a complaint.  This individual may or may not reside in ${CITY}.  In these referrals, the individual’s name does appear on the complaint referral to ${BUREAU_ACRONYM}.\n\n\u2022 Police Officer Complainant (${PERSON_TYPE.KNOWN_OFFICER.fullAbbreviation}) – Police Officer complainants applies to any sworn officer who files a complaint of misconduct to our office.  ${ORGANIZATION} reviews these referrals to identify and highlight any possibility of retaliation within the police department.  In these referrals, the officer’s name does appear on the complaint referral to ${BUREAU_ACRONYM}.\n\n\u2022 Civilian within ${PD} Complainant (${PERSON_TYPE.CIVILIAN_WITHIN_PD.fullAbbreviation}) – this category applies to any civilian who is employed by the ${PD}. In these complaint referrals, ${ORGANIZATION} is concerned about the possibility of retaliation that may occur to a civilian by officers within the police department. In these referrals, the employee’s name does appear on the complaint referral to ${BUREAU_ACRONYM}.`
   },
   [DDS_EMERGING_THEMES]: {
     title: "What themes are emerging from the data?",

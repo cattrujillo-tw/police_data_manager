@@ -1,7 +1,9 @@
 "use strict";
 
 import { getOfficerFullName } from "../../../sharedUtilities/getFullName";
-import { EMPLOYEE_TYPE } from "../../../instance-files/constants";
+const {
+  PERSON_TYPE
+} = require(`${process.env.REACT_APP_INSTANCE_FILES_DIR}/constants`);
 
 const {
   ACCUSED,
@@ -139,9 +141,14 @@ module.exports = (sequelize, DataTypes) => {
         field: "case_employee_type",
         type: DataTypes.STRING,
         validate: {
-          isIn: [[EMPLOYEE_TYPE.OFFICER, EMPLOYEE_TYPE.CIVILIAN_WITHIN_PD]]
+          isIn: [
+            [
+              PERSON_TYPE.KNOWN_OFFICER.employeeDescription,
+              PERSON_TYPE.CIVILIAN_WITHIN_PD.employeeDescription
+            ]
+          ]
         },
-        defaultValue: EMPLOYEE_TYPE.OFFICER,
+        defaultValue: PERSON_TYPE.KNOWN_OFFICER.employeeDescription,
         allowNull: false
       },
       district: {
@@ -260,7 +267,7 @@ module.exports = (sequelize, DataTypes) => {
       supervisorLastName: null,
       supervisorWindowsUsername: null,
       supervisorOfficerNumber: null,
-      caseEmployeeType: EMPLOYEE_TYPE.OFFICER,
+      caseEmployeeType: PERSON_TYPE.UNKNOWN_OFFICER.employeeDescription,
       employeeType: null,
       district: null,
       bureau: null,

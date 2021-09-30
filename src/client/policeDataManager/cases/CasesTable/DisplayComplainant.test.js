@@ -4,7 +4,10 @@ import { mount } from "enzyme";
 import DisplayComplainant from "./DisplayComplainant";
 import CaseOfficer from "../../../../sharedTestHelpers/caseOfficer";
 import { COMPLAINANT } from "../../../../sharedUtilities/constants";
-import { PERSON_TYPE } from "../../../../instance-files/constants";
+
+const {
+  PERSON_TYPE
+} = require(`${process.env.REACT_APP_INSTANCE_FILES_DIR}/constants`);
 
 test("displays the complainant when complainant is civilian", () => {
   const firstName = "Sal";
@@ -41,7 +44,7 @@ test("displays complainant if the complainant is an officer", () => {
 
   const complainantOfficer = {
     fullName: officerFullName,
-    personType: PERSON_TYPE.KNOWN_OFFICER
+    personType: PERSON_TYPE.KNOWN_OFFICER.description
   };
 
   const wrapper = mount(
@@ -57,7 +60,7 @@ test("displays complainant if the complainant is an officer AND anonymous", () =
 
   const complainantOfficer = {
     fullName: officerFullName,
-    personType: PERSON_TYPE.KNOWN_OFFICER,
+    personType: PERSON_TYPE.KNOWN_OFFICER.description,
     isAnonymous: true
   };
 

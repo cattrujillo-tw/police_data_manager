@@ -6,27 +6,23 @@ import LinkButton from "../../shared/components/LinkButton";
 import OfficerSearch from "./OfficerSearch";
 import { clearSelectedOfficer } from "../../actionCreators/officersActionCreators";
 import { OFFICER_TITLE } from "../../../../sharedUtilities/constants";
-import {
-  CIVILIAN_WITHIN_PD_TITLE,
-  EMPLOYEE_TYPE
-} from "../../../../instance-files/constants";
 import { policeDataManagerMenuOptions } from "../../shared/components/NavBar/policeDataManagerMenuOptions";
 
+const {
+  CIVILIAN_WITHIN_PD_TITLE,
+  PERSON_TYPE
+} = require(`${process.env.REACT_APP_INSTANCE_FILES_DIR}/constants`);
 export class OfficerSearchContainer extends Component {
   componentDidMount() {
     this.props.dispatch(clearSelectedOfficer());
   }
 
   render() {
-    const {
-      caseId,
-      titleAction,
-      officerDetailsPath,
-      caseEmployeeType
-    } = this.props;
+    const { caseId, titleAction, officerDetailsPath, caseEmployeeType } =
+      this.props;
 
     const employeeSearchTitle =
-      caseEmployeeType === EMPLOYEE_TYPE.CIVILIAN_WITHIN_PD
+      caseEmployeeType === PERSON_TYPE.CIVILIAN_WITHIN_PD.employeeDescription
         ? CIVILIAN_WITHIN_PD_TITLE
         : OFFICER_TITLE;
 

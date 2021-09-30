@@ -18,7 +18,10 @@ import {
   getAllComplaints
 } from "./countComplaintsByComplainantTypePast12Months";
 import moment from "moment";
-import { EMPLOYEE_TYPE } from "../../../../instance-files/constants";
+
+const {
+  PERSON_TYPE
+} = require(`${process.env.REACT_APP_INSTANCE_FILES_DIR}/constants`);
 
 describe("executeQuery", () => {
   let complainantOfficerPO,
@@ -87,7 +90,7 @@ describe("executeQuery", () => {
       .withId(3);
 
     complainantOfficerPO = (
-      await createCaseOfficer(EMPLOYEE_TYPE.OFFICER)
+      await createCaseOfficer(PERSON_TYPE.KNOWN_OFFICER.employeeDescription)
     ).withId(4);
   });
 
@@ -257,20 +260,28 @@ describe("executeQuery", () => {
     test("should return complainant types for past 12 months", async () => {
       await getResponsePromise.then(response => {
         expect(response.statusCode).toEqual(200);
-        expect(response.body["CC"][10]["count"]).toEqual(2);
-        expect(response.body["CC"][12]["count"]).toEqual(1);
-        expect(response.body["PO"][9]["count"]).toEqual(1);
+        expect(
+          response.body[PERSON_TYPE.CIVILIAN.abbreviation][10]["count"]
+        ).toEqual(2);
+        expect(
+          response.body[PERSON_TYPE.CIVILIAN.abbreviation][12]["count"]
+        ).toEqual(1);
+        expect(
+          response.body[PERSON_TYPE.KNOWN_OFFICER.abbreviation][9]["count"]
+        ).toEqual(1);
         expect(response.body["AC"][0]["count"]).toEqual(1);
-        expect(response.body["CN"][4]["count"]).toEqual(0);
+        expect(
+          response.body[PERSON_TYPE.CIVILIAN_WITHIN_PD.abbreviation][4]["count"]
+        ).toEqual(0);
 
-        const numOfCC = response.body["CC"].filter(
+        const numOfCC = response.body[PERSON_TYPE.CIVILIAN.abbreviation].filter(
           month => month["count"] === 0
         ).length;
         expect(numOfCC).toEqual(11);
 
-        const numOfPO = response.body["PO"].filter(
-          month => month["count"] === 0
-        ).length;
+        const numOfPO = response.body[
+          PERSON_TYPE.KNOWN_OFFICER.abbreviation
+        ].filter(month => month["count"] === 0).length;
         expect(numOfPO).toEqual(12);
 
         const numOfAC = response.body["AC"].filter(
@@ -278,10 +289,10 @@ describe("executeQuery", () => {
         ).length;
         expect(numOfAC).toEqual(12);
 
-        const numOfCN = response.body["CN"].filter(
-          month => month["count"] === 0
-        ).length;
-        expect(numOfCN).toEqual(13);
+        const numOfCPD = response.body[
+          PERSON_TYPE.CIVILIAN_WITHIN_PD.abbreviation
+        ].filter(month => month["count"] === 0).length;
+        expect(numOfCPD).toEqual(13);
       });
     });
   });

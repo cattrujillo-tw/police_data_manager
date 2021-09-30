@@ -2,7 +2,10 @@ import DisplayAccusedOfficer from "./DisplayAccusedOfficer";
 import React from "react";
 import { mount } from "enzyme";
 import { containsText } from "../../../testHelpers";
-import { PERSON_TYPE } from "../../../../instance-files/constants";
+
+const {
+  PERSON_TYPE
+} = require(`${process.env.REACT_APP_INSTANCE_FILES_DIR}/constants`);
 
 describe("DisplayAccusedOfficer", () => {
   const noAccusedDisplayText = "No Accused";
@@ -10,7 +13,7 @@ describe("DisplayAccusedOfficer", () => {
   test("should display an accused officer", () => {
     const accusedOfficer = {
       fullName: "fullName",
-      personType: PERSON_TYPE.KNOWN_OFFICER
+      personType: PERSON_TYPE.KNOWN_OFFICER.description
     };
 
     const wrapper = mount(

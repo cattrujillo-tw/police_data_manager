@@ -1,5 +1,8 @@
 import { ACCUSED } from "../sharedUtilities/constants";
-import { EMPLOYEE_TYPE } from "../instance-files/constants";
+
+const {
+  PERSON_TYPE
+} = require(`${process.env.REACT_APP_INSTANCE_FILES_DIR}/constants`);
 
 class CaseOfficer {
   constructor(build) {
@@ -62,7 +65,7 @@ class CaseOfficer {
         this.hireDate = "2018-05-30";
         this.endDate = "2018-05-31";
         this.employeeType = "Commissioned";
-        this.caseEmployeeType = EMPLOYEE_TYPE.OFFICER;
+        this.caseEmployeeType = PERSON_TYPE.KNOWN_OFFICER.employeeDescription;
         this.officerId = 123456;
         this.roleOnCase = ACCUSED;
         this.notes = "Some notes about this officer's history";

@@ -19,9 +19,14 @@ import moment from "moment";
 import { formatShortDate } from "../../sharedUtilities/formatDate";
 import useMediaQuery from "@material-ui/core/useMediaQuery";
 import useTheme from "@material-ui/core/styles/useTheme";
-import { PD, CITY, ORGANIZATION } from "../../instance-files/constants";
 import { PlotlyWrapper } from "../common/components/Visualization/PlotlyWrapper";
 import MapVisualization from "./MapVisualization";
+
+const {
+  PD,
+  CITY,
+  ORGANIZATION
+} = require(`${process.env.REACT_APP_INSTANCE_FILES_DIR}/constants`);
 
 const removeDragCover = () => {
   const callback = mutationsList => {

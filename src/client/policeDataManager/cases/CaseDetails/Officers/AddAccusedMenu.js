@@ -8,14 +8,15 @@ import {
   OFFICER_DETAILS_FORM_NAME,
   OFFICER_TITLE
 } from "../../../../../sharedUtilities/constants";
-import {
-  CIVILIAN_WITHIN_PD_TITLE,
-  EMPLOYEE_TYPE
-} from "../../../../../instance-files/constants";
 import { openCivilianDialog } from "../../../actionCreators/casesActionCreators";
 import createCivilian from "../../thunks/createCivilian";
 import { push } from "connected-react-router";
 import { addCaseEmployeeType } from "../../../actionCreators/officersActionCreators";
+
+const {
+  CIVILIAN_WITHIN_PD_TITLE,
+  PERSON_TYPE
+} = require(`${process.env.REACT_APP_INSTANCE_FILES_DIR}/constants`);
 
 const AddAccusedMenu = props => {
   return (
@@ -47,7 +48,9 @@ const AddAccusedMenu = props => {
                 roleOnCase: ACCUSED
               })
             );
-            props.dispatch(addCaseEmployeeType(EMPLOYEE_TYPE.OFFICER));
+            props.dispatch(
+              addCaseEmployeeType(PERSON_TYPE.KNOWN_OFFICER.employeeDescription)
+            );
             props.dispatch(push(`/cases/${props.caseId}/officers/search`));
           }}
         >
@@ -63,7 +66,9 @@ const AddAccusedMenu = props => {
               })
             );
             props.dispatch(
-              addCaseEmployeeType(EMPLOYEE_TYPE.CIVILIAN_WITHIN_PD)
+              addCaseEmployeeType(
+                PERSON_TYPE.CIVILIAN_WITHIN_PD.employeeDescription
+              )
             );
             props.dispatch(push(`/cases/${props.caseId}/officers/search`));
           }}

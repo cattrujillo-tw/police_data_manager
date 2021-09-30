@@ -3,7 +3,10 @@ import {
   clearCaseEmployeeType
 } from "../../actionCreators/officersActionCreators";
 import addOfficerReducer from "./addOfficerReducer";
-import { EMPLOYEE_TYPE } from "../../../../instance-files/constants";
+
+const {
+  PERSON_TYPE
+} = require(`${process.env.REACT_APP_INSTANCE_FILES_DIR}/constants`);
 
 describe("addOfficerReducer", () => {
   describe("ADD_OFFICER", () => {
@@ -13,7 +16,8 @@ describe("addOfficerReducer", () => {
         officerCurrentlySelected: false,
         caseEmployeeType: null
       };
-      const caseEmployeeType = EMPLOYEE_TYPE.CIVILIAN_WITHIN_PD;
+      const caseEmployeeType =
+        PERSON_TYPE.CIVILIAN_WITHIN_PD.employeeDescription;
 
       const newState = addOfficerReducer(
         initialState,
@@ -23,7 +27,7 @@ describe("addOfficerReducer", () => {
       const expectedState = {
         selectedOfficerData: null,
         officerCurrentlySelected: false,
-        caseEmployeeType: EMPLOYEE_TYPE.CIVILIAN_WITHIN_PD
+        caseEmployeeType: PERSON_TYPE.CIVILIAN_WITHIN_PD.employeeDescription
       };
       expect(newState).toEqual(expectedState);
     });
@@ -31,7 +35,7 @@ describe("addOfficerReducer", () => {
       const initialState = {
         selectedOfficerData: null,
         officerCurrentlySelected: false,
-        caseEmployeeType: EMPLOYEE_TYPE.OFFICER
+        caseEmployeeType: PERSON_TYPE.UNKNOWN_OFFICER.employeeDescription
       };
       const newState = addOfficerReducer(initialState, clearCaseEmployeeType());
 

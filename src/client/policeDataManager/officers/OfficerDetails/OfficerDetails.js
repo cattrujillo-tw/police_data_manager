@@ -18,10 +18,6 @@ import {
   OFFICER_TITLE,
   WITNESS
 } from "../../../../sharedUtilities/constants";
-import {
-  CIVILIAN_WITHIN_PD_TITLE,
-  EMPLOYEE_TYPE
-} from "../../../../instance-files/constants";
 import SelectedOfficerDisplay from "./SelectedOfficerDisplay";
 import UnknownOfficerDisplay from "./UnknownOfficerDisplay";
 import _ from "lodash";
@@ -29,6 +25,10 @@ import EmailField from "../../cases/sharedFormComponents/EmailField";
 import PhoneNumberField from "../../cases/sharedFormComponents/PhoneNumberField";
 import { renderTextField } from "../../cases/sharedFormComponents/renderFunctions";
 
+const {
+  CIVILIAN_WITHIN_PD_TITLE,
+  PERSON_TYPE
+} = require(`${process.env.REACT_APP_INSTANCE_FILES_DIR}/constants`);
 class OfficerDetails extends React.Component {
   onSubmit = (values, dispatch) => {
     dispatch(this.props.submitAction(values));
@@ -52,7 +52,8 @@ class OfficerDetails extends React.Component {
 
   render() {
     const isCivilianWithinPd =
-      this.props.caseEmployeeType === EMPLOYEE_TYPE.CIVILIAN_WITHIN_PD;
+      this.props.caseEmployeeType ===
+      PERSON_TYPE.CIVILIAN_WITHIN_PD.employeeDescription;
     const additionalInformationText = isCivilianWithinPd
       ? `Use this section to add notes, a description, or indicate any information about the ${_.lowerFirst(
           CIVILIAN_WITHIN_PD_TITLE

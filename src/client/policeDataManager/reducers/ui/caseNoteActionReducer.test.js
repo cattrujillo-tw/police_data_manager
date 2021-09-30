@@ -1,6 +1,7 @@
 import { getCaseNoteActionsSuccess } from "../../actionCreators/caseNoteActionActionCreators";
 import caseNoteActionReducer from "./caseNoteActionReducer";
-import PD from "../../../../instance-files/constants"
+
+const { PD } = require(`${process.env.REACT_APP_INSTANCE_FILES_DIR}/constants`);
 
 describe("caseNoteActionReducer", () => {
   test("should initialize to blank array", () => {

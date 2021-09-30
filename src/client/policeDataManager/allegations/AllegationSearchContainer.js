@@ -11,12 +11,12 @@ import AllegationSearch from "./AllegationSearch";
 import OfficerAllegations from "./OfficerAllegations";
 import invalidCaseStatusRedirect from "../cases/thunks/invalidCaseStatusRedirect";
 import { OFFICER_TITLE } from "../../../sharedUtilities/constants";
-import {
-  CIVILIAN_WITHIN_PD_TITLE,
-  EMPLOYEE_TYPE
-} from "../../../instance-files/constants";
 import { policeDataManagerMenuOptions } from "../shared/components/NavBar/policeDataManagerMenuOptions";
 
+const {
+  CIVILIAN_WITHIN_PD_TITLE,
+  PERSON_TYPE
+} = require(`${process.env.REACT_APP_INSTANCE_FILES_DIR}/constants`);
 export class AllegationSearchContainer extends Component {
   caseDetailsNotYetLoaded = () => {
     return (
@@ -58,7 +58,7 @@ export class AllegationSearchContainer extends Component {
 
     const isCivilianWithinPd =
       currentCaseOfficerData.caseEmployeeType ===
-      EMPLOYEE_TYPE.CIVILIAN_WITHIN_PD;
+      PERSON_TYPE.CIVILIAN_WITHIN_PD.employeeDescription;
     const titleText = isCivilianWithinPd
       ? `Accused ${CIVILIAN_WITHIN_PD_TITLE}`
       : `Accused ${OFFICER_TITLE}`;

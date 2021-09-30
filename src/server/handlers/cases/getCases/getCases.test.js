@@ -21,7 +21,10 @@ import Officer from "../../../../sharedTestHelpers/Officer";
 import CaseOfficer from "../../../../sharedTestHelpers/caseOfficer";
 import Tag from "../../../testHelpers/tag";
 import CaseTag from "../../../testHelpers/caseTag";
-import { PERSON_TYPE } from "../../../../instance-files/constants";
+
+const {
+  PERSON_TYPE
+} = require(`${process.env.REACT_APP_INSTANCE_FILES_DIR}/constants`);
 
 describe("getCases", () => {
   afterEach(async () => {
@@ -847,7 +850,7 @@ describe("getCases", () => {
             complainantLastName: "Zebra"
           }),
           expect.objectContaining({
-            complainantPersonType: PERSON_TYPE.UNKNOWN_OFFICER,
+            complainantPersonType: PERSON_TYPE.UNKNOWN_OFFICER.description,
             complainantLastName: null,
             complainantFirstName: null,
             complainantMiddleName: null
@@ -870,7 +873,7 @@ describe("getCases", () => {
             complainantPersonType: null
           }),
           expect.objectContaining({
-            complainantPersonType: PERSON_TYPE.UNKNOWN_OFFICER,
+            complainantPersonType: PERSON_TYPE.UNKNOWN_OFFICER.description,
             complainantLastName: null,
             complainantFirstName: null,
             complainantMiddleName: null

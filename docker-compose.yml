@@ -8,6 +8,8 @@ services:
       args:
         - REACT_APP_ENV=static_development
         - REACT_APP_GOOGLE_API_KEY
+        - INSTANCE_IMAGE=${INSTANCE_IMAGE}
+        - INSTANCE_VERSION=${INSTANCE_VERSION}
     environment:
       - NODE_ENV=development
       - REACT_APP_ENV=development
@@ -18,6 +20,7 @@ services:
       - REACT_APP_GOOGLE_API_KEY
       - USE_CLOUD_SERVICES=false
       - REACT_APP_USE_CLOUD_SERVICES=false
+      - REACT_APP_INSTANCE_FILES_DIR=/app/src/instance-files
     depends_on:
       - db
       - worker
@@ -26,24 +29,24 @@ services:
       - "1234:1234"
       - "443:443"
       - "4000:4000"
-#      Expose this port if using Node inspect flag for debugging purposes
-#     - "9229:9229"
+    #      Expose this port if using Node inspect flag for debugging purposes
+    #     - "9229:9229"
     entrypoint: ["./wait-for-it.sh", "db:5432", "--"]
     command: ["yarn", "start:dev"]
     volumes:
-#      Mount this volume if you want to run a static front end on localhost:1234
-#      - ./build:/app/build
+      #      Mount this volume if you want to run a static front end on localhost:1234
+      #      - ./build:/app/build
       - ./src:/app/src
-#      Mount this volume only if you have NOT set INSTANCE_FILES_DIR locally
-#      - /app/src/instance-files/
+      #      Mount this volume only if you have NOT set REACT_APP_INSTANCE_FILES_DIR locally
+      # - /app/src/instance-files/
       - ./scripts:/app/scripts
       - ./.cert:/app/.cert
       - ./package.json:/app/package.json
       - ./config-overrides.js:/app/config-overrides.js
       - ./snapshotResolver.js:/app/snapshotResolver.js
-#      Mount this volume only if you have set INSTANCE_FILES_DIR locally
-      - ${INSTANCE_FILES_DIR}:/app/src/instance-files
-      - ${INSTANCE_FILES_DIR}/public:/app/public
+      #      Mount this volume only if you have set REACT_APP_INSTANCE_FILES_DIR locally
+      - ${REACT_APP_INSTANCE_FILES_DIR}:/app/src/instance-files
+      - ${REACT_APP_INSTANCE_FILES_DIR}/public:/app/public
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.11.0
     container_name: elasticsearch
@@ -74,6 +77,8 @@ services:
       args:
         - REACT_APP_ENV=static_development
         - REACT_APP_GOOGLE_API_KEY
+        - INSTANCE_IMAGE=${INSTANCE_IMAGE}
+        - INSTANCE_VERSION=${INSTANCE_VERSION}
     environment:
       - NODE_ENV=development
       - REACT_APP_ENV=development_e2e
@@ -84,6 +89,7 @@ services:
       - REACT_APP_GOOGLE_API_KEY
       - USE_CLOUD_SERVICES=false
       - REACT_APP_USE_CLOUD_SERVICES=false
+      - REACT_APP_INSTANCE_FILES_DIR=/app/src/instance-files
     depends_on:
       - db
       - worker
@@ -96,19 +102,22 @@ services:
     command: ["yarn", "start:dev"]
     volumes:
       - ./src:/app/src
-#      Mount this volume only if you have NOT set INSTANCE_FILES_DIR locally
-#      - /app/src/instance-files/
+      #      Mount this volume only if you have NOT set REACT_APP_INSTANCE_FILES_DIR locally
+      # - /app/src/instance-files/
       - ./scripts:/app/scripts
       - ./.cert:/app/.cert
       - ./package.json:/app/package.json
       - "./e2e/.env.development:/app/.env.development"
-#      Mount this volume only if you have set INSTANCE_FILES_DIR locally
-      - ${INSTANCE_FILES_DIR}:/app/src/instance-files
-      - ${INSTANCE_FILES_DIR}/public:/app/public
+      #      Mount this volume only if you have set REACT_APP_INSTANCE_FILES_DIR locally
+      - ${REACT_APP_INSTANCE_FILES_DIR}:/app/src/instance-files
+      - ${REACT_APP_INSTANCE_FILES_DIR}/public:/app/public
   worker:
     build:
       context: .
       dockerfile: Dockerfile.worker
+      args:
+        - INSTANCE_IMAGE=${INSTANCE_IMAGE}
+        - INSTANCE_VERSION=${INSTANCE_VERSION}
     environment:
       - NODE_ENV=development
       - NEW_RELIC_ENABLED=false
@@ -117,6 +126,7 @@ services:
       - AWS_SECRET_ACCESS_KEY
       - USE_CLOUD_SERVICES=false
       - REACT_APP_USE_CLOUD_SERVICES=false
+      - REACT_APP_INSTANCE_FILES_DIR=/app/src/instance-files
     depends_on:
       - db
       - redis
@@ -127,12 +137,12 @@ services:
     command: ["yarn", "start:worker:dev"]
     volumes:
       - ./src:/app/src
-#      Mount this volume only if you have NOT set INSTANCE_FILES_DIR locally
-#      - /app/src/instance-files/
+      #      Mount this volume only if you have NOT set REACT_APP_INSTANCE_FILES_DIR locally
+      # - /app/src/instance-files/
       - ./package.json:/app/package.json
-#      Mount this volume only if you have set INSTANCE_FILES_DIR locally
-      - ${INSTANCE_FILES_DIR}:/app/src/instance-files
-      - ${INSTANCE_FILES_DIR}/public:/app/public
+      #      Mount this volume only if you have set REACT_APP_INSTANCE_FILES_DIR locally
+      - ${REACT_APP_INSTANCE_FILES_DIR}:/app/src/instance-files
+      - ${REACT_APP_INSTANCE_FILES_DIR}/public:/app/public
   db:
     image: postgres:10.9-alpine
     depends_on:
@@ -142,17 +152,19 @@ services:
     ports:
       - "5432:5432"
   e2e:
-    image: noipm/e2e:latest
+    image: ${E2E_IMAGE:-noipm/e2e:latest}
     depends_on:
       - app-e2e
     volumes:
       - "./e2e/tests:/e2e/tests"
       - "./e2e/pageObjectModels:/e2e/pageObjectModels"
       - "./wait-for-it.sh:/wait-for-it.sh"
+      - ${REACT_APP_INSTANCE_FILES_DIR}:/app/src/instance-files
     entrypoint: ["./wait-for-it.sh", "app-e2e:443", "-t", "300", "--"]
     environment:
       - TEST_USER=${TEST_USER}
       - TEST_PASS=${TEST_PASS}
+      - REACT_APP_INSTANCE_FILES_DIR=/app/src/instance-files
   redis:
     image: redis
     ports:

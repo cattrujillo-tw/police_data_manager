@@ -15,11 +15,12 @@ import { getCaseDetailsSuccess } from "../../actionCreators/casesActionCreators"
 import { push } from "connected-react-router";
 import { snackbarError } from "../../actionCreators/snackBarActionCreators";
 import { ACCUSED, OFFICER_TITLE } from "../../../../sharedUtilities/constants";
-import {
-  CIVILIAN_WITHIN_PD_TITLE,
-  EMPLOYEE_TYPE
-} from "../../../../instance-files/constants";
 import { getFeaturesSuccess } from "../../actionCreators/featureTogglesActionCreators";
+
+const {
+  CIVILIAN_WITHIN_PD_TITLE,
+  PERSON_TYPE
+} = require(`${process.env.REACT_APP_INSTANCE_FILES_DIR}/constants`);
 
 jest.mock("../../cases/thunks/getCaseDetails");
 
@@ -141,7 +142,9 @@ describe("OfficerDetailsContainer", () => {
             submitButtonText={"Test Employee"}
             submitAction={jest.fn()}
             officerSearchUrl={`/test-search`}
-            caseEmployeeType={EMPLOYEE_TYPE.CIVILIAN_WITHIN_PD}
+            caseEmployeeType={
+              PERSON_TYPE.CIVILIAN_WITHIN_PD.employeeDescription
+            }
           />
         </Router>
       </Provider>
