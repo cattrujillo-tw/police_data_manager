@@ -24,10 +24,6 @@ describe("getCaseNoteActions", () => {
     await cleanupDatabase();
   });
 
-  afterAll(async () => {
-    await models.sequelize.close();
-  });
-
   test("returns list of case notes action to populate dropdown", async () => {
     const action1 = await models.case_note_action.create({
       name: "Checked status"

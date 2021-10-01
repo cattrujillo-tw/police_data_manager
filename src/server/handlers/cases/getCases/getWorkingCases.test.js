@@ -32,10 +32,6 @@ describe("getWorkingCases", () => {
     await cleanupDatabase();
   });
 
-  afterAll(async () => {
-    await models.sequelize.close();
-  });
-
   test("should call getCases with sortBy and sortDirection params", async () => {
     const request = httpMocks.createRequest({
       method: "GET",

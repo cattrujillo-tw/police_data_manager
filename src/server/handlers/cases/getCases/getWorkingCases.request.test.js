@@ -30,10 +30,6 @@ describe("getWorkingCases", () => {
     await cleanupDatabase();
   });
 
-  afterAll(async () => {
-    await models.sequelize.close();
-  });
-
   describe("GET /cases", () => {
     test("should call getWorkingCases", async () => {
       await request(app)
