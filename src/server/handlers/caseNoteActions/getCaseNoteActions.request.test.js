@@ -22,6 +22,10 @@ describe("getCaseNoteActions", () => {
     await cleanupDatabase();
   });
 
+  afterAll(async () => {
+    await models.sequelize.close();
+  });
+
   test("hits endpoint that calls getCaseNoteActions", async () => {
     const token = buildTokenWithPermissions("", "tuser");
 

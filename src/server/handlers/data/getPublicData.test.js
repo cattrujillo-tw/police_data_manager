@@ -118,6 +118,10 @@ describe("getPublicData", () => {
     await cleanupDatabase();
   });
 
+  afterAll(async () => {
+    await models.sequelize.close();
+  });
+
   beforeEach(() => {
     next = jest.fn();
     response = httpMocks.createResponse();
