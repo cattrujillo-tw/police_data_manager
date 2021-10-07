@@ -443,7 +443,8 @@ export const QUERY_TYPES = {
   COUNT_COMPLAINTS_BY_COMPLAINANT_TYPE: "countComplaintsByComplainantType",
   COUNT_COMPLAINTS_BY_COMPLAINANT_TYPE_PAST_12_MONTHS:
     "countComplaintsByComplainantTypePast12Months",
-  COUNT_TOP_10_TAGS: "countTop10Tags"
+  COUNT_TOP_10_TAGS: "countTop10Tags",
+  LOCATION_DATA: "locationData"
 };
 
 export const QUERY_TYPE_FILE_MAP = {
