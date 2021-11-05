@@ -423,7 +423,6 @@ jobs:
       - checkout
       - attach_workspace:
           at: src/
-      - run: cat src/release.version
       - run:
           name: Run E2E tests
           command: |
@@ -708,50 +707,66 @@ workflows:
       - e2e-testing-ci-pdm:
           requires:
             - letter-generation-testing-ci
-
-  build_and_deploy_release:
-    jobs:
-      - security-check:
-          filters:
-            branches:
-              only:
-                - << pipeline.parameters.release-branch >>
-      - get-instance-files-release:
-          requires:
-            - security-check
-      - test-client:
-          requires:
-            - get-instance-files-release
-      - test-server-handlers-staging:
-          requires:
-            - get-instance-files-release
-      - test-server-worker-non-handlers:
-          requires:
-            - get-instance-files-release
-      - build-and-publish-release:
-          requires:
-            - test-client
-            - test-server-handlers-staging
-            - test-server-worker-non-handlers
-      - deploy-staging:
-          requires:
-            - build-and-publish-release
-      - ensure-staging-deploy-succeeded:
-          requires:
-            - deploy-staging
-      - e2e-testing-staging:
-          requires:
-            - ensure-staging-deploy-succeeded
-      - hold-for-production:
+      # Patch Release
+      - create-patch-release:
           type: approval
           requires:
-            - e2e-testing-staging
-      - deploy-production:
+            - e2e-testing-ci-pdm
+      - bump-patch-version:
           requires:
-            - hold-for-production
-      - ensure-production-deploy-succeeded:
+            - create-patch-release
+      - tag-instance-files:
+          name: tag-instance-files-patch
           requires:
-            - deploy-production
+            - bump-patch-version
+      - build-tagged-version:
+          name: build-patch-tagged-version
+          requires:
+            - tag-instance-files-patch
+      - push-tag:
+          name: push-patch-tag
+          requires:
+            - build-patch-tagged-version
+      # Minor Release
+      - create-minor-release:
+          type: approval
+          requires:
+            - e2e-testing-ci-pdm
+      - bump-minor-version:
+          requires:
+            - create-minor-release
+      - tag-instance-files:
+          name: tag-instance-files-minor
+          requires:
+            - bump-minor-version
+      - build-tagged-version:
+          name: build-minor-tagged-version
+          requires:
+            - tag-instance-files-minor
+      - push-tag:
+          name: push-minor-tag
+          requires:
+            - build-minor-tagged-version
+      # Major Release
+      - create-major-release:
+          type: approval
+          requires:
+            - e2e-testing-ci-pdm
+      - bump-major-version:
+          requires:
+            - create-major-release
+      - tag-instance-files:
+          name: tag-instance-files-major
+          requires:
+            - bump-major-version
+      - build-tagged-version:
+          name: build-major-tagged-version
+          requires:
+            - tag-instance-files-major
+      - push-tag:
+          name: push-major-tag
+          requires:
+            - build-major-tagged-version
 
   build_and_deploy_playground:
     jobs:
@@ -786,101 +801,30 @@ workflows:
       - e2e-testing-playground:
           requires:
             - ensure-playground-deploy-succeeded
-
-  pipeline-test:
-    jobs:
-      - get-instance-files-latest:
-          filters:
-            branches:
-              only:
-                - pipeline
-      # Patch Release
-      - create-patch-release:
-          type: approval
-          requires:
-            - get-instance-files-latest
-      - bump-patch-version:
-          requires:
-            - create-patch-release
-      - tag-instance-files:
-          name: tag-instance-files-patch
-          requires:
-            - bump-patch-version
-      # - build-tagged-version:
-      #     name: build-patch-tagged-version
-      #     requires:
-      #       - tag-instance-files-patch
-      - push-tag:
-          name: push-patch-tag
-          requires:
-            # - build-patch-tagged-version
-            - tag-instance-files-patch
-      # Minor Release
-      - create-minor-release:
-          type: approval
-          requires:
-            - get-instance-files-latest
-      - bump-minor-version:
-          requires:
-            - create-minor-release
-      - tag-instance-files:
-          name: tag-instance-files-minor
-          requires:
-            - bump-minor-version
-      # - build-tagged-version:
-      #     name: build-minor-tagged-version
-      #     requires:
-      #       - tag-instance-files-minor
-      - push-tag:
-          name: push-minor-tag
-          requires:
-            # - build-minor-tagged-version
-            - tag-instance-files-minor
-      # Major Release
-      - create-major-release:
-          type: approval
-          requires:
-            - get-instance-files-latest
-      - bump-major-version:
-          requires:
-            - create-major-release
-      - tag-instance-files:
-          name: tag-instance-files-major
-          requires:
-            - bump-major-version
-      # - build-tagged-version:
-      #     name: build-major-tagged-version
-      #     requires:
-      #       - tag-instance-files-major
-      - push-tag:
-          name: push-major-tag
-          requires:
-            # - build-major-tagged-version
-            - tag-instance-files-major
   
-  release_pipeline:
+  deploy_release:
     jobs:
       - get-instance-files-release:
           filters:
               branches:
                 only:
                   - /release_v.*/
-      # - deploy-staging:
-      #     requires:
-      #       - get-instance-files-release
-      # - ensure-staging-deploy-succeeded:
-      #     requires:
-      #       - deploy-staging
-      - e2e-testing-staging:
+      - deploy-staging:
           requires:
             - get-instance-files-release
-      # - hold-for-production:
-      #     type: approval
-      #     requires:
-      #       - e2e-testing-staging
-      # - deploy-production:
-      #     requires:
-      #       - hold-for-production
-      # - ensure-production-deploy-succeeded:
-      #     requires:
-      #       - deploy-production
+      - ensure-staging-deploy-succeeded:
+          requires:
+            - deploy-staging
+      - e2e-testing-staging:
+          requires:
+            - ensure-staging-deploy-succeeded
+      - hold-for-production:
+          type: approval
+          requires:
+            - e2e-testing-staging
+      - deploy-production:
+          requires:
+            - hold-for-production
+      - ensure-production-deploy-succeeded:
+          requires:
+            - deploy-production
