@@ -6,15 +6,9 @@ parameters:
   stage-indexing-branch:
     type: string
     default: "master"
-  release-branch:
-    type: string
-    default: "release_v3.42.1"
   instance-files-image-name:
     type: string
     default: "publicdataworks/instance-files-noipm"
-  instance-files-version:
-    type: string
-    default: "1.0.1"
   ubuntu-version:
     type: string
     default: "1.0.0"
@@ -181,21 +175,6 @@ jobs:
       - run: docker push publicdataworks/police-data-manager-ci:$CIRCLE_SHA1
       - run: docker push publicdataworks/police-data-manager-ci-worker:$CIRCLE_SHA1
 
-  build-and-publish-release:
-    docker:
-      - image: docker:stable
-    steps:
-      - checkout
-      - setup_remote_docker:
-          version: 19.03.13
-      - run: docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
-      - run: docker build -f Dockerfile.web --build-arg REACT_APP_ENV=staging --build-arg REACT_APP_GOOGLE_API_KEY=$REACT_APP_GOOGLE_API_KEY_PREPROD --build-arg INSTANCE_VERSION=<< pipeline.parameters.instance-files-version >> -t publicdataworks/police-data-manager-staging:$CIRCLE_SHA1 .
-      - run: docker build -f Dockerfile.web --build-arg REACT_APP_ENV=production --build-arg REACT_APP_GOOGLE_API_KEY=$REACT_APP_GOOGLE_API_KEY_PRODUCTION --build-arg INSTANCE_VERSION=<< pipeline.parameters.instance-files-version >> -t publicdataworks/police-data-manager-production:$CIRCLE_SHA1 .
-      - run: docker build -f Dockerfile.worker --build-arg INSTANCE_VERSION=<< pipeline.parameters.instance-files-version >> -t publicdataworks/police-data-manager-worker:$CIRCLE_SHA1 .
-      - run: docker push publicdataworks/police-data-manager-staging:$CIRCLE_SHA1
-      - run: docker push publicdataworks/police-data-manager-production:$CIRCLE_SHA1
-      - run: docker push publicdataworks/police-data-manager-worker:$CIRCLE_SHA1
-
   build-and-publish-playground:
     docker:
       - image: docker:stable
@@ -348,6 +327,7 @@ jobs:
             nightwatch --config /src/instance-files/tests/e2e/nightwatch.conf.js --env ci e2e/tests/policeDataManager --retries 2
       - store_artifacts:
           path: e2e/tests/policeDataManager
+
   deploy-staging:
     docker:
       - image: publicdataworks/docker-heroku:<< pipeline.parameters.docker-heroku-version >>
