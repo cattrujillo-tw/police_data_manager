@@ -3,47 +3,47 @@ import { push } from "connected-react-router";
 
 const publicAPIs = ["/api/public-data", "features"];
 
-const ensureTokenOnRequestInterceptor = (
-  dispatch,
-  isAuthDisabled
-) => config => {
-  let isPublicAPI;
-  const url = config.url.toLowerCase();
+const ensureTokenOnRequestInterceptor =
+  (dispatch, isAuthDisabled) => config => {
+    let isPublicAPI;
+    const url = config.url.toLowerCase();
+    console.log(isAuthDisabled, url);
 
-  publicAPIs.forEach(api => {
-    if (url.startsWith(api)) {
-      isPublicAPI = true;
-      return;
+    publicAPIs.forEach(api => {
+      if (url.startsWith(api)) {
+        isPublicAPI = true;
+        return;
+      }
+    });
+
+    if (accessTokenHasExpired()) {
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("id_token");
+      localStorage.removeItem("expires_at");
     }
-  });
 
-  if (accessTokenHasExpired()) {
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("id_token");
-    localStorage.removeItem("expires_at");
-  }
+    const token = getAccessToken();
+    console.log(token);
 
-  const token = getAccessToken();
-
-  if (!token && !isAuthDisabled && !isPublicAPI) {
-    if (
-      window.location.pathname !== "/login" &&
-      window.location.pathname !== "/callback"
-    ) {
-      localStorage.setItem("redirectUri", window.location.pathname);
+    if (!token && !isAuthDisabled && !isPublicAPI) {
+      if (
+        window.location.pathname !== "/login" &&
+        window.location.pathname !== "/callback"
+      ) {
+        localStorage.setItem("redirectUri", window.location.pathname);
+      }
+      dispatch(push("/login"));
+      throw new Error("No access token found");
     }
-    dispatch(push("/login"));
-    throw new Error("No access token found");
-  }
-  return {
-    ...config,
-    headers: {
-      "Content-Type": "application/json",
-      ...(!isAuthDisabled &&
-        !isPublicAPI && { Authorization: `Bearer ${token}` })
-    }
+    return {
+      ...config,
+      headers: {
+        "Content-Type": "application/json",
+        ...(!isAuthDisabled &&
+          !isPublicAPI && { Authorization: `Bearer ${token}` })
+      }
+    };
   };
-};
 
 const accessTokenHasExpired = () => {
   return (
