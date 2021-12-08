@@ -1,4 +1,4 @@
-FROM base
+FROM publicdataworks/base-app:latest
 
 EXPOSE 5000
 
