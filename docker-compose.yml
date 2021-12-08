@@ -1,28 +1,6 @@
 version: "3"
 
 services:
-  base:
-    container_name: base-container
-    image: base
-    build:
-      context: .
-      dockerfile: Dockerfile.base
-      args:
-        - REACT_APP_ENV=static_development
-        - REACT_APP_GOOGLE_API_KEY
-    environment:
-      - NODE_ENV=development
-      - REACT_APP_ENV=development
-      - NEW_RELIC_ENABLED=false
-      - NEW_RELIC_NO_CONFIG_FILE=true
-      - AWS_ACCESS_KEY_ID
-      - AWS_SECRET_ACCESS_KEY
-      - REACT_APP_GOOGLE_API_KEY
-      - USE_CLOUD_SERVICES=false
-      - REACT_APP_USE_CLOUD_SERVICES=false
-      - REACT_APP_INSTANCE_FILES_DIR=/app/src/instance-files
-    depends_on:
-      - db
   app:
     build:
       context: .
@@ -44,7 +22,7 @@ services:
       - REACT_APP_USE_CLOUD_SERVICES=false
       - REACT_APP_INSTANCE_FILES_DIR=/app/src/instance-files
     depends_on:
-      - base
+      - db
       - worker
       - elasticsearch
     ports:
@@ -113,7 +91,7 @@ services:
       - REACT_APP_USE_CLOUD_SERVICES=false
       - REACT_APP_INSTANCE_FILES_DIR=/app/src/instance-files
     depends_on:
-      - base
+      - db
       - worker
       - elasticsearch
     ports:
@@ -150,7 +128,7 @@ services:
       - REACT_APP_USE_CLOUD_SERVICES=false
       - REACT_APP_INSTANCE_FILES_DIR=/app/src/instance-files
     depends_on:
-      - base
+      - db
       - redis
     ports:
       - "4567:4567"
