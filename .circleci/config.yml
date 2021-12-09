@@ -200,6 +200,19 @@ jobs:
           version: $CIRCLE_SHA1
           instance-version: "latest"
 
+  build-and-publish-playground:
+    docker:
+      - image: docker:stable
+    steps:
+      - setup_remote_docker:
+          version: 19.03.13
+      - run: docker login -u $DOCKER_USER -p $DOCKER_PASSWORD
+      - run: docker build -f Dockerfile.base --build-arg REACT_APP_ENV=playground --build-arg REACT_APP_GOOGLE_API_KEY=$REACT_APP_GOOGLE_API_KEY_PREPROD --build-arg INSTANCE_VERSION=latest --build-arg REACT_APP_INSTANCE_FILES_DIR=/app/src/instance-files -t publicdataworks/base-app:latest .
+      - run: docker build -f Dockerfile.web -t publicdataworks/police-data-manager-playground:$CIRCLE_SHA1 .
+      - run: docker build -f Dockerfile.worker -t publicdataworks/police-data-manager-playground-worker:$CIRCLE_SHA1 .
+      - run: docker push publicdataworks/police-data-manager-playground-worker:$CIRCLE_SHA1
+      - run: docker push publicdataworks/police-data-manager-playground:$CIRCLE_SHA1
+
   build-and-publish-app-playground:
     docker:
       - image: docker:stable
@@ -773,12 +786,12 @@ workflows:
 
   build_and_deploy_playground:
     jobs:
-      # - security-check:
-      - get-instance-files-latest:
+      - security-check:
           filters:
             branches:
               only:
-                - localclient
+                - base
+      - get-instance-files-latest:
           #requires:
           # - security-check
       - test-client:
@@ -790,20 +803,14 @@ workflows:
       - test-server-worker-non-handlers:
           requires:
             - get-instance-files-latest
-      - build-and-publish-app-playground:
-          requires:
-            - test-client
-            - test-server-worker-non-handlers
-            - test-server-handlers-ci
-      - build-and-publish-worker-playground:
+      - build-and-publish-playground:
           requires:
             - test-client
             - test-server-worker-non-handlers
             - test-server-handlers-ci
       - deploy-playground:
           requires:
-            - build-and-publish-app-playground
-            - build-and-publish-worker-playground
+            - build-and-publish-playground
       - ensure-playground-deploy-succeeded:
           requires:
             - deploy-playground
