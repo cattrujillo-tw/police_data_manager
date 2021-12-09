@@ -17,5 +17,3 @@ ARG REACT_APP_ENV
 ARG REACT_APP_GOOGLE_API_KEY
 
 RUN yarn build
-
-CMD ["echo", "base image running"]
