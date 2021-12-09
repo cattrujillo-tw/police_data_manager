@@ -792,8 +792,8 @@ workflows:
               only:
                 - base
       - get-instance-files-latest:
-          #requires:
-          # - security-check
+          requires:
+          - security-check
       - test-client:
           requires:
             - get-instance-files-latest
