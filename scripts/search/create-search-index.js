@@ -1,6 +1,5 @@
 "use strict";
 
-import { ACCUSED, COMPLAINANT } from "../../src/sharedUtilities/constants";
 import { parseSearchTerm } from "../../src/sharedUtilities/searchUtilities";
 
 const updateSearchIndex = async () => {
@@ -70,6 +69,13 @@ const updateSearchIndex = async () => {
                     full_name: { type: "text" },
                     full_name_with_initial: { type: "text" }
                   }
+                },
+                narrative: {
+                  type: "nested",
+                  properties: {
+                    summary: { type: "text" },
+                    details: { type: "text" }
+                  }
                 }
               }
             }
@@ -137,18 +143,23 @@ const updateSearchIndex = async () => {
   };
 
   const bulkOperations = results.flatMap(result => {
-    let case_id = result.id;
-    let tag = result.caseTags.map(tag => ({
+    const case_id = result.id;
+    const tag = result.caseTags.map(tag => ({
       name: parseSearchTerm(tag.tag.name)
     }));
-    let complainantOfficers = result.complainantOfficers.map(mapPerson);
-    let accused = result.accusedOfficers.map(mapPerson);
-    let civilians = result.complainantCivilians.map(mapPerson);
+    const complainantOfficers = result.complainantOfficers.map(mapPerson);
+    const accused = result.accusedOfficers.map(mapPerson);
+    const civilians = result.complainantCivilians.map(mapPerson);
+    const narrative = {
+      summary: parseSearchTerm(result.narrativeSummary),
+      details: parseSearchTerm(result.narrativeDetails)
+    };
     const document = {
       case_id,
       tag,
       accused,
-      complainant: complainantOfficers.concat(civilians)
+      complainant: complainantOfficers.concat(civilians),
+      narrative
     };
 
     return [operation, document];
