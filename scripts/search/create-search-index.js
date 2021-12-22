@@ -1,6 +1,9 @@
 "use strict";
 
-import { parseSearchTerm } from "../../src/sharedUtilities/searchUtilities";
+import {
+  parseSearchTerm,
+  removeTags
+} from "../../src/sharedUtilities/searchUtilities";
 
 const updateSearchIndex = async () => {
   const environment = process.env.NODE_ENV || "development";
@@ -151,8 +154,8 @@ const updateSearchIndex = async () => {
     const accused = result.accusedOfficers.map(mapPerson);
     const civilians = result.complainantCivilians.map(mapPerson);
     const narrative = {
-      summary: parseSearchTerm(result.narrativeSummary),
-      details: parseSearchTerm(result.narrativeDetails)
+      summary: parseSearchTerm(removeTags(result.narrativeSummary)),
+      details: parseSearchTerm(removeTags(result.narrativeDetails))
     };
     const document = {
       case_id,

@@ -101,3 +101,5 @@ export const buildQueryString = query => {
     }, "")
   );
 };
+
+export const removeTags = query => query.replace(/<[^>]*>/gi, "");
