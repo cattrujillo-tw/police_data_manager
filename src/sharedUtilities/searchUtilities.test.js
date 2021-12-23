@@ -89,4 +89,10 @@ describe("removeTags", () => {
       "I like tea and cakes"
     );
   });
+
+  test("should add a space when replacing p and br tags", () => {
+    expect(removeTags("<p>I</p>Am<br>So<br /><p>Tired</p>")).toEqual(
+      " I Am So  Tired "
+    );
+  });
 });
