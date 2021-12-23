@@ -78,7 +78,9 @@ const parenthesizeAroundNOT = queryString => {
 
 const processFieldQuery = word => {
   let [field, term] = word.split(":");
-  return `${field}.\\*:${addAsterisksAroundWordIfNonGrouping(term)}`;
+  return `${
+    field.startsWith("narrative.") ? field : `${field}.\\*`
+  }:${addAsterisksAroundWordIfNonGrouping(term)}`;
 };
 
 export const buildQueryString = query => {
