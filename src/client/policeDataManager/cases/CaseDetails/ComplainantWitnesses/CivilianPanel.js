@@ -138,7 +138,12 @@ const CivilianPanel = ({
                 data-testid="editComplainantLink"
                 onClick={event => {
                   event.stopPropagation();
-                  dispatch(initialize(CIVILIAN_FORM_NAME, civilian));
+                  dispatch(
+                    initialize(CIVILIAN_FORM_NAME, {
+                      ...civilian,
+                      isUnknown: civilian.isAnonymous && !civilian.lastName
+                    })
+                  );
                   dispatch(
                     openCivilianDialog("Edit Civilian", "Save", editCivilian)
                   );
