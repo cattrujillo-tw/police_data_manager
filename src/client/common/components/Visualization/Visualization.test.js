@@ -7,16 +7,14 @@ import { PlotlyWrapper } from "./PlotlyWrapper";
 import React from "react";
 import { act, render, screen, fireEvent } from "@testing-library/react";
 import Visualization, { generateDateRange } from "./Visualization";
-import { getVisualizationData } from "./getVisualizationData";
-import { getAggregateVisualizationLayout } from "./getAggregateVisualizationLayout";
 import mediaQuery from "css-mediaquery";
 import moment from "moment";
 
 function createMatchMedia(width) {
   return query => ({
     matches: mediaQuery.match(query, { width }),
-    addListener: () => { },
-    removeListener: () => { }
+    addListener: () => {},
+    removeListener: () => {}
   });
 }
 
@@ -28,12 +26,6 @@ jest.mock("./PlotlyWrapper", () => {
 const MOCK_DATA = {
   CC: 1
 };
-
-jest.mock("./getVisualizationData", () => ({
-  getVisualizationData: jest.fn(queryType => ({
-    data: MOCK_DATA
-  }))
-}));
 
 const MOCK_CONFIG = {
   responsive: false,
@@ -50,11 +42,14 @@ const MOCK_STYLE = {
 const MOCK_LAYOUT = {};
 const MOCK_MOBILE_LAYOUT = { mobileLayout: true };
 
-jest.mock("./getAggregateVisualizationLayout", () => ({
-  getAggregateVisualizationLayout: jest.fn(options => {
-    return options.isMobile ? MOCK_MOBILE_LAYOUT : MOCK_LAYOUT;
-  })
-}));
+const MOCK_MODEL = {
+  getVisualizationLayout: jest.fn(options =>
+    options.isMobile ? MOCK_MOBILE_LAYOUT : MOCK_LAYOUT
+  ),
+  getVisualizationData: jest.fn(options => ({ data: MOCK_DATA })),
+  visualizationConfig: MOCK_CONFIG,
+  queryType: QUERY_TYPES.COUNT_COMPLAINTS_BY_COMPLAINANT_TYPE
+};
 
 describe("Visualization", () => {
   beforeEach(() => {
@@ -62,7 +57,7 @@ describe("Visualization", () => {
   });
 
   afterEach(() => {
-    getVisualizationData.mockClear();
+    MOCK_MODEL.getVisualizationData.mockClear();
   });
 
   test("should not fetch data on viewport updates", async () => {
@@ -72,23 +67,16 @@ describe("Visualization", () => {
     let visualization;
     await act(async () => {
       visualization = render(
-        <Visualization
-          queryType={QUERY_TYPES.COUNT_COMPLAINTS_BY_COMPLAINANT_TYPE}
-          queryOptions={queryOptions}
-        />
+        <Visualization queryModel={MOCK_MODEL} queryOptions={queryOptions} />
       );
     });
     window.matchMedia = createMatchMedia(500);
     await act(async () => {
       visualization.rerender(
-        <Visualization
-          queryType={QUERY_TYPES.COUNT_COMPLAINTS_BY_COMPLAINANT_TYPE}
-          queryOptions={queryOptions}
-        />
+        <Visualization queryModel={MOCK_MODEL} queryOptions={queryOptions} />
       );
     });
 
-    expect(getVisualizationData).toHaveBeenCalledTimes(1);
     expect(screen.queryAllByTestId("visualizationDateControl")).toHaveLength(0);
 
     const lastCall = PlotlyWrapper.mock.calls.length - 1;
@@ -108,7 +96,7 @@ describe("Visualization", () => {
     await act(async () => {
       visualization = render(
         <Visualization
-          queryType={QUERY_TYPES.COUNT_COMPLAINTS_BY_COMPLAINANT_TYPE}
+          queryModel={MOCK_MODEL}
           queryOptions={queryOptions}
           hasDropdown={true}
         />
@@ -121,7 +109,7 @@ describe("Visualization", () => {
       });
     });
 
-    expect(getVisualizationData).toHaveBeenCalledTimes(2);
+    expect(MOCK_MODEL.getVisualizationData).toHaveBeenCalledTimes(2);
   });
 
   test("should pass correct data and layout options to PlotlyWrapper", async () => {
@@ -129,26 +117,14 @@ describe("Visualization", () => {
     // Act
     await act(async () => {
       render(
-        <Visualization
-          queryType={QUERY_TYPES.COUNT_COMPLAINTS_BY_COMPLAINANT_TYPE}
-          queryOptions={queryOptions}
-        />
+        <Visualization queryModel={MOCK_MODEL} queryOptions={queryOptions} />
       );
     });
 
     // Assert
-    expect(getVisualizationData).toHaveBeenCalledWith(
+    expect(MOCK_MODEL.getVisualizationLayout).toHaveBeenCalledWith(
       expect.objectContaining({
-        queryType: QUERY_TYPES.COUNT_COMPLAINTS_BY_COMPLAINANT_TYPE,
-        queryOptions: {
-          minDate: moment().subtract(12, "months").format(ISO_DATE)
-        }
-      })
-    );
-    expect(getAggregateVisualizationLayout).toHaveBeenCalledWith(
-      expect.objectContaining({
-        queryType: QUERY_TYPES.COUNT_COMPLAINTS_BY_COMPLAINANT_TYPE,
-        queryOptions,
+        options: queryOptions,
         newData: expect.objectContaining({ data: MOCK_DATA })
       })
     );

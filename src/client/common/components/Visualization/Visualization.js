@@ -1,10 +1,8 @@
 import React from "react";
+import PropTypes from "prop-types";
 import { isEmpty } from "lodash";
 import { useEffect, useState } from "react";
 import { PlotlyWrapper } from "./PlotlyWrapper";
-import { getVisualizationData } from "./getVisualizationData";
-import { getAggregateVisualizationLayout } from "./getAggregateVisualizationLayout";
-import { getVisualizationConfig } from "./getVisualizationConfig";
 import useMediaQuery from "@material-ui/core/useMediaQuery";
 import {
   DATE_RANGE_TYPE,
@@ -12,6 +10,7 @@ import {
 } from "../../../../sharedUtilities/constants";
 import moment from "moment";
 import VisualizationDateRangeSelect from "./VisualizationDateRangeSelect";
+import { getQueryModelByQueryType } from "./models/queryModelFactory";
 
 const isAYear = input => (input ? /^\d{4}$/.test(input) : false);
 
@@ -32,7 +31,7 @@ export const generateDateRange = range => {
   }
 };
 
-const Visualization = ({ queryType, isPublic, queryOptions, hasDropdown }) => {
+const Visualization = ({ queryModel, isPublic, queryOptions, hasDropdown }) => {
   const [data, setData] = useState({ data: [], isFetching: true });
   const [layout, setLayout] = useState({});
   const [config, setConfig] = useState({});
@@ -42,8 +41,7 @@ const Visualization = ({ queryType, isPublic, queryOptions, hasDropdown }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const newData = await getVisualizationData({
-          queryType,
+        const newData = await queryModel.getVisualizationData({
           isPublic,
           queryOptions: generateDateRange(dateRange)
         });
@@ -56,20 +54,20 @@ const Visualization = ({ queryType, isPublic, queryOptions, hasDropdown }) => {
     };
 
     fetchData();
-  }, [queryType, isPublic, dateRange]);
+  }, [queryModel, isPublic, dateRange]);
 
   useEffect(() => {
     const createConfig = () => {
-      const config = { ...getVisualizationConfig(queryType) };
+      const config = { ...queryModel.visualizationConfig };
       setConfig({ ...config });
     };
 
     const createLayout = () => {
       const newLayout =
-        getAggregateVisualizationLayout({
+        queryModel.getVisualizationLayout({
           newData: data,
-          queryType,
-          queryOptions: { dateRangeType: dateRange },
+          queryModel,
+          options: { dateRangeType: dateRange },
           isPublic,
           isMobile
         }) || {};
@@ -78,7 +76,7 @@ const Visualization = ({ queryType, isPublic, queryOptions, hasDropdown }) => {
 
     createLayout();
     createConfig();
-  }, [data, queryType, queryOptions, isPublic, isMobile]);
+  }, [data, queryModel, queryOptions, isPublic, isMobile]);
 
   return (
     <section>
@@ -87,7 +85,7 @@ const Visualization = ({ queryType, isPublic, queryOptions, hasDropdown }) => {
           <VisualizationDateRangeSelect
             dateRange={dateRange}
             setDateRange={setDateRange}
-            queryType={queryType}
+            queryType={queryModel.queryType}
           />
         ) : (
           ""
@@ -106,6 +104,15 @@ const Visualization = ({ queryType, isPublic, queryOptions, hasDropdown }) => {
       />
     </section>
   );
+};
+
+Visualization.propTypes = {
+  queryModel: PropTypes.object,
+  isPublic: PropTypes.bool,
+  queryOptions: PropTypes.shape({
+    dateRangeType: PropTypes.string
+  }),
+  hasDropdown: PropTypes.bool
 };
 
 export default Visualization;
